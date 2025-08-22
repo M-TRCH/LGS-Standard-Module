@@ -1,25 +1,12 @@
-#include <Arduino.h>
-#include <ArduinoRS485.h>
-#include <ArduinoModbus.h>
-#include <HardwareSerial.h>
-#include <Stream.h>
 
-#define RUN_LED_PIN         PB9
-#define RX_PIN              PA10
-#define TX_PIN              PA9
-#define RX3_PIN             PA3
-#define TX3_PIN             PA2
-#define FLOAT_PIN           PA0
+#include <Arduino.h>
+#include "system.h"
 
 #define MODBUS_SERIAL       0x00
-#define MODBUS_3_SERIAL     0x01
-#define MODBUS_ID           99                  // Slave Identifier
+#define MODBUS_SERIAL3      0x01
+#define MODBUS_ID           18                  // Slave Identifier
 #define MODBUS_BAUD         9600
 #define MODBUS_SELECT       MODBUS_SERIAL       // Select the physical output
-HardwareSerial Serial3(RX3_PIN, TX3_PIN);
-
-RS485Class rs485(Serial, FLOAT_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and control pins
-RS485Class rs4853(Serial3, FLOAT_PIN, TX3_PIN, RX3_PIN);    // Initialize RS485 for Serial3
 
 #include <Adafruit_NeoPixel.h>
 #define LED_NUM   1
@@ -36,17 +23,11 @@ uint8_t last_led_state[8] = {0};
 
 void setup() 
 {
-    pinMode(RUN_LED_PIN, OUTPUT);
-
-    Serial.setRx(RX_PIN);
-    Serial.setTx(TX_PIN);
-    Serial.begin(MODBUS_BAUD);  // Initialize serial communication at 9600 baud
-
-    Serial3.begin(MODBUS_BAUD); // Initialize Serial3 for additional communication if needed
+    sysInit();
 
     #if MODBUS_SELECT == MODBUS_SERIAL
         ModbusRTUServer.begin(rs485, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1); // Start Modbus RTU server with ID 1, baud rate 9600, and config SERIAL_8N1
-    #elif MODBUS_SELECT == MODBUS_3_SERIAL
+    #elif MODBUS_SELECT == MODBUS_SERIAL3
         ModbusRTUServer.begin(rs4853, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1); // Start Modbus RTU server with Serial3
     #endif
 

@@ -6,7 +6,6 @@
 #include <Stream.h>
 #include <HardwareSerial.h>
 #include <ArduinoRS485.h>
-#include <ArduinoModbus.h>
 
 // Pin definitions
 #define RX_PIN          PA10

@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include "system.h"
 #include "led.h"
@@ -8,26 +9,6 @@
 #define MODBUS_SELECT       MODBUS_SERIAL       // Select the physical output
 
 uint8_t last_led_state[8] = {0};
-#define LED_POWER 0.2
-float color[16][3] = 
-{
-    {255 * LED_POWER, 0, 0},                            // Red
-    {0, 255 * LED_POWER, 0},                            // Green
-    {0, 0, 255 * LED_POWER},                            // Blue
-    {255 * LED_POWER, 255 * LED_POWER, 0},              // Yellow
-    {0, 255 * LED_POWER, 255 * LED_POWER},              // Cyan
-    {255 * LED_POWER, 0, 255 * LED_POWER},              // Magenta
-    {255 * LED_POWER, 128 * LED_POWER, 0},              // Orange
-    {255 * LED_POWER, 255 * LED_POWER, 255 * LED_POWER},// White
-    {128 * LED_POWER, 0, 255 * LED_POWER},              // Violet
-    {0, 128 * LED_POWER, 255 * LED_POWER},              // Azure
-    {128 * LED_POWER, 255 * LED_POWER, 0},              // Chartreuse
-    {255 * LED_POWER, 0, 128 * LED_POWER},              // Rose
-    {0, 255 * LED_POWER, 128 * LED_POWER},              // Spring Green
-    {128 * LED_POWER, 0, 0},                            // Maroon
-    {0, 128 * LED_POWER, 0},                            // Dark Green
-    {0, 0, 128 * LED_POWER}                             // Navy
-};
 
 void setup() 
 {
@@ -40,9 +21,9 @@ void setup()
     #endif
 
     #if MODBUS_SELECT == MODBUS_SERIAL
-        ModbusRTUServer.begin(rs485, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1); // Start Modbus RTU server with ID 1, baud rate 9600, and config SERIAL_8N1
+        ModbusRTUServer.begin(rs485, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1);   // Start Modbus RTU server with ID 1, baud rate 9600, and config SERIAL_8N1
     #elif MODBUS_SELECT == MODBUS_SERIAL3
-        ModbusRTUServer.begin(rs4853, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1); // Start Modbus RTU server with Serial3
+        ModbusRTUServer.begin(rs4853, MODBUS_ID, MODBUS_BAUD, SERIAL_8N1);  // Start Modbus RTU server with Serial3
     #endif
 
     ModbusRTUServer.configureCoils(0x00, 8);
@@ -65,7 +46,7 @@ void loop()
 
                 if (led_state) // If the LED state is ON
                 {
-                    leds[i]->setPixelColor(0, leds[i]->Color(color[i][0], color[i][1], color[i][2]));
+                    leds[i]->setPixelColor(0, leds[i]->Color(default_color[i][0], default_color[i][1], default_color[i][2]));
                     leds[i]->show();
                 }
                 else

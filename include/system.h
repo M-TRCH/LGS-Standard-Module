@@ -1,4 +1,3 @@
-
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -29,6 +28,11 @@
 #define SERVO_PIN       PA7
 #define SENSE_PIN       PA6
 
+// Communication settings
+#define DEBUG_BAUD      9600
+#define MODBUS_BAUD     9600
+
+// Object declarations
 extern HardwareSerial Serial3; 
 extern RS485Class rs485;
 extern RS485Class rs4853;

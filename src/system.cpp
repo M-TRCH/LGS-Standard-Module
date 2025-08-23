@@ -16,15 +16,15 @@ void sysInit()
     pinMode(LED6_PIN, OUTPUT);
     pinMode(LED7_PIN, OUTPUT);
     pinMode(LED8_PIN, OUTPUT);
-    pinMode(ROW_SW_PIN, INPUT_PULLUP);
-    pinMode(COL_SW_PIN, INPUT_PULLUP);
     pinMode(MOSFET_PIN, OUTPUT);
     pinMode(SERVO_PIN, OUTPUT);
+    pinMode(ROW_SW_PIN, INPUT_PULLUP);
+    pinMode(COL_SW_PIN, INPUT_PULLUP);
     pinMode(SENSE_PIN, INPUT_PULLUP);
 
     Serial.setRx(RX_PIN);
     Serial.setTx(TX_PIN);
-    Serial.begin(9600);
+    Serial.begin(DEBUG_BAUD);
 
-    Serial3.begin(9600);
+    Serial3.begin(MODBUS_BAUD);
 }

@@ -4,6 +4,6 @@
 
 #define MODBUS_SERIAL       0x00
 #define MODBUS_SERIAL3      0x01
-#define MODBUS_OUTPUT       MODBUS_SERIAL   // Select the physical output
+#define MODBUS_OUTPUT       MODBUS_SERIAL3  // Select the physical output
 
 #endif

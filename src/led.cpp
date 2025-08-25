@@ -10,7 +10,8 @@ Adafruit_NeoPixel led7(LED_NUM_PER_STRIP, LED7_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led8(LED_NUM_PER_STRIP, LED8_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel *leds[] = {&led1, &led2, &led3, &led4, &led5, &led6, &led7, &led8};
 
-float default_color[16][3] = {
+float default_color[16][3] = 
+{
     {DEFAULT_LED_PWM, 0, 0},                                // Red
     {0, DEFAULT_LED_PWM, 0},                                // Green
     {0, 0, DEFAULT_LED_PWM},                                // Blue

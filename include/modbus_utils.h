@@ -6,26 +6,25 @@
 #include "config.h"
 #include "system.h"
 
-#define MODBUS_ID               18          // Slave Identifier
-#define COIL_NUM                800         // Number of coils
-#define DISCRETE_INPUT_NUM      800         // Number of discrete inputs
-#define HOLDING_REGISTER_NUM    800         // Number of holding registers
-#define INPUT_REGISTER_NUM      800         // Number of input registers
+#define MODBUS_ID                   18      // Slave Identifier
+#define COIL_NUM                    800     // Number of coils
+#define DISCRETE_INPUT_NUM          800     // Number of discrete inputs
+#define HOLDING_REGISTER_NUM        800     // Number of holding registers
+#define INPUT_REGISTER_NUM          800     // Number of input registers
 
 // Modbus Address Mapping
-// Group A: Device and Health (Holding Registers, EEPROM Area)
-#define MB_REG_DEVICE_TYPE          0       // device type
-#define MB_REG_FW_VERSION           1       // firmware version
-#define MB_REG_SERIAL_NUMBER        2       // serial number
-#define MB_REG_BAUD_RATE            3       // baud rate (default 9600)
+// Group A: Device and Statistic (Holding Registers, EEPROM Area)
+#define MB_REG_DEVICE_TYPE          0       // device type (read-only)
+#define MB_REG_FW_VERSION           1       // firmware version (read-only)
+#define MB_REG_SERIAL_NUMBER        2       // serial number (read-only)
+#define MB_REG_BAUD_RATE            3       // baud rate (default 9600) (read/write)
 #define MB_REG_IDENTIFIER           4       // identifier (read/write, range 1-246, default 247)
-#define MB_REG_LAST_ERROR           5       // last error
 
-// Group B: System Control and Status (Coils, EEPROM Area)
-#define MB_COIL_FACTORY_RESET        0      // Factory Reset (write)
-#define MB_COIL_WRITE_TO_EEPROM      1      // Write to EEPROM (write)
+// Group B: System Control (Coils, EEPROM Area)
+#define MB_COIL_FACTORY_RESET       0       // Factory Reset (write)
+#define MB_COIL_WRITE_TO_EEPROM     1       // Write to EEPROM (write)
 
-// Group C: LED Control (Holding Registers, EEPROM Area)
+// Group C: LED Configuration (Holding Registers, EEPROM Area)
 // Brightness: read/write, range 0-100, default 20
 // Red, Green, Blue: read/write, range 0-255
 // LED0: red (R=255, G=0, B=0)
@@ -76,7 +75,7 @@
 #define MB_REG_LED_7_GREEN          172
 #define MB_REG_LED_7_BLUE           173
 
-// Group D: LED Control (Coils, RAM Area)
+// Group R: LED Control (Coils, RAM Area)
 #define MB_COIL_LED_0_ENABLE        100
 #define MB_COIL_LED_1_ENABLE        110
 #define MB_COIL_LED_2_ENABLE        120
@@ -85,6 +84,9 @@
 #define MB_COIL_LED_5_ENABLE        150
 #define MB_COIL_LED_6_ENABLE        160
 #define MB_COIL_LED_7_ENABLE        170
+
+// Group S: System status (Reg, RAM Area)
+#define MB_REG_LAST_ERROR           10      // last error (read-only)
 
 extern ModbusRTUServerClass RTUServer;
 

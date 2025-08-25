@@ -4,6 +4,7 @@
 #include "system.h"
 #include "led.h"
 #include "modbus_utils.h"
+#include "eeprom_utils.h"
 
 uint8_t last_led_state[8] = {0};
 
@@ -20,10 +21,18 @@ void setup()
     #ifdef MODBUS_UTILS_H
         modbusInit();  // Initialize Modbus
     #endif
+
+    loadEepromConfig(); // Load configuration from EEPROM
+    eepromConfig_cache = eepromConfig;
+
+    // eepromConfig.serialNumber = 3456; // Set a default serial number
+    // saveEepromConfig(); // Save to EEPROM if changed
 }
 
 void loop() 
-{
+{   
+    RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
+
     if(RTUServer.poll()) 
     {
         // read the current value of the coil

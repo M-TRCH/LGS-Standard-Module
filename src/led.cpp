@@ -35,8 +35,10 @@ float default_color[17][3] =
 void ledInit() 
 {   
     // Initialize LED strips
-    for (int i = 0; i < LED_NUM; i++) 
+    for (int i = 1; i <= LED_NUM; i++) 
     {
         leds[i]->begin();
+        leds[i]->setPixelColor(0, leds[i]->Color(0,0,0));
+        leds[i]->show(); // Initialize all pixels to 'off'
     }
 }

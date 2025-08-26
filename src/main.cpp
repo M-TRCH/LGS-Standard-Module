@@ -18,10 +18,21 @@ void setup()
         loadEepromConfig(); // Load configuration from EEPROM
         eepromConfig_cache = eepromConfig;
 
-        // write default values to EEPROM
-        // eepromConfig.identifier = 18;
-        // eepromConfig.serialNumber = 3456; // Set a default serial number
-        // saveEepromConfig(); // Save to EEPROM if changed    
+        if (eepromConfig.notFirsttimeProg == false) 
+        {
+            // write default values to EEPROM
+            Serial.println("First time programming - writing default config to EEPROM");
+            eepromConfig.notFirsttimeProg = true;   // Set the flag to true
+            eepromConfig.identifier = 18;           // Set a default identifier
+            eepromConfig.serialNumber = 3456;       // Set a default serial number
+            saveEepromConfig();                     // Save to EEPROM if changed
+        }
+
+        // eepromConfig.identifier = 18;           // Set a default identifier
+        // eepromConfig.serialNumber = 1234;       // Set a default serial number
+        // saveEepromConfig();                     // Save to EEPROM if changed
+        
+        Serial.println("EEPROM configuration loaded");
     #endif
 
     #ifdef LED_H
@@ -37,9 +48,31 @@ void setup()
 }
 
 void loop() 
-{   
-    if(RTUServer.poll()) 
+{  
+    // Reset the system when the time arrives
+    static uint16_t lastTime_reset = millis();
+    if (millis() - lastTime_reset >= 30000) 
     {
+        lastTime_reset = millis();
+        // digitalWrite(LED_RUN_PIN, LOW);
+        // delay(2000);
+        // NVIC_SystemReset(); // Perform software reset
+    }
+    
+    // Poll Modbus server for requests
+    if(RTUServer.poll()) 
+    {   
+        if (RTUServer.coilRead(MB_COIL_FACTORY_RESET) && RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
+        {
+            // Perform factory reset
+            Serial.println("Factory Reset initiated via Modbus");
+            eepromConfig.notFirsttimeProg = false;  // Clear the flag
+            saveEepromConfig();                     // Save to EEPROM if changed
+            digitalWrite(LED_RUN_PIN, LOW);
+            delay(2000);
+            NVIC_SystemReset();                     // Perform software reset
+        }
+
         // read the current value of the coil
         for (int i = 1; i <= 8; i++) 
         {

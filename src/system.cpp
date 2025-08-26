@@ -18,8 +18,8 @@ void sysInit()
     pinMode(LED8_PIN, OUTPUT);
     pinMode(MOSFET_PIN, OUTPUT);
     pinMode(SERVO_PIN, OUTPUT);
-    pinMode(ROW_SW_PIN, INPUT_PULLUP);
-    pinMode(COL_SW_PIN, INPUT_PULLUP);
+    // pinMode(ROW_SW_PIN, INPUT_PULLUP);
+    // pinMode(COL_SW_PIN, INPUT_PULLUP);
     pinMode(SENSE_PIN, INPUT_PULLUP);
 
     Serial.setRx(RX_PIN);
@@ -27,4 +27,6 @@ void sysInit()
     Serial.begin(DEBUG_BAUD);
 
     Serial3.begin(MODBUS_BAUD);
+
+    digitalWrite(LED_RUN_PIN, HIGH);
 }

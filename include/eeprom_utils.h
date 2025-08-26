@@ -9,6 +9,7 @@
 // Example struct for all persistent config
 typedef struct 
 {
+    bool notFirsttimeProg;
     uint16_t deviceType;
     uint16_t fwVersion;
     uint16_t serialNumber;
@@ -23,10 +24,12 @@ typedef struct
 extern EepromConfig_t eepromConfig;
 extern EepromConfig_t eepromConfig_cache;
 
+void eepromInit();
+
 // Load all config from EEPROM to RAM
 void loadEepromConfig();
 
-// Save all config from RAM to EEPROM (write only if changed)
+// Save all config from RAM to EEPROM 
 void saveEepromConfig();
 
 #endif

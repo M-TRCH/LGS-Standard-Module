@@ -18,3 +18,13 @@ void saveEepromConfig()
         eepromConfig_cache = eepromConfig; // update cache
     }
 }
+
+void saveEepromInitialConfig()
+{
+    // Only write if the EEPROM is not already set
+    if (eepromConfig_cache.deviceType == 0) 
+    {
+        EEPROM.put(0, eepromConfig);
+        eepromConfig_cache = eepromConfig; // update cache
+    }
+}

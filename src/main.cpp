@@ -6,7 +6,7 @@
 #include "modbus_utils.h"
 #include "eeprom_utils.h"
 
-uint8_t last_led_state[8] = {0};
+uint8_t last_led_state[9] = {0};
 
 void setup() 
 {
@@ -14,31 +14,36 @@ void setup()
         sysInit();  // Initialize system
     #endif
 
+    #ifdef EEPROM_UTILS_H
+        loadEepromConfig(); // Load configuration from EEPROM
+        eepromConfig_cache = eepromConfig;
+
+        // write default values to EEPROM
+        // eepromConfig.identifier = 18;
+        // eepromConfig.serialNumber = 3456; // Set a default serial number
+        // saveEepromConfig(); // Save to EEPROM if changed    
+    #endif
+
     #ifdef LED_H
         ledInit();  // Initialize LEDs
     #endif
 
     #ifdef MODBUS_UTILS_H
-        modbusInit();  // Initialize Modbus
+        modbusInit(eepromConfig.identifier);  // Initialize Modbus
+
+        RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
+        RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
     #endif
-
-    loadEepromConfig(); // Load configuration from EEPROM
-    eepromConfig_cache = eepromConfig;
-
-    // eepromConfig.serialNumber = 3456; // Set a default serial number
-    // saveEepromConfig(); // Save to EEPROM if changed
 }
 
 void loop() 
 {   
-    RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
-
     if(RTUServer.poll()) 
     {
         // read the current value of the coil
-        for (int i = 0; i < 8; i++) 
+        for (int i = 1; i <= 8; i++) 
         {
-            int led_state = RTUServer.coilRead(0x00 + i);
+            int led_state = RTUServer.coilRead(1000 + i);
             if (led_state != last_led_state[i]) // Check if the LED state has changed
             {
                 last_led_state[i] = led_state;

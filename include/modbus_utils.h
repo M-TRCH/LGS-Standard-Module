@@ -21,11 +21,11 @@
 #define MB_REG_IDENTIFIER           4       // identifier (read/write, range 1-246, default 247)
 
 // (2) Device Control (Coils, EEPROM Area)
-#define MB_COIL_FACTORY_RESET       500     // Factory Reset (write)
-#define MB_COIL_WRITE_TO_EEPROM     501     // Write to EEPROM (write)
-#define MB_COIL_UNDEFINED           502     // Undefined (write)
-#define MB_COIL_UNDEFINED_2         503     // Undefined (write)
-#define MB_COIL_UNDEFINED_3         504     // Undefined (write)
+#define MB_COIL_FACTORY_RESET_EXCEPT_ID 500     // Factory Reset Except ID (write)
+#define MB_COIL_FACTORY_RESET_ALL_DATA  501     // Factory Reset All Data (write)
+#define MB_COIL_WRITE_TO_EEPROM         502     // Write to EEPROM (write)
+#define MB_COIL_UNDEFINED               503     // Undefined (write)
+#define MB_COIL_UNDEFINED_2             504     // Undefined (write)
 
 // (3) LED Configuration (Holding Registers, EEPROM Area)
 // Brightness: read/write, range 0-100, default 20
@@ -35,43 +35,36 @@
 #define MB_REG_LED_1_RED            111
 #define MB_REG_LED_1_GREEN          112
 #define MB_REG_LED_1_BLUE           113
-
 // LED2: green (R=0, G=255, B=0)
 #define MB_REG_LED_2_BRIGHTNESS     120
 #define MB_REG_LED_2_RED            121
 #define MB_REG_LED_2_GREEN          122
 #define MB_REG_LED_2_BLUE           123
-
 // LED3: blue (R=0, G=0, B=255)
 #define MB_REG_LED_3_BRIGHTNESS     130
 #define MB_REG_LED_3_RED            131
 #define MB_REG_LED_3_GREEN          132
 #define MB_REG_LED_3_BLUE           133
-
 // LED4: yellow (R=255, G=255, B=0)
 #define MB_REG_LED_4_BRIGHTNESS     140
 #define MB_REG_LED_4_RED            141
 #define MB_REG_LED_4_GREEN          142
 #define MB_REG_LED_4_BLUE           143
-
 // LED5: cyan (R=0, G=255, B=255)
 #define MB_REG_LED_5_BRIGHTNESS     150
 #define MB_REG_LED_5_RED            151
 #define MB_REG_LED_5_GREEN          152
 #define MB_REG_LED_5_BLUE           153
-
 // LED6: purple (R=255, G=0,   B=255)
 #define MB_REG_LED_6_BRIGHTNESS     160
 #define MB_REG_LED_6_RED            161
 #define MB_REG_LED_6_GREEN          162
 #define MB_REG_LED_6_BLUE           163
-
 // LED7: orange (R=255, G=165, B=0)
 #define MB_REG_LED_7_BRIGHTNESS     170
 #define MB_REG_LED_7_RED            171
 #define MB_REG_LED_7_GREEN          172
 #define MB_REG_LED_7_BLUE           173
-
 // LED8: white (R=255, G=255, B=255)
 #define MB_REG_LED_8_BRIGHTNESS     180
 #define MB_REG_LED_8_RED            181

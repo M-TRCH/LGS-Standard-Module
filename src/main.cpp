@@ -62,7 +62,7 @@ void loop()
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
-        if (RTUServer.coilRead(MB_COIL_FACTORY_RESET) && RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
+        if (RTUServer.coilRead(MB_COIL_FACTORY_RESET_ALL_DATA) && RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
         {
             // Perform factory reset
             Serial.println("Factory Reset initiated via Modbus");

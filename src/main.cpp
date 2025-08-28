@@ -15,17 +15,22 @@ void setup()
     #endif
 
     #ifdef EEPROM_UTILS_H
+        // clearEeprom();
+        // Serial.println("EEPROM cleared for testing purposes");
+        // Serial.flush();
+        // while (1);
+
         loadEepromConfig(); // Load configuration from EEPROM
         eepromConfig_cache = eepromConfig;
 
-        if (eepromConfig.notFirsttimeProg == false) 
+        if (eepromConfig.isFirstBoot == true) 
         {
             // write default values to EEPROM
             Serial.println("First time programming - writing default config to EEPROM");
-            eepromConfig.notFirsttimeProg = true;   // Set the flag to true
-            eepromConfig.identifier = 18;           // Set a default identifier
-            eepromConfig.serialNumber = 3456;       // Set a default serial number
+            eepromConfig = eepromConfig_default;
             saveEepromConfig();                     // Save to EEPROM if changed
+            delay(2000);
+            NVIC_SystemReset();    
         }
 
         // eepromConfig.identifier = 18;           // Set a default identifier
@@ -40,6 +45,7 @@ void setup()
     #endif
 
     #ifdef MODBUS_UTILS_H
+        Serial.println("Modbus ID: " + String(eepromConfig.identifier));
         modbusInit(eepromConfig.identifier);  // Initialize Modbus
 
         RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
@@ -49,29 +55,32 @@ void setup()
 
 void loop() 
 {  
-    // Reset the system when the time arrives
-    static uint16_t lastTime_reset = millis();
-    if (millis() - lastTime_reset >= 30000) 
-    {
-        lastTime_reset = millis();
-        // digitalWrite(LED_RUN_PIN, LOW);
-        // delay(2000);
-        // NVIC_SystemReset(); // Perform software reset
-    }
-    
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
-        if (RTUServer.coilRead(MB_COIL_FACTORY_RESET_ALL_DATA) && RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
+        if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
         {
-            // Perform factory reset
-            Serial.println("Factory Reset initiated via Modbus");
-            eepromConfig.notFirsttimeProg = false;  // Clear the flag
-            saveEepromConfig();                     // Save to EEPROM if changed
-            digitalWrite(LED_RUN_PIN, LOW);
-            delay(2000);
-            NVIC_SystemReset();                     // Perform software reset
+            if (RTUServer.coilRead(MB_COIL_FACTORY_RESET_ALL_DATA)) 
+            {
+                // Perform factory reset
+                Serial.println("Factory Reset initiated via Modbus");
+                eepromConfig.isFirstBoot = true;        // Clear the flag
+                saveEepromConfig();                     // Save to EEPROM if changed
+                digitalWrite(LED_RUN_PIN, LOW);
+                delay(2000);
+                NVIC_SystemReset();                     // Perform software reset
+            }
+            else
+            {
+                // Save current config to EEPROM
+                Serial.println("Saving configuration to EEPROM via Modbus");
+                saveEepromConfig();                     // Save to EEPROM if changed
+                digitalWrite(LED_RUN_PIN, LOW);
+                delay(2000);
+                NVIC_SystemReset();                     // Perform software reset
+            }
         }
+
 
         // read the current value of the coil
         for (int i = 1; i <= 8; i++) 

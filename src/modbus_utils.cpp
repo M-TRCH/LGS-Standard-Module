@@ -18,3 +18,6 @@ void modbusInit(int id)
     RTUServer.configureHoldingRegisters(0x00, HOLDING_REGISTER_NUM);
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
 }
+
+
+

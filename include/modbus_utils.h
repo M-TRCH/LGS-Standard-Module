@@ -5,6 +5,7 @@
 #include <ModbusRTUServer.h>
 #include "config.h"
 #include "system.h"
+#include "eeprom_utils.h"
 
 #define DEFAULT_IDENTIFIER          247     // Default Modbus Identifier
 #define COIL_NUM                    5000    // Number of coils

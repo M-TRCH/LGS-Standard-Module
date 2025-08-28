@@ -39,5 +39,6 @@ void saveEepromConfig()
     {
         EEPROM.put(0, eepromConfig);
         eepromConfig_cache = eepromConfig; // update cache
+        Serial.println("EEPROM configuration saved");
     }
 }

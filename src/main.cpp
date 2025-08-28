@@ -21,8 +21,7 @@ void setup()
         // while (1);
 
         loadEepromConfig(); // Load configuration from EEPROM
-        eepromConfig_cache = eepromConfig;
-
+        
         if (eepromConfig.isFirstBoot == true) 
         {
             // write default values to EEPROM
@@ -32,11 +31,6 @@ void setup()
             delay(2000);
             NVIC_SystemReset();    
         }
-
-        // eepromConfig.identifier = 18;           // Set a default identifier
-        // eepromConfig.serialNumber = 1234;       // Set a default serial number
-        // saveEepromConfig();                     // Save to EEPROM if changed
-        
         Serial.println("EEPROM configuration loaded");
     #endif
 
@@ -48,7 +42,10 @@ void setup()
         Serial.println("Modbus ID: " + String(eepromConfig.identifier));
         modbusInit(eepromConfig.identifier);  // Initialize Modbus
 
+        RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
+        RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
         RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
+        RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
         RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
     #endif
 }
@@ -74,6 +71,10 @@ void loop()
             {
                 // Save current config to EEPROM
                 Serial.println("Saving configuration to EEPROM via Modbus");
+                
+                
+                eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
+                
                 saveEepromConfig();                     // Save to EEPROM if changed
                 digitalWrite(LED_RUN_PIN, LOW);
                 delay(2000);

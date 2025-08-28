@@ -32,6 +32,8 @@ float default_color[17][3] =
     {0, 0, DEFAULT_LED_PWM/2}                               // Navy
 };
 
+bool last_led_state[LED_NUM+1] = {false, false, false, false, false, false, false, false, false};
+
 void ledInit() 
 {   
     // Initialize LED strips

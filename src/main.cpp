@@ -6,8 +6,6 @@
 #include "modbus_utils.h"
 #include "eeprom_utils.h"
 
-uint8_t last_led_state[9] = {0};
-
 void setup() 
 {
     #ifdef SYSTEM_H
@@ -39,14 +37,9 @@ void setup()
     #endif
 
     #ifdef MODBUS_UTILS_H
-        Serial.println("Modbus ID: " + String(eepromConfig.identifier));
+        PRINT(DEBUG_BASIC, "Modbus ID: " + String(eepromConfig.identifier));
         modbusInit(eepromConfig.identifier);  // Initialize Modbus
-
-        RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
-        RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
-        RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
-        RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
-        RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
+        eeprom2modbusMapping();
     #endif
 }
 
@@ -76,6 +69,7 @@ void loop()
                 eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
                 
                 saveEepromConfig();                     // Save to EEPROM if changed
+
                 digitalWrite(LED_RUN_PIN, LOW);
                 delay(2000);
                 NVIC_SystemReset();                     // Perform software reset

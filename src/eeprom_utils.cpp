@@ -1,3 +1,4 @@
+
 #include "eeprom_utils.h"
 
 EepromConfig_t eepromConfig;

@@ -37,6 +37,21 @@ extern HardwareSerial Serial3;
 extern RS485Class rs485;
 extern RS485Class rs4853;
 
+// Constants definitions
+// Debug level
+enum DebugLevel
+{
+    DEBUG_NONE = 0,
+    DEBUG_BASIC,
+    DEBUG_VERBOSE
+};
+
+extern DebugLevel debugLevel;
+
+// Macro definitions
+#define PRINT(level, msg) \
+    do { if (debugLevel >= level) Serial.println(msg); } while(0)
+
 void sysInit();
 
 #endif

@@ -19,5 +19,19 @@ void modbusInit(int id)
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
 }
 
+void modbus2eepromMapping() 
+{
+    // Write Modbus values to EEPROM
+    eepromConfig.baudRate = RTUServer.holdingRegisterRead(MB_REG_BAUD_RATE);
+    eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
+}
 
-
+void eeprom2modbusMapping() 
+{
+    // Read EEPROM values and update Modbus
+    RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
+    RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
+    RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
+    RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
+    RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
+}

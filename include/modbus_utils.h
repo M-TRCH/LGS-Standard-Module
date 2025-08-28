@@ -7,7 +7,6 @@
 #include "system.h"
 #include "eeprom_utils.h"
 
-#define DEFAULT_IDENTIFIER          247     // Default Modbus Identifier
 #define COIL_NUM                    5000    // Number of coils
 #define DISCRETE_INPUT_NUM          1       // Number of discrete inputs
 #define HOLDING_REGISTER_NUM        200     // Number of holding registers
@@ -84,6 +83,13 @@
 
 extern ModbusRTUServerClass RTUServer;
 
+// Modbus Initialization
 void modbusInit(int id=DEFAULT_IDENTIFIER);
+
+// Modbus to EEPROM Mapping
+void modbus2eepromMapping();
+
+// EEPROM to Modbus Mapping
+void eeprom2modbusMapping();
 
 #endif

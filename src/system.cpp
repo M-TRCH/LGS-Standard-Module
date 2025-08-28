@@ -5,6 +5,9 @@ HardwareSerial Serial3(RX3_PIN, TX3_PIN);
 RS485Class rs485(Serial, DUMMY_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and Serial3
 RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);     
 
+// Debug level configuration
+DebugLevel debugLevel = DEBUG_BASIC;
+
 void sysInit()
 {
     pinMode(LED_RUN_PIN, OUTPUT);
@@ -21,6 +24,7 @@ void sysInit()
     // pinMode(ROW_SW_PIN, INPUT_PULLUP);
     // pinMode(COL_SW_PIN, INPUT_PULLUP);
     pinMode(SENSE_PIN, INPUT_PULLUP);
+    digitalWrite(LED_RUN_PIN, LOW);
 
     Serial.setRx(RX_PIN);
     Serial.setTx(TX_PIN);
@@ -28,5 +32,11 @@ void sysInit()
 
     Serial3.begin(MODBUS_BAUD);
 
+    // Wait for Serial to be ready
+    uint32_t startup = millis();
+    while(millis() - startup < 2000)
+    {
+        // if (Serial) break;
+    }
     digitalWrite(LED_RUN_PIN, HIGH);
 }

@@ -23,7 +23,7 @@ void loadEepromConfig()
     eepromConfig_cache = eepromConfig; // keep a copy for change detection
 }
 
-void clearEeprom() 
+void clearEeprom(bool whileRunning) 
 {
     EEPROM.begin();
     for (int i = 0; i < sizeof(EepromConfig_t); i++) 
@@ -31,15 +31,21 @@ void clearEeprom()
         EEPROM.write(i, 0xFF);
     }
     EEPROM.end();
+    PRINT(DEBUG_BASIC, F("EEPROM cleared\n"));
+    while (whileRunning)
+    {
+        
+    }
 }
 
-void saveEepromConfig() 
+bool saveEepromConfig() 
 {
     // Only write if data changed
     if (memcmp(&eepromConfig, &eepromConfig_cache, sizeof(EepromConfig_t)) != 0) 
     {
         EEPROM.put(0, eepromConfig);
         eepromConfig_cache = eepromConfig; // update cache
-        Serial.println("EEPROM configuration saved");
+        return true;
     }
+    return false;
 }

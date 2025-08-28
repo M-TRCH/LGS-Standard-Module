@@ -50,7 +50,7 @@ extern DebugLevel debugLevel;
 
 // Macro definitions
 #define PRINT(level, msg) \
-    do { if (debugLevel >= level) Serial.println(msg); } while(0)
+    do { if (debugLevel >= level) Serial.print(msg); } while(0)
 
 void sysInit();
 

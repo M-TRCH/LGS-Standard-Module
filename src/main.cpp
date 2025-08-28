@@ -13,23 +13,26 @@ void setup()
     #endif
 
     #ifdef EEPROM_UTILS_H
-        // clearEeprom();
-        // Serial.println("EEPROM cleared for testing purposes");
-        // Serial.flush();
-        // while (1);
+        // clearEeprom(true);  // Uncomment to clear EEPROM for debugging  
 
         loadEepromConfig(); // Load configuration from EEPROM
         
         if (eepromConfig.isFirstBoot == true) 
         {
             // write default values to EEPROM
-            Serial.println("First time programming - writing default config to EEPROM");
+            PRINT(DEBUG_BASIC, F("First time programming\n"));
             eepromConfig = eepromConfig_default;
-            saveEepromConfig();                     // Save to EEPROM if changed
-            delay(2000);
+            if (saveEepromConfig()) 
+            {
+                PRINT(DEBUG_BASIC, F("EEPROM saved\n"));
+            } 
+            else 
+            {
+                PRINT(DEBUG_BASIC, F("EEPROM changed\n"));
+            }
             NVIC_SystemReset();    
         }
-        Serial.println("EEPROM configuration loaded");
+        PRINT(DEBUG_BASIC, F("EEPROM loaded\n"));
     #endif
 
     #ifdef LED_H
@@ -37,7 +40,7 @@ void setup()
     #endif
 
     #ifdef MODBUS_UTILS_H
-        PRINT(DEBUG_BASIC, "Modbus ID: " + String(eepromConfig.identifier));
+        PRINT(DEBUG_BASIC, "Modbus ID: " + String(eepromConfig.identifier) + "\n");
         modbusInit(eepromConfig.identifier);  // Initialize Modbus
         eeprom2modbusMapping();
     #endif
@@ -53,26 +56,18 @@ void loop()
             if (RTUServer.coilRead(MB_COIL_FACTORY_RESET_ALL_DATA)) 
             {
                 // Perform factory reset
-                Serial.println("Factory Reset initiated via Modbus");
+                PRINT(DEBUG_BASIC, F("Factory Reset initiated via Modbus"));
                 eepromConfig.isFirstBoot = true;        // Clear the flag
                 saveEepromConfig();                     // Save to EEPROM if changed
-                digitalWrite(LED_RUN_PIN, LOW);
-                delay(2000);
                 NVIC_SystemReset();                     // Perform software reset
             }
             else
             {
                 // Save current config to EEPROM
-                Serial.println("Saving configuration to EEPROM via Modbus");
-                
-                
-                eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
-                
-                saveEepromConfig();                     // Save to EEPROM if changed
-
-                digitalWrite(LED_RUN_PIN, LOW);
-                delay(2000);
-                NVIC_SystemReset();                     // Perform software reset
+                PRINT(DEBUG_BASIC, F("Saving configuration to EEPROM via Modbus"));
+                modbus2eepromMapping();
+                saveEepromConfig();         // Save to EEPROM if changed
+                NVIC_SystemReset();         // Perform software reset
             }
         }
 

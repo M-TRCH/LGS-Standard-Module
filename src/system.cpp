@@ -36,7 +36,9 @@ void sysInit()
     uint32_t startup = millis();
     while(millis() - startup < 2000)
     {
-        // if (Serial) break;
+        PRINT(DEBUG_BASIC, F("."));
+        delay(200);
     }
+    PRINT(DEBUG_BASIC, F("\n")); 
     digitalWrite(LED_RUN_PIN, HIGH);
 }

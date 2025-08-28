@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "config.h"
+#include "system.h"
 
 // Example struct for all persistent config
 typedef struct 
@@ -28,13 +29,17 @@ extern EepromConfig_t eepromConfig_default;
 // Initialize EEPROM and load default config if needed
 void eepromInit();
 
-// Clear the EEPROM
-void clearEeprom();
+/*  @brief Clear entire EEPROM (set all bytes to 0xFF)
+    @param whileRunning If true, will enter infinite loop after clearing (for debugging)
+*/
+void clearEeprom(bool whileRunning=false);
 
 // Load all config from EEPROM to RAM
 void loadEepromConfig();
 
-// Save all config from RAM to EEPROM 
-void saveEepromConfig();
+/*  @brief Save all config from RAM to EEPROM
+    @return true if saved successfully, false otherwise
+*/
+bool saveEepromConfig();
 
 #endif

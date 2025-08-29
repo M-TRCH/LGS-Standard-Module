@@ -19,19 +19,49 @@ void modbusInit(int id)
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
 }
 
-void modbus2eepromMapping() 
+void modbus2eepromMapping(bool saveEEPROM) 
 {
     // Write Modbus values to EEPROM
+    // Device Information
     eepromConfig.baudRate = RTUServer.holdingRegisterRead(MB_REG_BAUD_RATE);
     eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
+
+    // LED Configuration
+    for (int i = 0; i < LED_NUM; i++) 
+    {
+        eepromConfig.led_brightness[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10);
+        eepromConfig.led_r[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10);
+        eepromConfig.led_g[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10);
+        eepromConfig.led_b[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10);
+    }
+
+    if (saveEEPROM) 
+    {
+        saveEepromConfig(); // Save to EEPROM if changed
+    } 
 }
 
-void eeprom2modbusMapping() 
+void eeprom2modbusMapping(bool loadEEPROM) 
 {
-    // Read EEPROM values and update Modbus
+    if (loadEEPROM) 
+    {
+        loadEepromConfig(); // Load configuration from EEPROM
+    }
+
+    // Update Modbus registers with EEPROM 
+    // Device Information
     RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
     RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
-    RTUServer.holdingRegisterWrite(MB_REG_SERIAL_NUMBER, eepromConfig.serialNumber);
+    RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, eepromConfig.hwVersion);
     RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
     RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
+
+    // LED Configuration
+    for (int i = 0; i < LED_NUM; i++) 
+    {
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i*10, eepromConfig.led_brightness[i]);
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_RED + i*10, eepromConfig.led_r[i]);
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_GREEN + i*10, eepromConfig.led_g[i]);
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BLUE + i*10, eepromConfig.led_b[i]);
+    }
 }

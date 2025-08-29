@@ -14,7 +14,7 @@
 extern Adafruit_NeoPixel null_led, led1, led2, led3, led4, led5, led6, led7, led8;
 extern Adafruit_NeoPixel *leds[];
 extern float default_color[17][3];          // Array to hold default RGB values for each LED
-extern bool last_led_state[LED_NUM+1];      // Array to hold last known state (on/off) for each LED
+extern bool last_led_state[LED_NUM];      // Array to hold last known state (on/off) for each LED
 
 void ledInit();
 

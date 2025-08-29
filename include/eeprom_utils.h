@@ -10,10 +10,11 @@
 // Example struct for all persistent config
 typedef struct 
 {
+    bool isFirstBootExceptID;
     bool isFirstBoot;
     uint16_t deviceType;
     uint16_t fwVersion;
-    uint16_t serialNumber;
+    uint16_t hwVersion;
     uint16_t baudRate;
     uint16_t identifier;
     uint16_t led_brightness[8];
@@ -41,5 +42,7 @@ void loadEepromConfig();
     @return true if saved successfully, false otherwise
 */
 bool saveEepromConfig();
+
+void handleFirstBoot();
 
 #endif

@@ -5,6 +5,7 @@
 #include <ModbusRTUServer.h>
 #include "config.h"
 #include "system.h"
+#include "led.h"
 #include "eeprom_utils.h"
 
 #define COIL_NUM                    5000    // Number of coils
@@ -16,16 +17,16 @@
 // (1) Device Information (Holding Registers, EEPROM Area)
 #define MB_REG_DEVICE_TYPE          0       // device type (read-only)
 #define MB_REG_FW_VERSION           1       // firmware version (read-only)
-#define MB_REG_SERIAL_NUMBER        2       // serial number (read-only)
+#define MB_REG_HW_VERSION           2       // hardware version (read-only)
 #define MB_REG_BAUD_RATE            3       // baud rate (default 9600) (read/write)
 #define MB_REG_IDENTIFIER           4       // identifier (read/write, range 1-246, default 247)
 
 // (2) Device Control (Coils, EEPROM Area)
-#define MB_COIL_FACTORY_RESET_EXCEPT_ID 500     // Factory Reset Except ID (write)
-#define MB_COIL_FACTORY_RESET_ALL_DATA  501     // Factory Reset All Data (write)
-#define MB_COIL_WRITE_TO_EEPROM         502     // Write to EEPROM (write)
-#define MB_COIL_UNDEFINED               503     // Undefined (write)
-#define MB_COIL_UNDEFINED_2             504     // Undefined (write)
+#define MB_COIL_FACTORY_RESET                   500     // Factory Reset (write)
+#define MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID   501     // Factory Reset Except ID (write)
+#define MB_COIL_APPLY_FACTORY_RESET_ALL_DATA    502     // Apply Factory Reset (write)
+#define MB_COIL_WRITE_TO_EEPROM                 503     // Write to EEPROM (write)
+#define MB_COIL_UNDEFINED                       504     // Undefined (write)
 
 // (3) LED Configuration (Holding Registers, EEPROM Area)
 // Brightness: read/write, range 0-100, default 20
@@ -87,9 +88,9 @@ extern ModbusRTUServerClass RTUServer;
 void modbusInit(int id=DEFAULT_IDENTIFIER);
 
 // Modbus to EEPROM Mapping
-void modbus2eepromMapping();
+void modbus2eepromMapping(bool saveEEPROM=true);
 
 // EEPROM to Modbus Mapping
-void eeprom2modbusMapping();
+void eeprom2modbusMapping(bool loadEEPROM=false);
 
 #endif

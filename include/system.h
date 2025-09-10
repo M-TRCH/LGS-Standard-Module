@@ -32,6 +32,12 @@
 #define DEBUG_BAUD      9600
 #define MODBUS_BAUD     9600
 
+// System settings
+#define LED_BLINK_MS    500     // LED blink interval in milliseconds
+
+// Global variables
+extern bool run_led_state;
+
 // Object declarations
 extern HardwareSerial Serial3; 
 extern RS485Class rs485;

@@ -32,6 +32,17 @@ void setup()
 
 void loop() 
 {  
+#ifdef SYSTEM_H
+    // Blink the run LED
+    static uint32_t lastBlink = 0;
+    if (millis() - lastBlink >= LED_BLINK_MS) 
+    {
+        lastBlink = millis();
+        run_led_state = !run_led_state;
+        digitalWrite(LED_RUN_PIN, run_led_state);
+    }
+#endif
+
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   

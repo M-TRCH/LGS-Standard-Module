@@ -5,6 +5,9 @@ HardwareSerial Serial3(RX3_PIN, TX3_PIN);
 RS485Class rs485(Serial, DUMMY_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and Serial3
 RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);     
 
+// Global variables
+bool run_led_state = false;
+
 // Debug level configuration
 DebugLevel debugLevel = DEBUG_BASIC;
 
@@ -34,11 +37,11 @@ void sysInit()
 
     // Wait for Serial to be ready
     uint32_t startup = millis();
-    while(millis() - startup < 2000)
+    while(millis() - startup < 2000 && false)   // Set to true to enable waiting for Serial
     {
         PRINT(DEBUG_BASIC, F("."));
         delay(200);
     }
-    PRINT(DEBUG_BASIC, F("\n")); 
+    // PRINT(DEBUG_BASIC, F("\n")); 
     digitalWrite(LED_RUN_PIN, HIGH);
 }

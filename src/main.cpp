@@ -6,6 +6,8 @@
 #include "modbus_utils.h"
 #include "eeprom_utils.h"
 
+uint32_t led_counter[LED_NUM] = {0};  // Counter for each LED
+
 void setup() 
 {
     #ifdef SYSTEM_H
@@ -90,12 +92,23 @@ void loop()
                         RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
                         RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
                     leds[i]->show();
+                    led_counter[i]++;
                 }
                 else
                 {
                     leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
                     leds[i]->show();
                 }
+                
+                // For testing: count how many times LED 1 is turned on
+                PRINT(DEBUG_BASIC, "LED1:" + String(led_counter[0]) + "\t");
+                PRINT(DEBUG_BASIC, "LED2:" + String(led_counter[1]) + "\t");
+                PRINT(DEBUG_BASIC, "LED3:" + String(led_counter[2]) + "\t");
+                PRINT(DEBUG_BASIC, "LED4:" + String(led_counter[3]) + "\t");
+                PRINT(DEBUG_BASIC, "LED5:" + String(led_counter[4]) + "\t");
+                PRINT(DEBUG_BASIC, "LED6:" + String(led_counter[5]) + "\t");
+                PRINT(DEBUG_BASIC, "LED7:" + String(led_counter[6]) + "\t");
+                PRINT(DEBUG_BASIC, "LED8:" + String(led_counter[7]) + "\n");
             }
         }
     }

@@ -33,6 +33,9 @@ float default_color[17][3] =
 };
 
 bool last_led_state[LED_NUM] = {false, false, false, false, false, false, false, false};
+uint32_t led_counter[LED_NUM] = {0};    // Counter for each LED having been turned on
+uint32_t led_timer[LED_NUM] = {0};      // Timer for each LED having been turned on
+float led_time_sum[LED_NUM] = {0};      // Total time each LED has been on (in seconds)
 
 void ledInit() 
 {   

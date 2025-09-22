@@ -10,7 +10,7 @@
 
 #define COIL_NUM                    5000    // Number of coils
 #define DISCRETE_INPUT_NUM          1       // Number of discrete inputs
-#define HOLDING_REGISTER_NUM        200     // Number of holding registers
+#define HOLDING_REGISTER_NUM        400     // Number of holding registers
 #define INPUT_REGISTER_NUM          1       // Number of input registers
 
 // Modbus Address Mapping (Updated on 28-08-25)

@@ -48,7 +48,7 @@ void loop()
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
-        // Write data to EEPROM
+        // Write data to EEPROM (Addr.503)
         if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
         {
             PRINT(DEBUG_BASIC, F("Saving configuration to EEPROM via Modbus\n"));
@@ -56,9 +56,10 @@ void loop()
             NVIC_SystemReset();         // Perform software reset
         }
 
-        // Apply factory reset
+        // Apply factory reset (Addr.500)
         if (RTUServer.coilRead(MB_COIL_FACTORY_RESET)) 
         {
+            // Address 501: Factory reset except ID
             if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID)) 
             {
                 PRINT(DEBUG_BASIC, F("Factory Reset (Except ID) via Modbus\n"));
@@ -66,7 +67,7 @@ void loop()
                 saveEepromConfig();                         // Save to EEPROM if changed
                 NVIC_SystemReset();                         // Perform software reset
             }
-
+            // Address 502: Factory reset all data
             if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA)) 
             {
                 PRINT(DEBUG_BASIC, F("Factory Reset via Modbus\n"));
@@ -76,7 +77,14 @@ void loop()
             }
         }
 
-        // Apply LED state changes
+        // Software reset (Addr.504)
+        if (RTUServer.coilRead(MB_COIL_SOFTWARE_RESET)) 
+        {
+            PRINT(DEBUG_BASIC, F("Software Reset via Modbus\n"));
+            NVIC_SystemReset();         // Perform software reset
+        }
+
+        // Apply LED state changes (Addr.1001-1008)
         for (int i = 0; i < LED_NUM; i++) 
         {
             int led_state = RTUServer.coilRead(MB_COIL_LED_1_ENABLE + i);
@@ -108,17 +116,29 @@ void loop()
                         led_timer[i] = 0; // Reset timer
                     }
                 }
-                
-                // Log LED state change
-                PRINT(DEBUG_BASIC, "LED1:" + String(led_counter[0]) + ", " + String(led_time_sum[0]) + "\t");
-                PRINT(DEBUG_BASIC, "LED2:" + String(led_counter[1]) + ", " + String(led_time_sum[1]) + "\t");
-                PRINT(DEBUG_BASIC, "LED3:" + String(led_counter[2]) + ", " + String(led_time_sum[2]) + "\t");
-                PRINT(DEBUG_BASIC, "LED4:" + String(led_counter[3]) + ", " + String(led_time_sum[3]) + "\t");
-                PRINT(DEBUG_BASIC, "LED5:" + String(led_counter[4]) + ", " + String(led_time_sum[4]) + "\t");
-                PRINT(DEBUG_BASIC, "LED6:" + String(led_counter[5]) + ", " + String(led_time_sum[5]) + "\t");
-                PRINT(DEBUG_BASIC, "LED7:" + String(led_counter[6]) + ", " + String(led_time_sum[6]) + "\t");
-                PRINT(DEBUG_BASIC, "LED8:" + String(led_counter[7]) + ", " + String(led_time_sum[7]) + "\n");
+                // printLedStatus();
             }
         }
     }
+
+    // Check for maximum on-time limits
+    for (int i = 0; i < LED_NUM; i++)
+    {
+        if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+        {
+            PRINT(DEBUG_BASIC, "Max on-time exceeded for LED" + String(i+1) + ", turning off\n");
+            // Turn off the LED
+            leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+            leds[i]->show();
+            last_led_state[i] = false; // Update last known state
+
+            // Stop timer and accumulate time
+            led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
+            led_timer[i] = 0; // Reset timer
+
+            // Update Modbus coil to reflect LED is off
+            RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+        }
+    }
 }
+

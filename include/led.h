@@ -21,4 +21,6 @@ extern float led_time_sum[LED_NUM];     // Total time each LED has been on (in s
 
 void ledInit();
 
+void printLedStatus();
+
 #endif

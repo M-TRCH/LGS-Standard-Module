@@ -15,7 +15,8 @@ EepromConfig_t eepromConfig_default =
     .led_brightness = DEFAULT_LED_BRIGHTNESS,   // Default brightness for 8 LEDs
     .led_r = DEFAULT_LED_R,                     // Default red values for 8 LEDs
     .led_g = DEFAULT_LED_G,                     // Default green values for 8 LEDs
-    .led_b = DEFAULT_LED_B                      // Default blue values for 8 LEDs
+    .led_b = DEFAULT_LED_B,                     // Default blue values for 8 LEDs
+    .maxOnTime = DEFAULT_LED_MAX_ON_TIME        // Default max on time for 8 LEDs
 };
 
 void loadEepromConfig() 

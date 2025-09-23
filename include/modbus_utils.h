@@ -26,7 +26,7 @@
 #define MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID   501     // Factory Reset Except ID (write)
 #define MB_COIL_APPLY_FACTORY_RESET_ALL_DATA    502     // Apply Factory Reset (write)
 #define MB_COIL_WRITE_TO_EEPROM                 503     // Write to EEPROM (write)
-#define MB_COIL_UNDEFINED                       504     // Undefined (write)
+#define MB_COIL_SOFTWARE_RESET                  504     // Software Reset (write)
 
 // (3) LED Configuration (Holding Registers, EEPROM Area)
 // Brightness: read/write, range 0-100, default 20

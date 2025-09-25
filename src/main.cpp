@@ -121,9 +121,10 @@ void loop()
         }
     }
 
-    // Check for maximum on-time limits
+    // Update LED statistics and enforce max on-time limits
     for (int i = 0; i < LED_NUM; i++)
     {
+        // Check if LED is ON and has a max on-time limit set
         if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
         {
             PRINT(DEBUG_BASIC, "Max on-time exceeded for LED" + String(i+1) + ", turning off\n");
@@ -139,6 +140,10 @@ void loop()
             // Update Modbus coil to reflect LED is off
             RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
         }
+
+        // Update Modbus registers with current LED statistics
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
+        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
     }
 }
 

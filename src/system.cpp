@@ -23,17 +23,27 @@ void sysInit()
     pinMode(LED7_PIN, OUTPUT);
     pinMode(LED8_PIN, OUTPUT);
     pinMode(MOSFET_PIN, OUTPUT);
-    pinMode(SERVO_PIN, OUTPUT);
-    // pinMode(ROW_SW_PIN, INPUT_PULLUP);
-    // pinMode(COL_SW_PIN, INPUT_PULLUP);
     pinMode(SENSE_PIN, INPUT_PULLUP);
+    pinMode(FUNC_SW_PIN, INPUT);
+    
+    // For testing purposes
+    digitalWrite(MOSFET_PIN, HIGH);
+    delay(300);
+
+    // Initialize pins to default states
     digitalWrite(LED_RUN_PIN, LOW);
+    digitalWrite(MOSFET_PIN, LOW);
 
     Serial.setRx(RX_PIN);
     Serial.setTx(TX_PIN);
     Serial.begin(DEBUG_BAUD);
-
     Serial3.begin(MODBUS_BAUD);
+
+    // For testing purposes
+    while(1)
+    {
+        Serial.printf("Sensor reading: %d\n", isLatchLocked() ? 1 : 0);
+    }
 
     // Wait for Serial to be ready
     uint32_t startup = millis();
@@ -44,4 +54,17 @@ void sysInit()
     }
     // PRINT(DEBUG_BASIC, F("\n")); 
     digitalWrite(LED_RUN_PIN, HIGH);
+}
+
+bool isLatchLocked(int debounceDelay)
+{
+    if (digitalRead(SENSE_PIN) == LOW)
+    {
+        delay(debounceDelay); // Debounce delay
+        if (digitalRead(SENSE_PIN) == LOW)
+        {
+            return true; // Latch is locked
+        }
+    }
+    return false; // Latch is unlocked
 }

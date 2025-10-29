@@ -1,5 +1,5 @@
 
-// Reference: .pdf
+// Reference documents: LGS-Control-Table-Updated-220925.pdf
 
 #include <Arduino.h>
 #include "config.h"

@@ -1,5 +1,5 @@
 
-// Reference: .pdf
+// Reference Documentation: .pdf
 
 #include <Arduino.h>
 #include "config.h"
@@ -10,27 +10,27 @@
  
 void setup() 
 {
-    #ifdef SYSTEM_H
-        sysInit(LOG_DEBUG);  // Initialize system
-    #endif
+#ifdef SYSTEM_H
+    sysInit(LOG_DEBUG);  // Initialize system
+#endif
 
-    #ifdef EEPROM_UTILS_H
-        // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
-        handleFirstBoot();      // Handle first boot scenario
-        loadEepromConfig();     // Load configuration from EEPROM
-        LOG_INFO_EEPROM(F("[EEPROM] Configuration loaded\n"));
-    #endif
+#ifdef EEPROM_UTILS_H
+    // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
+    handleFirstBoot();      // Handle first boot scenario
+    loadEepromConfig();     // Load configuration from EEPROM
+    LOG_INFO_EEPROM(F("[EEPROM] Configuration loaded\n"));
+#endif
 
-    #ifdef LED_H
-        ledInit();  // Initialize LEDs
-    #endif
+#ifdef LED_H
+    ledInit();  // Initialize LEDs
+#endif
 
-    #ifdef MODBUS_UTILS_H
-        LOG_INFO_MODBUS("[MODBUS] Initializing with ID: " + String(eepromConfig.identifier) + "\n");
-        modbusInit(eepromConfig.identifier);    // Initialize Modbus
-        eeprom2modbusMapping();
-        LOG_INFO_MODBUS(F("[MODBUS] Initialization complete\n"));
-    #endif
+#ifdef MODBUS_UTILS_H
+    LOG_INFO_MODBUS("[MODBUS] Initializing with ID: " + String(eepromConfig.identifier) + "\n");
+    modbusInit(eepromConfig.identifier);    // Initialize Modbus
+    eeprom2modbusMapping();
+    LOG_INFO_MODBUS(F("[MODBUS] Initialization complete\n"));
+#endif
 }
 
 void loop() 

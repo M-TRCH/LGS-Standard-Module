@@ -11,14 +11,14 @@
 void setup() 
 {
     #ifdef SYSTEM_H
-        sysInit();  // Initialize system
+        sysInit(LOG_DEBUG);  // Initialize system
     #endif
 
     #ifdef EEPROM_UTILS_H
         // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
         handleFirstBoot();      // Handle first boot scenario
         loadEepromConfig();     // Load configuration from EEPROM
-        PRINT(DEBUG_BASIC, F("EEPROM loaded\n"));
+        LOG_INFO_EEPROM(F("[EEPROM] Configuration loaded\n"));
     #endif
 
     #ifdef LED_H
@@ -26,9 +26,10 @@ void setup()
     #endif
 
     #ifdef MODBUS_UTILS_H
-        PRINT(DEBUG_BASIC, "Modbus ID: " + String(eepromConfig.identifier) + "\n");
+        LOG_INFO_MODBUS("[MODBUS] Initializing with ID: " + String(eepromConfig.identifier) + "\n");
         modbusInit(eepromConfig.identifier);    // Initialize Modbus
         eeprom2modbusMapping();
+        LOG_INFO_MODBUS(F("[MODBUS] Initialization complete\n"));
     #endif
 }
 
@@ -51,7 +52,7 @@ void loop()
         // Write data to EEPROM (Addr.503)
         if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
         {
-            PRINT(DEBUG_BASIC, F("Saving configuration to EEPROM via Modbus\n"));
+            LOG_INFO_MODBUS(F("[MODBUS] Saving configuration to EEPROM\n"));
             modbus2eepromMapping();
             NVIC_SystemReset();         // Perform software reset
         }
@@ -62,7 +63,7 @@ void loop()
             // Address 501: Factory reset except ID
             if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID)) 
             {
-                PRINT(DEBUG_BASIC, F("Factory Reset (Except ID) via Modbus\n"));
+                LOG_INFO_MODBUS(F("[MODBUS] Factory reset (except ID) requested\n"));
                 eepromConfig.isFirstBootExceptID = true;    // Clear the flag
                 saveEepromConfig();                         // Save to EEPROM if changed
                 NVIC_SystemReset();                         // Perform software reset
@@ -70,7 +71,7 @@ void loop()
             // Address 502: Factory reset all data
             if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA)) 
             {
-                PRINT(DEBUG_BASIC, F("Factory Reset via Modbus\n"));
+                LOG_INFO_MODBUS(F("[MODBUS] Factory reset (all data) requested\n"));
                 eepromConfig.isFirstBoot = true;        // Clear the flag
                 saveEepromConfig();                     // Save to EEPROM if changed
                 NVIC_SystemReset();                     // Perform software reset
@@ -80,7 +81,7 @@ void loop()
         // Software reset (Addr.504)
         if (RTUServer.coilRead(MB_COIL_SOFTWARE_RESET)) 
         {
-            PRINT(DEBUG_BASIC, F("Software Reset via Modbus\n"));
+            LOG_INFO_MODBUS(F("[MODBUS] Software reset requested\n"));
             NVIC_SystemReset();         // Perform software reset
         }
 
@@ -103,6 +104,7 @@ void loop()
 
                     led_counter[i]++;           // Increment counter for how many times this LED has been turned on
                     led_timer[i] = millis();    // Start timer for how long this LED has been on
+                    LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned ON\n");
                 }   
                 else    // If the LED state is OFF
                 {
@@ -115,6 +117,7 @@ void loop()
                         led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
                         led_timer[i] = 0; // Reset timer
                     }
+                    LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned OFF\n");
                 }
                 // printLedStatus();
             }
@@ -127,7 +130,7 @@ void loop()
         // Check if LED is ON and has a max on-time limit set
         if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
         {
-            PRINT(DEBUG_BASIC, "Max on-time exceeded for LED" + String(i+1) + ", turning off\n");
+            LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
             // Turn off the LED
             leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
             leds[i]->show();

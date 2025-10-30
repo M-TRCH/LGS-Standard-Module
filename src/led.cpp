@@ -39,6 +39,7 @@ float led_time_sum[LED_NUM] = {0};      // Total time each LED has been on (in s
 
 void ledInit() 
 {   
+    LOG_INFO_LED(F("[LED] Initializing LED strips...\n"));
     // Initialize LED strips
     for (int i = 0; i < LED_NUM; i++) 
     {
@@ -46,13 +47,15 @@ void ledInit()
         leds[i]->setPixelColor(0, leds[i]->Color(0,0,0));
         leds[i]->show(); // Initialize all pixels to 'off'
     }
+    LOG_INFO_LED(F("[LED] LED initialization complete\n"));
 }
 
 void printLedStatus() 
 {
+    LOG_INFO_LED(F("[LED] Status Report:\n"));
     for (int i = 0; i < LED_NUM; i++) 
     {
-        PRINT(DEBUG_BASIC, "LED" + String(i+1) + ": State=" + String(last_led_state[i] ? "ON" : "OFF") +
+        LOG_INFO_LED("  L" + String(i+1) + ": State=" + String(last_led_state[i] ? "ON" : "OFF") +
               ", Count=" + String(led_counter[i]) +
               ", Time=" + String(led_time_sum[i], 2) + "s\n");
     }

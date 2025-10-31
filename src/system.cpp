@@ -36,8 +36,7 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     pinMode(FUNC_SW_PIN, INPUT);
     
     // For testing purposes
-    digitalWrite(MOSFET_PIN, HIGH);
-    delay(300);
+    unlockLatch();
 
     // Initialize pins to default states
     digitalWrite(LED_RUN_PIN, LOW);
@@ -77,4 +76,28 @@ bool isLatchLocked(int debounceDelay)
         }
     }
     return false; // Latch is unlocked
+}
+
+bool unlockLatch(int unlockTimeout)
+{
+    if (digitalRead(SENSE_PIN) == LOW)
+    {
+        digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
+             
+        uint32_t startTime = millis();
+        while (digitalRead(SENSE_PIN) == LOW)
+        {
+            if (millis() - startTime >= unlockTimeout)
+            {
+                break; // Exit if timeout reached
+            }
+        }
+        digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
+        return true; // Latch is active
+    }
+    else
+    {
+        return false; // Latch is inactive
+    }
+    return false; // Latch is inactive
 }

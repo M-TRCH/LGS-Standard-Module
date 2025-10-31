@@ -37,13 +37,20 @@ void loop()
 {
     // For testing purposes: read temperature from STS4x sensor
     float temperature;
+    static uint32_t lastTempReadSec = 0;
     static uint32_t lastTempRead = 0;
 
-    if (millis() - lastTempRead >= 1000) // Read every second
+    if (millis() - lastTempReadSec >= 1000) // Read every second
     {
-        lastTempRead = millis();
-        sts4x.measureHighPrecision(temperature);
-        LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
+        lastTempReadSec = millis();
+        LOG_DEBUG_SYS(".");
+
+        if (millis() - lastTempRead >= 60000)
+        {
+            lastTempRead = millis();
+            sts4x.measureHighPrecision(temperature);
+            LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
+        }    
     }
 
 #ifdef SYSTEM_H

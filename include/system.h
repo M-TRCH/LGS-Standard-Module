@@ -119,4 +119,13 @@ void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
  */
 bool isLatchLocked(int debounceDelay = 20);
 
+/* @brief Check if the latch is active
+ *
+ * This function checks if the latch has been active within the specified timeout period.
+ *
+ * @param activeTimeout The timeout period in milliseconds (default is 300 ms)
+ * @return true if the latch is active, false otherwise
+ */
+bool unlockLatch(int unlockTimeout = 300);
+
 #endif

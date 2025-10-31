@@ -4,6 +4,7 @@
 HardwareSerial Serial3(RX3_PIN, TX3_PIN);
 RS485Class rs485(Serial, DUMMY_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and Serial3
 RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);     
+SensirionI2CSts4x sts4x;
 
 // Global variables
 bool run_led_state = false;
@@ -47,6 +48,12 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     Serial.setTx(TX_PIN);
     Serial.begin(DEBUG_BAUD);
     Serial3.begin(MODBUS_BAUD);
+
+    // Initialize I2C and STS4x sensor
+    Wire.setSDA(SDA1_PIN);
+    Wire.setSCL(SCL1_PIN);
+    Wire.begin(); // Initialize I2C
+    sts4x.begin(Wire, ADDR_STS4X_ALT);
 
     // Wait for Serial to be ready
     uint32_t startup = millis();

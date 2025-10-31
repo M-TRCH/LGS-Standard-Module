@@ -6,6 +6,8 @@
 #include <Stream.h>
 #include <HardwareSerial.h>
 #include <ArduinoRS485.h>
+#include <Wire.h>
+#include <SensirionI2CSts4x.h>
 
 // Pin definitions
 #define RX_PIN          PA10 
@@ -42,6 +44,7 @@ extern bool run_led_state;
 extern HardwareSerial Serial3; 
 extern RS485Class rs485;
 extern RS485Class rs4853;
+extern SensirionI2CSts4x sts4x;
 
 // Constants definitions
 // Log level definitions

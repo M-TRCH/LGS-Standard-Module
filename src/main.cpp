@@ -7,11 +7,17 @@
 #include "led.h"
 #include "modbus_utils.h"
 #include "eeprom_utils.h"
- 
+
+// Global variable to store the detected function switch mode
+FunctionSwitchMode functionMode = FUNC_SW_NONE;
+
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_DEBUG);  // Initialize system
+
+    // Check function switch immediately after system init
+    functionMode = checkFunctionSwitch();
 #endif
 
 #ifdef EEPROM_UTILS_H
@@ -36,22 +42,25 @@ void setup()
 void loop() 
 {
     // For testing purposes: read temperature from STS4x sensor
-    float temperature;
-    static uint32_t lastTempReadSec = 0;
-    static uint32_t lastTempRead = 0;
+    // float temperature;
+    // static uint32_t lastTempReadSec = 0;
+    // static uint32_t lastTempRead = 0;
 
-    if (millis() - lastTempReadSec >= 1000) // Read every second
-    {
-        lastTempReadSec = millis();
-        LOG_DEBUG_SYS(".");
+    // if (millis() - lastTempReadSec >= 1000) // Read every second
+    // {
+    //     lastTempReadSec = millis();
+    //     LOG_DEBUG_SYS(".");
 
-        if (millis() - lastTempRead >= 60000)
-        {
-            lastTempRead = millis();
-            sts4x.measureHighPrecision(temperature);
-            LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
-        }    
-    }
+    //     if (millis() - lastTempRead >= 60000)
+    //     {
+    //         lastTempRead = millis();
+    //         sts4x.measureHighPrecision(temperature);
+    //         LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
+    //     }    
+    // }
+    // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
+    // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
+    LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
 
 #ifdef SYSTEM_H
     // Blink the run LED

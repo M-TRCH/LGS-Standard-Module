@@ -37,6 +37,15 @@
 // System settings
 #define LED_BLINK_MS    500     // LED blink interval in milliseconds
 
+// Function switch modes (returned by checkFunctionSwitch)
+enum FunctionSwitchMode
+{
+    FUNC_SW_NONE = 0,           // No switch pressed (normal operation)
+    FUNC_SW_SHORT = 1,          // Pressed > 1 second
+    FUNC_SW_MEDIUM = 2,         // Pressed > 5 seconds
+    FUNC_SW_LONG = 3            // Pressed > 10 seconds
+};
+
 // Global variables
 extern bool run_led_state;
 
@@ -127,5 +136,20 @@ bool isLatchLocked(int debounceDelay = 20);
  * @return true if the latch is active, false otherwise
  */
 bool unlockLatch(int unlockTimeout = 300);
+
+/* @brief Check function switch state at startup
+ *
+ * This function checks if the function switch (FUNC_SW_PIN) is pressed during startup.
+ * It determines the press duration and returns the corresponding mode.
+ * The switch is active LOW (pressed = LOW).
+ *
+ * @param maxWaitTime Maximum time to wait for switch press in milliseconds (default 15000ms)
+ * @return FunctionSwitchMode:
+ *         - FUNC_SW_NONE (0): Switch not pressed, continue normal operation
+ *         - FUNC_SW_SHORT (1): Pressed > 1 second
+ *         - FUNC_SW_MEDIUM (2): Pressed > 5 seconds
+ *         - FUNC_SW_LONG (3): Pressed > 10 seconds
+ */
+FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
 
 #endif

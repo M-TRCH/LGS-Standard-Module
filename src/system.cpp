@@ -75,7 +75,98 @@ bool isLatchLocked(int debounceDelay)
             return true; // Latch is locked
         }
     }
-    return false; // Latch is unlocked
+    return false; // Latch is inactive
+}
+
+FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
+{
+    LOG_DEBUG_SYS(F("[SYSTEM] Checking function switch...\n"));
+    
+    // Check if switch is pressed at startup (active LOW)
+    if (digitalRead(FUNC_SW_PIN) == HIGH)
+    {
+        LOG_DEBUG_SYS(F("[SYSTEM] Function switch not pressed, continuing normal operation\n"));
+        return FUNC_SW_NONE;  // Switch not pressed, continue normal operation
+    }
+    
+    LOG_INFO_SYS(F("[SYSTEM] Function switch detected! Waiting for release...\n"));
+    
+    // Switch is pressed, measure how long it's held
+    uint32_t pressStartTime = millis();
+    uint32_t pressDuration = 0;
+    uint8_t lastReportedSecond = 0;
+    
+    // Wait for switch release or max time
+    while (digitalRead(FUNC_SW_PIN) == LOW && (millis() - pressStartTime) < maxWaitTime)
+    {
+        pressDuration = millis() - pressStartTime;
+        
+        // Report every second
+        uint8_t currentSecond = pressDuration / 1000;
+        if (currentSecond > lastReportedSecond)
+        {
+            lastReportedSecond = currentSecond;
+            LOG_INFO_SYS("[SYSTEM] Switch pressed: " + String(currentSecond) + " seconds...\n");
+            
+            // Blink LED to indicate different modes
+            if (currentSecond >= 10)
+            {
+                // Fast blink for LONG mode
+                digitalWrite(LED_RUN_PIN, (currentSecond % 2 == 0) ? HIGH : LOW);
+            }
+            else if (currentSecond >= 5)
+            {
+                // Medium blink for MEDIUM mode
+                digitalWrite(LED_RUN_PIN, HIGH);
+            }
+            else if (currentSecond >= 1)
+            {
+                // Slow blink for SHORT mode
+                digitalWrite(LED_RUN_PIN, (millis() / 500) % 2 == 0 ? HIGH : LOW);
+            }
+        }
+        
+        delay(50);  // Small delay to reduce CPU usage
+    }
+    
+    // Determine which mode based on press duration
+    FunctionSwitchMode mode = FUNC_SW_NONE;
+    
+    if (pressDuration >= 10000)  // 10 seconds or more
+    {
+        mode = FUNC_SW_LONG;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: LONG press (>10s) detected\n"));
+    }
+    else if (pressDuration >= 5000)  // 5 seconds or more
+    {
+        mode = FUNC_SW_MEDIUM;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: MEDIUM press (>5s) detected\n"));
+    }
+    else if (pressDuration >= 1000)  // 1 second or more
+    {
+        mode = FUNC_SW_SHORT;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: SHORT press (>1s) detected\n"));
+    }
+    else
+    {
+        // Released too quickly, treat as no press
+        mode = FUNC_SW_NONE;
+        LOG_DEBUG_SYS(F("[SYSTEM] Function switch released too quickly, continuing normal operation\n"));
+    }
+    
+    // Wait a bit to ensure switch is fully released
+    delay(100);
+    
+    // Visual feedback - blink LED based on mode
+    for (uint8_t i = 0; i < mode; i++)
+    {
+        digitalWrite(LED_RUN_PIN, HIGH);
+        delay(200);
+        digitalWrite(LED_RUN_PIN, LOW);
+        delay(200);
+    }
+    
+    return mode;
 }
 
 bool unlockLatch(int unlockTimeout)

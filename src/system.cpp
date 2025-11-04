@@ -19,7 +19,7 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     // Set global log configuration
     globalLogLevel = logLevel;
     enabledLogCategories = logCategories;
-
+    
     LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));   
 
     // Initialize pins
@@ -58,7 +58,6 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     // Check function switch immediately after system init
     functionMode = checkFunctionSwitch();
 
-    digitalWrite(LED_RUN_PIN, HIGH);
     LOG_INFO_SYS(F("[SYSTEM] Initialization complete\n"));
 }
 

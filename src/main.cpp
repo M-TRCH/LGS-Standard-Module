@@ -1,5 +1,5 @@
 
-// Reference Documentation: .pdf
+// Reference Documentation: LGS-Control-Table-Updated-xx1125.pdf
 
 #include <Arduino.h>
 #include "led.h"
@@ -50,7 +50,27 @@ void loop()
     // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
     // LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
 
-#ifdef SYSTEM_H
+    if (functionMode == FUNC_SW_DEMO)
+    {
+        while(1)
+        {
+            // Cycle through LEDs in demo mode
+            for (int i = 0; i < LED_NUM; i++) 
+            {
+                float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;   // Scale brightness to 0.0 - 1.0
+                leds[i]->setPixelColor(0, leds[i]->Color(
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,    // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
+                leds[i]->show();
+                delay(500); // Hold each LED for 500ms
+                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+                leds[i]->show();
+                delay(500); // Short delay between LEDs
+            }
+        }
+    }
+
     // Blink the run LED
     static uint32_t lastBlink = 0;
     if (millis() - lastBlink >= LED_BLINK_MS) 
@@ -59,7 +79,6 @@ void loop()
         run_led_state = !run_led_state;
         digitalWrite(LED_RUN_PIN, run_led_state);
     }
-#endif
 
     // Poll Modbus server for requests
     if(RTUServer.poll()) 

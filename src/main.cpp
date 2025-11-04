@@ -22,7 +22,7 @@ void setup()
 #endif
 
 #ifdef MODBUS_UTILS_H
-    modbusInit(eepromConfig.identifier);    // Initialize Modbus
+    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    // Initialize Modbus
     eeprom2modbusMapping();
 #endif
 }
@@ -50,6 +50,7 @@ void loop()
     // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
     // LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
 
+    // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
     {
         while(1)
@@ -71,13 +72,21 @@ void loop()
         }
     }
 
-    // Blink the run LED
-    static uint32_t lastBlink = 0;
-    if (millis() - lastBlink >= LED_BLINK_MS) 
+    // Blink RUN LED at regular intervals
+    if (functionMode == FUNC_SW_RUN && ON_ROUTINE_BLINK()) 
     {
-        lastBlink = millis();
         run_led_state = !run_led_state;
         digitalWrite(LED_RUN_PIN, run_led_state);
+    }
+
+    if (functionMode == FUNC_SW_SET_ID && ON_ROUTINE_SET_ID()) 
+    {
+        set_id_state = !set_id_state;
+        for (int i = 0; i < LED_NUM; i++) 
+        {
+            leds[i]->setPixelColor(0, leds[i]->Color((set_id_state ? 200 : 0),0,0)); // Set to red color or off
+            leds[i]->show();
+        }
     }
 
     // Poll Modbus server for requests
@@ -158,29 +167,32 @@ void loop()
         }
     }
 
-    // Update LED statistics and enforce max on-time limits
-    for (int i = 0; i < LED_NUM; i++)
+    // Update LED statistics and enforce max on-time limits 
+    if (functionMode == FUNC_SW_RUN)
     {
-        // Check if LED is ON and has a max on-time limit set
-        if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+        for (int i = 0; i < LED_NUM; i++)
         {
-            LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
-            // Turn off the LED
-            leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
-            leds[i]->show();
-            last_led_state[i] = false; // Update last known state
+            // Check if LED is ON and has a max on-time limit set
+            if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+            {
+                LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
+                // Turn off the LED
+                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+                leds[i]->show();
+                last_led_state[i] = false; // Update last known state
 
-            // Stop timer and accumulate time
-            led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-            led_timer[i] = 0; // Reset timer
+                // Stop timer and accumulate time
+                led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
+                led_timer[i] = 0; // Reset timer
 
-            // Update Modbus coil to reflect LED is off
-            RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+                // Update Modbus coil to reflect LED is off
+                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+            }
+
+            // Update Modbus registers with current LED statistics
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
         }
-
-        // Update Modbus registers with current LED statistics
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
     }
 }
 

@@ -36,7 +36,8 @@
 #define MODBUS_BAUD     9600
 
 // System settings
-#define LED_BLINK_MS    500     // LED blink interval in milliseconds
+#define ROUTINE_BLINK_MS    500     // LED blink interval in milliseconds
+#define ROUTINE_SET_ID_MS   800     // Duration to set ID mode
 
 // Function switch modes (returned by checkFunctionSwitch)
 enum FunctionSwitchMode
@@ -48,7 +49,10 @@ enum FunctionSwitchMode
 };
 
 // Global variables
+extern uint32_t lastRoutineBlink;
+extern uint32_t lastRoutineSetID;
 extern bool run_led_state;
+extern bool set_id_state;
 extern FunctionSwitchMode functionMode;
 
 // Object declarations
@@ -154,4 +158,19 @@ bool unlockLatch(int unlockTimeout = 300);
  */
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
 
+/* @brief Check if it's time for routine blink
+ *
+ * This function checks if the routine blink interval has elapsed.
+ *
+ * @return true if it's time to blink, false otherwise
+ */
+bool ON_ROUTINE_BLINK();
+
+/* @brief Check if it's time for routine set ID
+ *
+ * This function checks if the routine set ID interval has elapsed.
+ *
+ * @return true if it's time to set ID, false otherwise
+ */
+bool ON_ROUTINE_SET_ID();
 #endif

@@ -7,7 +7,10 @@ RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);
 SensirionI2CSts4x sts4x;
 
 // Global variables
+uint32_t lastRoutineBlink = 0;
+uint32_t lastRoutineSetID = 0;
 bool run_led_state = false;
+bool set_id_state = false;
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
 
 // Log configuration
@@ -19,7 +22,7 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     // Set global log configuration
     globalLogLevel = logLevel;
     enabledLogCategories = logCategories;
-    
+
     LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));   
 
     // Initialize pins
@@ -160,4 +163,26 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     delay(100);
     
     return mode;
+}
+
+bool ON_ROUTINE_BLINK()
+{
+    uint32_t currentMillis = millis();
+    if (currentMillis - lastRoutineBlink >= ROUTINE_BLINK_MS)
+    {
+        lastRoutineBlink = currentMillis;
+        return true;
+    }
+    return false;
+}
+
+bool ON_ROUTINE_SET_ID()
+{
+    uint32_t currentMillis = millis();
+    if (currentMillis - lastRoutineSetID >= ROUTINE_SET_ID_MS)
+    {
+        lastRoutineSetID = currentMillis;
+        return true;
+    }
+    return false;
 }

@@ -79,16 +79,31 @@ void loop()
         digitalWrite(LED_RUN_PIN, run_led_state);
     }
 
+    // Set ID mode: blink all LEDs in red
     if (functionMode == FUNC_SW_SET_ID && ON_ROUTINE_SET_ID()) 
     {
         set_id_state = !set_id_state;
         for (int i = 0; i < LED_NUM; i++) 
         {
-            leds[i]->setPixelColor(0, leds[i]->Color((set_id_state ? 200 : 0),0,0)); // Set to red color or off
+            leds[i]->setPixelColor(0, leds[i]->Color(0,0,(set_id_state ? 100 : 0))); // Set to red color or off
             leds[i]->show();
         }
     }
 
+    if (functionMode == FUNC_SW_FACTORY_RESET)
+    {
+        for (int i = 0; i < LED_NUM; i++) 
+        {
+            leds[i]->setPixelColor(0, leds[i]->Color(100,0,0)); // Set to red color
+            leds[i]->show();
+        }
+        delay(3000);
+        LOG_INFO_SYS(F("[SYSTEM] Factory reset mode engaged.\n"));
+        eepromConfig.isFirstBoot = true;        // Clear the flag
+        saveEepromConfig();                     // Save to EEPROM if changed
+        NVIC_SystemReset();                     // Perform software reset  
+    }
+        
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
@@ -127,7 +142,7 @@ void loop()
             LOG_INFO_MODBUS(F("[MODBUS] Software reset requested\n"));
             NVIC_SystemReset();         // Perform software reset
         }
-
+        
         // Apply LED state changes (Addr.1001-1008)
         for (int i = 0; i < LED_NUM; i++) 
         {

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <ModbusRTUServer.h>
-#include "config.h"
 #include "system.h"
 #include "led.h"
 #include "eeprom_utils.h"

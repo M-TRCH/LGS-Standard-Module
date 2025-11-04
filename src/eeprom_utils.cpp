@@ -57,10 +57,12 @@ bool saveEepromConfig()
     return false;
 }
 
-void handleFirstBoot() 
+void eepromInit() 
 {
-    loadEepromConfig(); // Load configuration from EEPROM
+    // Load configuration from EEPROM
+    loadEepromConfig(); 
 
+    // Check if first boot
     // write default values to EEPROM
     if (eepromConfig.isFirstBoot == true) 
     {

@@ -2,29 +2,19 @@
 // Reference Documentation: .pdf
 
 #include <Arduino.h>
-#include "config.h"
-#include "system.h"
 #include "led.h"
-#include "modbus_utils.h"
 #include "eeprom_utils.h"
-
-// Global variable to store the detected function switch mode
-FunctionSwitchMode functionMode = FUNC_SW_NONE;
+#include "modbus_utils.h"
 
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_DEBUG);  // Initialize system
-
-    // Check function switch immediately after system init
-    functionMode = checkFunctionSwitch();
 #endif
 
 #ifdef EEPROM_UTILS_H
     // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
-    handleFirstBoot();      // Handle first boot scenario
-    loadEepromConfig();     // Load configuration from EEPROM
-    LOG_INFO_EEPROM(F("[EEPROM] Configuration loaded\n"));
+    eepromInit();        // Initialize EEPROM and load configuration
 #endif
 
 #ifdef LED_H
@@ -32,10 +22,8 @@ void setup()
 #endif
 
 #ifdef MODBUS_UTILS_H
-    LOG_INFO_MODBUS("[MODBUS] Initializing with ID: " + String(eepromConfig.identifier) + "\n");
     modbusInit(eepromConfig.identifier);    // Initialize Modbus
     eeprom2modbusMapping();
-    LOG_INFO_MODBUS(F("[MODBUS] Initialization complete\n"));
 #endif
 }
 
@@ -60,7 +48,7 @@ void loop()
     // }
     // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
     // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
-    LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
+    // LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
 
 #ifdef SYSTEM_H
     // Blink the run LED

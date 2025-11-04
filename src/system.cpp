@@ -8,6 +8,7 @@ SensirionI2CSts4x sts4x;
 
 // Global variables
 bool run_led_state = false;
+FunctionSwitchMode functionMode = FUNC_SW_RUN;
 
 // Log configuration
 LogLevel globalLogLevel = LOG_INFO;                     // Default log level
@@ -19,7 +20,7 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     globalLogLevel = logLevel;
     enabledLogCategories = logCategories;
 
-    LOG_INFO_SYS(F("[SYSTEM] Initializing system...\n"));   
+    LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));   
 
     // Initialize pins
     pinMode(LED_RUN_PIN, OUTPUT);
@@ -54,15 +55,11 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     Wire.begin(); // Initialize I2C
     sts4x.begin(Wire, ADDR_STS4X_ALT);
 
-    // Wait for Serial to be ready
-    uint32_t startup = millis();
-    while(millis() - startup < 2000 && false)   // Set to true to enable waiting for Serial
-    {
-        LOG_VERBOSE_SYS(F("."));
-        delay(200);
-    }
-    LOG_INFO_SYS(F("[SYSTEM] Initialization complete\n"));
+    // Check function switch immediately after system init
+    functionMode = checkFunctionSwitch();
+
     digitalWrite(LED_RUN_PIN, HIGH);
+    LOG_INFO_SYS(F("[SYSTEM] Initialization complete\n"));
 }
 
 bool isLatchLocked(int debounceDelay)
@@ -74,6 +71,30 @@ bool isLatchLocked(int debounceDelay)
         {
             return true; // Latch is locked
         }
+    }
+    return false; // Latch is inactive
+}
+
+bool unlockLatch(int unlockTimeout)
+{
+    if (digitalRead(SENSE_PIN) == LOW)
+    {
+        digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
+             
+        uint32_t startTime = millis();
+        while (digitalRead(SENSE_PIN) == LOW)
+        {
+            if (millis() - startTime >= unlockTimeout)
+            {
+                break; // Exit if timeout reached
+            }
+        }
+        digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
+        return true; // Latch is active
+    }
+    else
+    {
+        return false; // Latch is inactive
     }
     return false; // Latch is inactive
 }
@@ -167,28 +188,4 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     }
     
     return mode;
-}
-
-bool unlockLatch(int unlockTimeout)
-{
-    if (digitalRead(SENSE_PIN) == LOW)
-    {
-        digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
-             
-        uint32_t startTime = millis();
-        while (digitalRead(SENSE_PIN) == LOW)
-        {
-            if (millis() - startTime >= unlockTimeout)
-            {
-                break; // Exit if timeout reached
-            }
-        }
-        digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
-        return true; // Latch is active
-    }
-    else
-    {
-        return false; // Latch is inactive
-    }
-    return false; // Latch is inactive
 }

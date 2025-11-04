@@ -17,6 +17,8 @@ void modbusInit(int id)
     RTUServer.configureDiscreteInputs(0x00, DISCRETE_INPUT_NUM);
     RTUServer.configureHoldingRegisters(0x00, HOLDING_REGISTER_NUM);
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
+
+    LOG_INFO_MODBUS("[MODBUS] Modbus RTU server started with ID: " + String(id) + "\n");
 }
 
 void modbus2eepromMapping(bool saveEEPROM) 
@@ -72,4 +74,6 @@ void eeprom2modbusMapping(bool loadEEPROM)
         // maximum on-time limit
         RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i*10, eepromConfig.maxOnTime[i]);
     }
+    
+    LOG_INFO_MODBUS(F("[MODBUS] EEPROM to Modbus mapping applied\n"));
 }

@@ -8,6 +8,7 @@
 #include <ArduinoRS485.h>
 #include <Wire.h>
 #include <SensirionI2CSts4x.h>
+#include "config.h"
 
 // Pin definitions
 #define RX_PIN          PA10 
@@ -40,14 +41,15 @@
 // Function switch modes (returned by checkFunctionSwitch)
 enum FunctionSwitchMode
 {
-    FUNC_SW_NONE = 0,           // No switch pressed (normal operation)
-    FUNC_SW_SHORT = 1,          // Pressed > 1 second
-    FUNC_SW_MEDIUM = 2,         // Pressed > 5 seconds
-    FUNC_SW_LONG = 3            // Pressed > 10 seconds
+    FUNC_SW_RUN = 0,            // No switch pressed (normal operation)
+    FUNC_SW_DEMO = 1,           // Pressed > 1 second
+    FUNC_SW_SET_ID = 2,         // Pressed > 5 seconds
+    FUNC_SW_FACTORY_RESET = 3   // Pressed > 10 seconds
 };
 
 // Global variables
 extern bool run_led_state;
+extern FunctionSwitchMode functionMode;
 
 // Object declarations
 extern HardwareSerial Serial3; 

@@ -147,10 +147,10 @@ bool unlockLatch(int unlockTimeout = 300);
  *
  * @param maxWaitTime Maximum time to wait for switch press in milliseconds (default 15000ms)
  * @return FunctionSwitchMode:
- *         - FUNC_SW_NONE (0): Switch not pressed, continue normal operation
- *         - FUNC_SW_SHORT (1): Pressed > 1 second
- *         - FUNC_SW_MEDIUM (2): Pressed > 5 seconds
- *         - FUNC_SW_LONG (3): Pressed > 10 seconds
+ *         - FUNC_SW_RUN (0): Switch not pressed, continue normal operation
+ *         - FUNC_SW_DEMO (1): Pressed > 1 second
+ *         - FUNC_SW_SET_ID (2): Pressed > 5 seconds
+ *         - FUNC_SW_FACTORY_RESET (3): Pressed > 10 seconds
  */
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
 

@@ -107,7 +107,7 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     if (digitalRead(FUNC_SW_PIN) == HIGH)
     {
         LOG_DEBUG_SYS(F("[SYSTEM] Function switch not pressed, continuing normal operation\n"));
-        return FUNC_SW_NONE;  // Switch not pressed, continue normal operation
+        return FUNC_SW_RUN;  // Switch not pressed, continue normal operation
     }
     
     LOG_INFO_SYS(F("[SYSTEM] Function switch detected! Waiting for release...\n"));
@@ -128,64 +128,37 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
         {
             lastReportedSecond = currentSecond;
             LOG_INFO_SYS("[SYSTEM] Switch pressed: " + String(currentSecond) + " seconds...\n");
-            
-            // Blink LED to indicate different modes
-            if (currentSecond >= 10)
-            {
-                // Fast blink for LONG mode
-                digitalWrite(LED_RUN_PIN, (currentSecond % 2 == 0) ? HIGH : LOW);
-            }
-            else if (currentSecond >= 5)
-            {
-                // Medium blink for MEDIUM mode
-                digitalWrite(LED_RUN_PIN, HIGH);
-            }
-            else if (currentSecond >= 1)
-            {
-                // Slow blink for SHORT mode
-                digitalWrite(LED_RUN_PIN, (millis() / 500) % 2 == 0 ? HIGH : LOW);
-            }
         }
-        
         delay(50);  // Small delay to reduce CPU usage
     }
     
     // Determine which mode based on press duration
-    FunctionSwitchMode mode = FUNC_SW_NONE;
-    
-    if (pressDuration >= 10000)  // 10 seconds or more
+    FunctionSwitchMode mode = FUNC_SW_RUN;
+
+    if (pressDuration >= 9000)  // 9 seconds or more
     {
-        mode = FUNC_SW_LONG;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: LONG press (>10s) detected\n"));
+        mode = FUNC_SW_FACTORY_RESET;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (>9s) detected\n"));
     }
-    else if (pressDuration >= 5000)  // 5 seconds or more
+    else if (pressDuration >= 3000)  // 3 seconds or more
     {
-        mode = FUNC_SW_MEDIUM;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: MEDIUM press (>5s) detected\n"));
+        mode = FUNC_SW_SET_ID;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (>3s) detected\n"));
     }
-    else if (pressDuration >= 1000)  // 1 second or more
+    else if (pressDuration >= 500)  // 0.5 second or more
     {
-        mode = FUNC_SW_SHORT;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: SHORT press (>1s) detected\n"));
+        mode = FUNC_SW_DEMO;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (>0.5s) detected\n"));
     }
     else
     {
         // Released too quickly, treat as no press
-        mode = FUNC_SW_NONE;
+        mode = FUNC_SW_RUN;
         LOG_DEBUG_SYS(F("[SYSTEM] Function switch released too quickly, continuing normal operation\n"));
     }
     
     // Wait a bit to ensure switch is fully released
     delay(100);
-    
-    // Visual feedback - blink LED based on mode
-    for (uint8_t i = 0; i < mode; i++)
-    {
-        digitalWrite(LED_RUN_PIN, HIGH);
-        delay(200);
-        digitalWrite(LED_RUN_PIN, LOW);
-        delay(200);
-    }
     
     return mode;
 }

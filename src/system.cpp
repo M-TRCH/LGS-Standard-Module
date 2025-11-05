@@ -117,44 +117,87 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     // Switch is pressed, measure how long it's held
     uint32_t pressStartTime = millis();
     uint32_t pressDuration = 0;
-    uint8_t lastReportedSecond = 0;
+    uint32_t lastBlinkCycle = 0;
     
     // Wait for switch release or max time
     while (digitalRead(FUNC_SW_PIN) == LOW && (millis() - pressStartTime) < maxWaitTime)
     {
         pressDuration = millis() - pressStartTime;
+        uint32_t currentCycle = pressDuration / 1000;  // Each cycle is 1 second
         
-        // Report every second
-        uint8_t currentSecond = pressDuration / 1000;
-        if (currentSecond > lastReportedSecond)
+        // Check if we entered a new cycle
+        if (currentCycle > lastBlinkCycle)
         {
-            lastReportedSecond = currentSecond;
-            LOG_INFO_SYS("[SYSTEM] Switch pressed: " + String(currentSecond) + " seconds...\n");
+            lastBlinkCycle = currentCycle;
+            LOG_INFO_SYS("[SYSTEM] Switch pressed: " + String(currentCycle) + " seconds...\n");
         }
+        
+        // Determine blink pattern based on press duration
+        uint8_t blinksPerCycle = 1;  // Default: DEMO mode
+        if (pressDuration >= 8000)
+        {
+            blinksPerCycle = 4;  // FACTORY_RESET: 4 blinks per cycle
+        }
+        else if (pressDuration >= 4000)
+        {
+            blinksPerCycle = 2;  // SET_ID: 2 blinks per cycle
+        }
+        else
+        {
+            blinksPerCycle = 1;  // DEMO: 1 blink per cycle
+        }
+        
+        // Calculate position within current cycle (0-999ms)
+        uint32_t cyclePosition = pressDuration % 1000;
+        
+        // Blink pattern timing (each blink: 150ms ON, 100ms OFF)
+        // Total time for blinks = blinksPerCycle * 250ms
+        uint32_t blinkDuration = 150;   // LED ON time
+        uint32_t blinkPause = 100;      // LED OFF time between blinks
+        uint32_t singleBlinkTime = blinkDuration + blinkPause;  // 250ms per blink
+        
+        bool shouldLedBeOn = false;
+        for (uint8_t i = 0; i < blinksPerCycle; i++)
+        {
+            uint32_t blinkStart = i * singleBlinkTime;
+            uint32_t blinkEnd = blinkStart + blinkDuration;
+            
+            if (cyclePosition >= blinkStart && cyclePosition < blinkEnd)
+            {
+                shouldLedBeOn = true;
+                break;
+            }
+        }
+        
+        digitalWrite(LED_RUN_PIN, shouldLedBeOn ? HIGH : LOW);
+        
         delay(50);  // Small delay to reduce CPU usage
     }
+    
+    // Turn off LED after release
+    digitalWrite(LED_RUN_PIN, LOW);
     
     // Determine which mode based on press duration
     FunctionSwitchMode mode = FUNC_SW_RUN;
 
-    if (pressDuration >= 9000)  // 9 seconds or more
+    if (pressDuration >= 8000)  // 8 seconds or more (8-12s)
     {
         mode = FUNC_SW_FACTORY_RESET;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (>9s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (8-12s) detected\n"));
     }
-    else if (pressDuration >= 3000)  // 3 seconds or more
+    else if (pressDuration >= 4000)  // 4 seconds or more (4-8s)
     {
         mode = FUNC_SW_SET_ID;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (>3s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (4-8s) detected\n"));
     }
-    else if (pressDuration >= 500)  // 0.5 second or more
+    else if (pressDuration >= 0)  // Any press (0-3s)
     {
         mode = FUNC_SW_DEMO;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (>0.5s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (0-3s) detected\n"));
     }
     else
     {
-        // Released too quickly, treat as no press
+        // This shouldn't happen, but keep for safety
         mode = FUNC_SW_RUN;
         LOG_DEBUG_SYS(F("[SYSTEM] Function switch released too quickly, continuing normal operation\n"));
     }

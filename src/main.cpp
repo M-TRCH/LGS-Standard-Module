@@ -22,8 +22,9 @@ void setup()
 #endif
 
 #ifdef MODBUS_UTILS_H
-    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    // Initialize Modbus
-    eeprom2modbusMapping();
+    // Initialize Modbus server with ID from EEPROM, default ID (247) or special ID (246) for SET_ID mode
+    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    
+    eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
 #endif
 }
 
@@ -33,12 +34,10 @@ void loop()
     // float temperature;
     // static uint32_t lastTempReadSec = 0;
     // static uint32_t lastTempRead = 0;
-
     // if (millis() - lastTempReadSec >= 1000) // Read every second
     // {
     //     lastTempReadSec = millis();
     //     LOG_DEBUG_SYS(".");
-
     //     if (millis() - lastTempRead >= 60000)
     //     {
     //         lastTempRead = millis();
@@ -47,63 +46,89 @@ void loop()
     //     }    
     // }
     // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
-    // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
-    // LOG_DEBUG_SYS("[SYSTEM] functionMode: " + String(functionMode) + "\n");
-
+    
     // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
     {
-        while(1)
+        if (ON_ROUTINE_BLINK_DEMO())
         {
-            // Cycle through LEDs in demo mode
             for (int i = 0; i < LED_NUM; i++) 
             {
                 float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;   // Scale brightness to 0.0 - 1.0
+                if (!blink_demo_state)  brightness = 0.0; // Turn off LEDs when blink state is off
+
                 leds[i]->setPixelColor(0, leds[i]->Color(
                     RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,    // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
                     RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
                     RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
                 leds[i]->show();
-                delay(500); // Hold each LED for 500ms
-                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
-                leds[i]->show();
-                delay(500); // Short delay between LEDs
             }
         }
     }
-
-    // Blink RUN LED at regular intervals
-    if (functionMode == FUNC_SW_RUN && ON_ROUTINE_BLINK()) 
+    
+    // Set ID mode: blink all LEDs in red for identification
+    else if (functionMode == FUNC_SW_SET_ID) 
     {
-        run_led_state = !run_led_state;
-        digitalWrite(LED_RUN_PIN, run_led_state);
-    }
-
-    // Set ID mode: blink all LEDs in red
-    if (functionMode == FUNC_SW_SET_ID && ON_ROUTINE_SET_ID()) 
-    {
-        set_id_state = !set_id_state;
-        for (int i = 0; i < LED_NUM; i++) 
+        if (ON_ROUTINE_BLINK_SET_ID())
         {
-            leds[i]->setPixelColor(0, leds[i]->Color(0,0,(set_id_state ? 100 : 0))); // Set to red color or off
-            leds[i]->show();
+            for (int i = 0; i < LED_NUM; i++) 
+            {
+                leds[i]->setPixelColor(0, leds[i]->Color(0,0,(blink_set_id_state ? 204 : 0))); // Set to blue color or off (magic number)
+                leds[i]->show();
+            }
         }
     }
-
-    if (functionMode == FUNC_SW_FACTORY_RESET)
+    
+    // Factory reset mode: solid red on all LEDs for 5 seconds, then reset
+    else if (functionMode == FUNC_SW_FACTORY_RESET)
     {
         for (int i = 0; i < LED_NUM; i++) 
         {
-            leds[i]->setPixelColor(0, leds[i]->Color(100,0,0)); // Set to red color
+            leds[i]->setPixelColor(0, leds[i]->Color(204,0,0)); // Set to red color (magic number)
             leds[i]->show();
         }
-        delay(3000);
+        delay(5000);   // (magic number)
         LOG_INFO_SYS(F("[SYSTEM] Factory reset mode engaged.\n"));
         eepromConfig.isFirstBoot = true;        // Clear the flag
         saveEepromConfig();                     // Save to EEPROM if changed
         NVIC_SystemReset();                     // Perform software reset  
     }
-        
+    
+    // Normal operation
+    else if (functionMode == FUNC_SW_RUN) 
+    {
+        // Routine blink for run LED
+        if (ON_ROUTINE_BLINK_RUN())
+        {
+            digitalWrite(LED_RUN_PIN, blink_run_state);
+        }
+
+        // Update LED statistics and enforce max on-time limits
+        for (int i = 0; i < LED_NUM; i++)
+        {
+            // Check if LED is ON and has a max on-time limit set
+            if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+            {
+                LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
+                // Turn off the LED
+                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+                leds[i]->show();
+                last_led_state[i] = false; // Update last known state
+
+                // Stop timer and accumulate time
+                led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
+                led_timer[i] = 0; // Reset timer
+
+                // Update Modbus coil to reflect LED is off
+                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+            }
+
+            // Update Modbus registers with current LED statistics
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
+        }
+    }
+
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
@@ -179,34 +204,6 @@ void loop()
                 }
                 // printLedStatus();
             }
-        }
-    }
-
-    // Update LED statistics and enforce max on-time limits 
-    if (functionMode == FUNC_SW_RUN)
-    {
-        for (int i = 0; i < LED_NUM; i++)
-        {
-            // Check if LED is ON and has a max on-time limit set
-            if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
-            {
-                LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
-                // Turn off the LED
-                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
-                leds[i]->show();
-                last_led_state[i] = false; // Update last known state
-
-                // Stop timer and accumulate time
-                led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-                led_timer[i] = 0; // Reset timer
-
-                // Update Modbus coil to reflect LED is off
-                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
-            }
-
-            // Update Modbus registers with current LED statistics
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
         }
     }
 }

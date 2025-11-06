@@ -7,10 +7,12 @@ RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);
 SensirionI2CSts4x sts4x;
 
 // Global variables
-uint32_t lastRoutineBlink = 0;
-uint32_t lastRoutineSetID = 0;
-bool run_led_state = false;
-bool set_id_state = false;
+uint32_t lastTimeRoutineBlink = 0;
+uint32_t lastTimeRoutineDemo = 0;
+uint32_t lastTimeRoutineSetID = 0;
+bool blink_run_state = false;
+bool blink_demo_state = false;
+bool blink_set_id_state = false;
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
 
 // Log configuration
@@ -39,9 +41,6 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     pinMode(SENSE_PIN, INPUT_PULLUP);
     pinMode(FUNC_SW_PIN, INPUT);
     
-    // For testing purposes
-    unlockLatch();
-
     // Initialize pins to default states
     digitalWrite(LED_RUN_PIN, LOW);
     digitalWrite(MOSFET_PIN, LOW);
@@ -208,23 +207,37 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     return mode;
 }
 
-bool ON_ROUTINE_BLINK()
+bool ON_ROUTINE_BLINK_RUN()
 {
     uint32_t currentMillis = millis();
-    if (currentMillis - lastRoutineBlink >= ROUTINE_BLINK_MS)
+    if (currentMillis - lastTimeRoutineBlink >= ROUTINE_BLINK_RUN_MS)
     {
-        lastRoutineBlink = currentMillis;
+        lastTimeRoutineBlink = currentMillis;
+        blink_run_state = !blink_run_state;
         return true;
     }
     return false;
 }
 
-bool ON_ROUTINE_SET_ID()
+bool ON_ROUTINE_BLINK_DEMO()
 {
     uint32_t currentMillis = millis();
-    if (currentMillis - lastRoutineSetID >= ROUTINE_SET_ID_MS)
+    if (currentMillis - lastTimeRoutineDemo >= ROUTINE_BLINK_DEMO_MS)
     {
-        lastRoutineSetID = currentMillis;
+        lastTimeRoutineDemo = currentMillis;
+        blink_demo_state = !blink_demo_state;
+        return true;
+    }
+    return false;
+}
+
+bool ON_ROUTINE_BLINK_SET_ID()
+{
+    uint32_t currentMillis = millis();
+    if (currentMillis - lastTimeRoutineSetID >= ROUTINE_BLINK_SET_ID_MS)
+    {
+        lastTimeRoutineSetID = currentMillis;
+        blink_set_id_state = !blink_set_id_state;
         return true;
     }
     return false;

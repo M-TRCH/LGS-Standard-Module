@@ -282,9 +282,41 @@ void loop()
                 // printLedStatus();
             }
         }
+
+        // Apply LED state changes with latch trigger (Addr.1021-1028)
+        for (int i = 0; i < LED_NUM; i++) 
+        {
+            int led_latch_state = RTUServer.coilRead(MB_COIL_LED_1_LATCH + i);
+            if (led_latch_state) // Check if the LED latch coil is triggered
+            {
+                // Turn ON the LED (same as LED enable)
+                float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;
+                leds[i]->setPixelColor(0, leds[i]->Color(
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
+                    RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
+                leds[i]->show();
+
+                // Update LED state tracking
+                if (!last_led_state[i]) 
+                {
+                    led_counter[i]++;
+                    led_timer[i] = millis();
+                    last_led_state[i] = true;
+                    LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned ON via latch\n");
+                }
+
+                // Trigger the latch unlock
+                delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
+                unlockLatch();
+                LOG_INFO_MODBUS("[MODBUS] Latch unlock triggered via LED" + String(i+1) + " latch coil\n");
+
+                // Reset the latch coil and sync with enable coil
+                RTUServer.coilWrite(MB_COIL_LED_1_LATCH + i, 0);
+                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 1);
+            }
+        }
     
-        
-         
     }
 }
 

@@ -24,10 +24,11 @@ void modbusInit(int id)
 void modbus2eepromMapping(bool saveEEPROM) 
 {
     // Write Modbus values to EEPROM
-    // Device Information
+    // Device group:
     eepromConfig.baudRate = RTUServer.holdingRegisterRead(MB_REG_BAUD_RATE);
     eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
 
+    // Configuration group:
     // LED Configuration
     for (int i = 0; i < LED_NUM; i++) 
     {
@@ -40,6 +41,9 @@ void modbus2eepromMapping(bool saveEEPROM)
         // maximum on-time limit
         eepromConfig.maxOnTime[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10);
     }
+    
+    // Unlock delay time
+    eepromConfig.unlockDelayTime = RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY);
 
     if (saveEEPROM) 
     {
@@ -55,13 +59,14 @@ void eeprom2modbusMapping(bool loadEEPROM)
     }
 
     // Update Modbus registers with EEPROM 
-    // Device Information
+    // Device group:
     RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
     RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
     RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, eepromConfig.hwVersion);
     RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
     RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
 
+    // Configuration group:
     // LED Configuration
     for (int i = 0; i < LED_NUM; i++) 
     {
@@ -74,6 +79,9 @@ void eeprom2modbusMapping(bool loadEEPROM)
         // maximum on-time limit
         RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i*10, eepromConfig.maxOnTime[i]);
     }
+
+    // Unlock delay time
+    RTUServer.holdingRegisterWrite(MB_REG_UNLOCK_DELAY, eepromConfig.unlockDelayTime);
     
     LOG_INFO_MODBUS(F("[MODBUS] EEPROM to Modbus mapping applied\n"));
 }

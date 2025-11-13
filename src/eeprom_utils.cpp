@@ -5,18 +5,19 @@ EepromConfig_t eepromConfig;
 EepromConfig_t eepromConfig_cache;
 EepromConfig_t eepromConfig_default = 
 {
-    .isFirstBootExceptID = false,               // Indicates if first boot except ID
-    .isFirstBoot = false,                       // Indicates if first boot
-    .deviceType = DEFAULT_DEVICE_TYPE,          // Default device type
-    .fwVersion = DEFAULT_FW_VERSION,            // Default firmware version 1.00
-    .hwVersion = DEFAULT_HW_VERSION,            // Default hardware version
-    .baudRate = DEFAULT_BAUD_RATE,              // Default baud rate
-    .identifier = DEFAULT_IDENTIFIER,           // Default Modbus identifier
-    .led_brightness = DEFAULT_LED_BRIGHTNESS,   // Default brightness for 8 LEDs
-    .led_r = DEFAULT_LED_R,                     // Default red values for 8 LEDs
-    .led_g = DEFAULT_LED_G,                     // Default green values for 8 LEDs
-    .led_b = DEFAULT_LED_B,                     // Default blue values for 8 LEDs
-    .maxOnTime = DEFAULT_LED_MAX_ON_TIME        // Default max on time for 8 LEDs
+    .isFirstBootExceptID = false,                   // Indicates if first boot except ID
+    .isFirstBoot = false,                           // Indicates if first boot
+    .deviceType = DEFAULT_DEVICE_TYPE,              // Default device type
+    .fwVersion = DEFAULT_FW_VERSION,                // Default firmware version 1.00
+    .hwVersion = DEFAULT_HW_VERSION,                // Default hardware version
+    .baudRate = DEFAULT_BAUD_RATE,                  // Default baud rate
+    .identifier = DEFAULT_IDENTIFIER,               // Default Modbus identifier
+    .led_brightness = DEFAULT_LED_BRIGHTNESS,       // Default brightness for 8 LEDs
+    .led_r = DEFAULT_LED_R,                         // Default red values for 8 LEDs
+    .led_g = DEFAULT_LED_G,                         // Default green values for 8 LEDs
+    .led_b = DEFAULT_LED_B,                         // Default blue values for 8 LEDs
+    .maxOnTime = DEFAULT_LED_MAX_ON_TIME,           // Default max on time for 8 LEDs
+    .unlockDelayTime = DEFAULT_UNLOCK_DELAY_TIME    // Default unlock delay time
 };
 
 void loadEepromConfig() 

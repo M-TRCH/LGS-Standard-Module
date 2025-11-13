@@ -18,5 +18,6 @@
 #define DEFAULT_LED_G           {0,     255,    0,      215,    255,    0,      60,     245}
 #define DEFAULT_LED_B           {0,     0,      255,    0,      255,    255,    0,      120}
 #define DEFAULT_LED_MAX_ON_TIME {3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600} // in seconds (1 hour each)
+#define DEFAULT_UNLOCK_DELAY_TIME  5       // in milliseconds
 
 #endif

@@ -21,6 +21,7 @@ typedef struct
     uint16_t led_g[8];
     uint16_t led_b[8];
     uint16_t maxOnTime[8];
+    uint16_t unlockDelayTime;
 } EepromConfig_t;
 
 extern EepromConfig_t eepromConfig;

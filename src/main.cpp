@@ -15,9 +15,9 @@ void oled_init()
 {
     oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     oled.setTextColor(WHITE);
-    oled.setTextSize(2);
-    oled.setRotation(0);  
-    oled.clearDisplay();
+    oled.setTextSize(2);    
+    oled.setRotation(0);      
+    oled.clearDisplay();    
     oled.display();
 }
 
@@ -26,7 +26,7 @@ void setup()
 #ifdef SYSTEM_H
     sysInit(LOG_DEBUG);  // Initialize system
 
-    oled_init();    // Initialize OLED for testing
+    // oled_init();    // Initialize OLED for testing
 #endif
 
 #ifdef EEPROM_UTILS_H
@@ -47,60 +47,70 @@ void setup()
 
 void loop() 
 {
+    /*
     // For testing purposes: read temperature from STS4x sensor
-    // float temperature;
-    // static uint32_t lastTempReadSec = 0;
-    // static uint32_t lastTempRead = 0;
-    // if (millis() - lastTempReadSec >= 1000) // Read every second
-    // {
-    //     lastTempReadSec = millis();
-    //     LOG_DEBUG_SYS(".");
-    //     if (millis() - lastTempRead >= 60000)
-    //     {
-    //         lastTempRead = millis();
-    //         sts4x.measureHighPrecision(temperature);
-    //         LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
-    //     }    
-    // }
-    // LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
-
-    static uint32_t lastWriteDisp = 0;
-    static uint8_t numCnt = 0;
-    static uint8_t colorCnt = 0;
-    static uint8_t led_index = 0;
-    if (millis() - lastWriteDisp >= 1000) // Update display every second
+    float temperature;
+    static uint32_t lastTempReadSec = 0;
+    static uint32_t lastTempRead = 0;
+    if (millis() - lastTempReadSec >= 1000) // Read every second
     {
-        lastWriteDisp = millis();
-
-        // Increment number counter
-        numCnt++;
-        if (numCnt > 100) numCnt = 0;
-        // Increment color counter
-        colorCnt++;
-        if (colorCnt > 3) colorCnt = 0;
-
-        oled.clearDisplay();
-        oled.setCursor(18, 22);
-        oled.println("LGS: " + String(numCnt));
-        oled.display();
-
-        for (int i = 0; i < 4; i++) 
+        lastTempReadSec = millis();
+        LOG_DEBUG_SYS(".");
+        if (millis() - lastTempRead >= 60000)
         {
-            if (i == 0) led_index = 2; 
-            else if (i == 1) led_index = 3;
-            else if (i == 2) led_index = 6;
-            else if (i == 3) led_index = 7;
+            lastTempRead = millis();
+            sts4x.measureHighPrecision(temperature);
+            LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
+        }    
+    }
+    LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
+    */
+    /*
+    // static uint32_t lastWriteDisp = 0;
+    // static uint8_t numCnt = 0;
+    // static uint8_t colorCnt = 0;
+    // static uint8_t led_index = 0;
+    // if (millis() - lastWriteDisp >= 1000) // Update display every second
+    // {
+    //     lastWriteDisp = millis();
 
-            if (colorCnt == 0)
-                leds[led_index]->setPixelColor(0, leds[led_index]->Color(204,0,0)); // Red
-            else if (colorCnt == 1)
-                leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,204,0)); // Green
-            else if (colorCnt == 2)
-                leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,0,204)); // Blue
+    //     // Increment number counter
+    //     numCnt++;
+    //     if (numCnt > 100) numCnt = 0;
+    //     // Increment color counter
+    //     colorCnt++;
+    //     if (colorCnt > 3) colorCnt = 0;
+
+    //     oled.clearDisplay();
+    //     oled.setCursor(18, 22);
+    //     oled.println("LGS: " + String(numCnt));
+    //     oled.display();
+
+    //     for (int i = 0; i < 4; i++) 
+    //     {
+    //         if (i == 0) led_index = 2; 
+    //         else if (i == 1) led_index = 3;
+    //         else if (i == 2) led_index = 6;
+    //         else if (i == 3) led_index = 7;
+
+    //         if (colorCnt == 0)
+    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(204,0,0)); // Red
+    //         else if (colorCnt == 1)
+    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,204,0)); // Green
+    //         else if (colorCnt == 2)
+    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,0,204)); // Blue
             
-            // update LED
-            leds[led_index]->show();
-        }
+    //         // update LED
+    //         leds[led_index]->show();
+    //     }
+    // }
+    */
+
+    static uint32_t lastTestPrint = 0;
+    if (millis() - lastTestPrint >= 1000) // Print every 1 seconds
+    {
+        lastTestPrint = millis();
+        LOG_DEBUG_SYS("[SYSTEM] Unlock delay time:" + String(eepromConfig.unlockDelayTime) + " seconds\n");
     }
 
     // Demo mode: cycle through LEDs

@@ -57,6 +57,7 @@ extern bool blink_run_state;
 extern bool blink_demo_state;
 extern bool blink_set_id_state;
 extern FunctionSwitchMode functionMode;
+extern uint32_t lastTimeLatchLocked;
 
 // Object declarations
 extern HardwareSerial Serial3; 
@@ -135,7 +136,7 @@ void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
  *
  * @return true if the latch is locked, false otherwise
  */
-bool isLatchLocked(int debounceDelay = 20);
+bool isLatchLocked(int debounceDelay = 0);
 
 /* @brief Check if the latch is active
  *

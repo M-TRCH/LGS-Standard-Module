@@ -14,6 +14,7 @@ bool blink_run_state = false;
 bool blink_demo_state = false;
 bool blink_set_id_state = false;
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
+uint32_t lastTimeLatchLocked = 0;
 
 // Log configuration
 LogLevel globalLogLevel = LOG_INFO;                     // Default log level

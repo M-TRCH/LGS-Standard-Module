@@ -106,12 +106,12 @@ void loop()
     // }
     */
 
-    // static uint32_t lastTestPrint = 0;
-    // if (millis() - lastTestPrint >= 1000) // Print every 1 seconds
-    // {
-    //     lastTestPrint = millis();
-    //     LOG_DEBUG_SYS("[SYSTEM] Unlock delay time:" + String(eepromConfig.unlockDelayTime) + " seconds\n");
-    // }
+    static uint32_t lastTestPrint = 0;
+    if (millis() - lastTestPrint >= 10) // Print every 1 seconds
+    {
+        lastTestPrint = millis();
+        LOG_DEBUG_SYS("[SYSTEM] Unlocked in " + String(RTUServer.holdingRegisterRead(MB_REG_TIME_AFTER_UNLOCK)) + " seconds\n");
+    }
 
     // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
@@ -176,7 +176,7 @@ void loop()
             if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
             {
                 LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
-                // Turn off the LED
+                // Turn off the LEDs
                 leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
                 leds[i]->show();
                 last_led_state[i] = false; // Update last known state
@@ -192,6 +192,17 @@ void loop()
             // Update Modbus registers with current LED statistics
             RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
             RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
+        }
+    
+        // Update time after last unlock
+        if (isLatchLocked())  
+        {
+            lastTimeLatchLocked = millis();
+            RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, 0); 
+        }
+        else
+        {           
+            RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, (uint16_t)((millis() - lastTimeLatchLocked) / 1000)); // in seconds
         }
     }
 

@@ -106,12 +106,12 @@ void loop()
     // }
     */
 
-    static uint32_t lastTestPrint = 0;
-    if (millis() - lastTestPrint >= 1000) // Print every 1 seconds
-    {
-        lastTestPrint = millis();
-        LOG_DEBUG_SYS("[SYSTEM] Unlock delay time:" + String(eepromConfig.unlockDelayTime) + " seconds\n");
-    }
+    // static uint32_t lastTestPrint = 0;
+    // if (millis() - lastTestPrint >= 1000) // Print every 1 seconds
+    // {
+    //     lastTestPrint = millis();
+    //     LOG_DEBUG_SYS("[SYSTEM] Unlock delay time:" + String(eepromConfig.unlockDelayTime) + " seconds\n");
+    // }
 
     // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
@@ -198,6 +198,7 @@ void loop()
     // Poll Modbus server for requests
     if(RTUServer.poll()) 
     {   
+        // Operation group:
         // Write data to EEPROM (Addr.503)
         if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM)) 
         {
@@ -234,6 +235,16 @@ void loop()
             NVIC_SystemReset();         // Perform software reset
         }
         
+        // Control group:
+        // Latch trigger (Addr.1020)
+        if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER)) 
+        {
+            delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Small delay to ensure coil state is stable
+            unlockLatch();
+            RTUServer.coilWrite(MB_COIL_LATCH_TRIGGER, 0); // Reset the coil
+            LOG_INFO_MODBUS(F("[MODBUS] Latch unlock triggered via Modbus\n"));
+        }
+
         // Apply LED state changes (Addr.1001-1008)
         for (int i = 0; i < LED_NUM; i++) 
         {
@@ -271,6 +282,9 @@ void loop()
                 // printLedStatus();
             }
         }
+    
+        
+         
     }
 }
 

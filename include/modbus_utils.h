@@ -127,6 +127,11 @@
 #define MB_COIL_LED_7_LATCH         1027
 #define MB_COIL_LED_8_LATCH         1028
 
+// Global variables for Modbus
+extern uint16_t last_global_brightness;
+extern uint16_t last_global_max_on_time;
+
+// Modbus RTU Server Object
 extern ModbusRTUServerClass RTUServer;
 
 // Modbus Initialization

@@ -106,12 +106,12 @@ void loop()
     // }
     */
 
-    static uint32_t lastTestPrint = 0;
-    if (millis() - lastTestPrint >= 10) // Print every 1 seconds
-    {
-        lastTestPrint = millis();
-        LOG_DEBUG_SYS("[SYSTEM] Unlocked in " + String(RTUServer.holdingRegisterRead(MB_REG_TIME_AFTER_UNLOCK)) + " seconds\n");
-    }
+    // static uint32_t lastTestPrint = 0;
+    // if (millis() - lastTestPrint >= 10) // Print every 1 seconds
+    // {
+    //     lastTestPrint = millis();
+    //     LOG_DEBUG_SYS("[SYSTEM] Unlocked in " + String(RTUServer.holdingRegisterRead(MB_REG_TIME_AFTER_UNLOCK)) + " seconds\n");
+    // }
 
     // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
@@ -246,6 +246,31 @@ void loop()
             NVIC_SystemReset();         // Perform software reset
         }
         
+        // Configuration group:
+        // Global Brightness (Addr.190) - Set all LED brightness at once
+        uint16_t global_brightness = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_BRIGHTNESS);
+        if (global_brightness != last_global_brightness && global_brightness >= 0 && global_brightness <= 100) 
+        {
+            last_global_brightness = global_brightness;
+            for (int i = 0; i < LED_NUM; i++) 
+            {
+                RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i*10, global_brightness);
+            }
+            LOG_INFO_MODBUS("[MODBUS] Global brightness set to " + String(global_brightness) + "% for all LEDs\n");
+        }
+
+        // Global Max On Time (Addr.194) - Set all LED max on-time at once
+        uint16_t global_max_on_time = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_MAX_ON_TIME);
+        if (global_max_on_time != last_global_max_on_time && global_max_on_time >= 0 && global_max_on_time <= 65535) 
+        {
+            last_global_max_on_time = global_max_on_time;
+            for (int i = 0; i < LED_NUM; i++) 
+            {
+                RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i*10, global_max_on_time);
+            }
+            LOG_INFO_MODBUS("[MODBUS] Global max on-time set to " + String(global_max_on_time) + " seconds for all LEDs\n");
+        }
+
         // Control group:
         // Latch trigger (Addr.1020)
         if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER)) 

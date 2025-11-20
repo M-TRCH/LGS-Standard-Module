@@ -1,6 +1,11 @@
 
 #include "modbus_utils.h"
 
+// Global variables for Modbus
+uint16_t last_global_brightness = 0;
+uint16_t last_global_max_on_time = 0;
+
+// Modbus RTU Server Object
 ModbusRTUServerClass RTUServer;
 
 void modbusInit(int id) 

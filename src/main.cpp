@@ -169,30 +169,48 @@ void loop()
             digitalWrite(LED_RUN_PIN, blink_run_state);
         }
 
-        // Update LED statistics and enforce max on-time limits
+        // Enforce max on-time limits for all LEDs
         for (int i = 0; i < LED_NUM; i++)
         {
-            // Check if LED is ON and has a max on-time limit set
-            if (led_timer[i] != 0 && millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+            // Check if LED is ON and has exceeded max on-time limit
+            if (led_timer[i] != 0 && RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) > 0)
             {
-                LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
-                // Turn off the LEDs
-                leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
-                leds[i]->show();
-                last_led_state[i] = false; // Update last known state
+                if (millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10) * 1000) // Convert seconds to ms
+                {
+                    LOG_WARNING_LED("[LED] L" + String(i+1) + " max on-time exceeded, turning off\n");
+                    
+                    // Turn off the LED
+                    leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+                    leds[i]->show();
+                    last_led_state[i] = false; // Update last known state
 
-                // Stop timer and accumulate time
-                led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-                led_timer[i] = 0; // Reset timer
+                    // Stop timer and accumulate time
+                    led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
+                    led_timer[i] = 0; // Reset timer
 
-                // Update Modbus coil to reflect LED is off
-                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+                    // Update Modbus coil to reflect LED is off
+                    RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
+                }
             }
-
-            // Update Modbus registers with current LED statistics
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-time count
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
         }
+
+        // Update LED statistics to Modbus registers
+        uint32_t total_led_counter = 0;
+        uint32_t total_led_time = 0;
+        for (int i = 0; i < LED_NUM; i++)
+        {
+            // Update individual LED statistics
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-count
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
+            
+            // Accumulate totals
+            total_led_counter += led_counter[i];
+            total_led_time += (uint32_t)led_time_sum[i];
+        }
+        
+        // Update total LED statistics
+        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_CNT, total_led_counter);     // Total LED on count
+        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_TIME, total_led_time);       // Total LED on time in seconds
     
         // Update time after last unlock
         if (isLatchLocked())  

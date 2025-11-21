@@ -1,5 +1,5 @@
 
-// Reference Documentation: LGS-Control-Table-Updated-xx1125.pdf
+// Reference Documentation: LGS-Control-Table-Updated-211125.pdf
 
 #include <Arduino.h>
 #include "led.h"

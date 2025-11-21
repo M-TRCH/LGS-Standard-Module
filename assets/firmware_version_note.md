@@ -2,6 +2,27 @@
 **แพลตฟอร์ม:** STM32F103  
 **ไฟล์:** firmware_stm32f103_*.bin  
 
+## v2.0.0 (2025-11-21)
+### Compatibility
+- R4.1
+- R4.2
+
+### New Features
+- เพิ่มคำสั่ง Built-in Temperature (Addr. 20) - คืนค่าอุณหภูมิบนบอร์ด
+- เพิ่มคำสั่ง Time after unlocking (Addr. 40) - คืนค่าเวลาหลังจากการปลดล็อกกลอนไฟฟ้า
+- เพิ่มคำสั่ง Delay before unlock (Addr. 80) - ตั้งค่าการหน่วงเวลาปลดล็อกหลังจากได้รับคำสั่ง
+- เพิ่มคำสั่ง LED Latch Control (Addr. 1021-1028) - เปิด LED พร้อมปลดล็อคกลอนในคำสั่งเดียว
+- เพิ่มคำสั่ง Global Brightness (Addr. 190) - ตั้งค่าความสว่างทุก LED พร้อมกัน
+- เพิ่มคำสั่ง Global Max On Time (Addr. 194) - ตั้งค่า max on-time ทุก LED พร้อมกัน
+- เพิ่มการแสดงสถิติรวม Total LED On Count (Addr. 200)
+- เพิ่มการแสดงสถิติรวม Total LED On Time (Addr. 201)
+
+### Improvements
+- แยกส่วนการทำงาน Enforce และ Statistics ออกจากกันอย่างชัดเจน
+- เพิ่มการตรวจสอบเงื่อนไข max on-time = 0 (ไม่จำกัดเวลา)
+
+---
+
 ## v1.1.0 (2025-09-23)
 ### Compatibility
 - R4.0.1

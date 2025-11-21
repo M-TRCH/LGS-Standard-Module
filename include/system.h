@@ -39,6 +39,7 @@
 #define ROUTINE_BLINK_RUN_MS        1200    // LED blink interval in normal operation
 #define ROUTINE_BLINK_DEMO_MS       800     // LED blink interval in demo mode
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
+#define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
 
 // Function switch modes (returned by checkFunctionSwitch)
 enum FunctionSwitchMode
@@ -53,6 +54,7 @@ enum FunctionSwitchMode
 extern uint32_t lastTimeRoutineBlink;
 extern uint32_t lastTimeRoutineDemo;
 extern uint32_t lastTimeRoutineSetID;
+extern uint32_t lastTimeSensorRead;
 extern bool blink_run_state;
 extern bool blink_demo_state;
 extern bool blink_set_id_state;
@@ -185,4 +187,12 @@ bool ON_ROUTINE_BLINK_DEMO();
  * @return true if it's time to set ID, false otherwise
  */
 bool ON_ROUTINE_BLINK_SET_ID();
+
+/* @brief Check if it's time for routine sensor read
+ *
+ * This function checks if the routine sensor read interval has elapsed.
+ *
+ * @return true if it's time to read the sensor, false otherwise
+ */
+bool ON_ROUTINE_SENSOR_READ();
 #endif

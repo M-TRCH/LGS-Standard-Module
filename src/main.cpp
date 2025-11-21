@@ -24,7 +24,7 @@ void oled_init()
 void setup() 
 {
 #ifdef SYSTEM_H
-    sysInit(LOG_DEBUG);  // Initialize system
+    sysInit(LOG_NONE);  // Initialize system
 
     // oled_init();    // Initialize OLED for testing
 #endif
@@ -46,25 +46,7 @@ void setup()
 }
 
 void loop() 
-{
-    /*
-    // For testing purposes: read temperature from STS4x sensor
-    float temperature;
-    static uint32_t lastTempReadSec = 0;
-    static uint32_t lastTempRead = 0;
-    if (millis() - lastTempReadSec >= 1000) // Read every second
-    {
-        lastTempReadSec = millis();
-        LOG_DEBUG_SYS(".");
-        if (millis() - lastTempRead >= 60000)
-        {
-            lastTempRead = millis();
-            sts4x.measureHighPrecision(temperature);
-            LOG_DEBUG_SYS("Temperature: " + String(temperature, 2) + " °C\n");
-        }    
-    }
-    LOG_DEBUG_SYS("Func SW: " + String(digitalRead(FUNC_SW_PIN)) + "\n");
-    */
+{   
     /*
     // static uint32_t lastWriteDisp = 0;
     // static uint8_t numCnt = 0;
@@ -167,6 +149,15 @@ void loop()
         if (ON_ROUTINE_BLINK_RUN())
         {
             digitalWrite(LED_RUN_PIN, blink_run_state);
+        }
+
+        // Routine sensor read
+        if (ON_ROUTINE_SENSOR_READ())
+        {
+            float temp;
+            sts4x.measureHighPrecision(temp);
+            RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temp * 100)); // Store temperature as integer (e.g., 2534 for 25.34°C)
+            // LOG_DEBUG_SYS("Temperature: " + String(temp, 2) + " °C\n");
         }
 
         // Enforce max on-time limits for all LEDs

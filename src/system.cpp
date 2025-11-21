@@ -10,6 +10,7 @@ SensirionI2CSts4x sts4x;
 uint32_t lastTimeRoutineBlink = 0;
 uint32_t lastTimeRoutineDemo = 0;
 uint32_t lastTimeRoutineSetID = 0;
+uint32_t lastTimeSensorRead = 0;
 bool blink_run_state = false;
 bool blink_demo_state = false;
 bool blink_set_id_state = false;
@@ -239,6 +240,17 @@ bool ON_ROUTINE_BLINK_SET_ID()
     {
         lastTimeRoutineSetID = currentMillis;
         blink_set_id_state = !blink_set_id_state;
+        return true;
+    }
+    return false;
+}
+
+bool ON_ROUTINE_SENSOR_READ()
+{
+    uint32_t currentMillis = millis();
+    if (currentMillis - lastTimeSensorRead >= ROUTINE_SENSOR_READ_MS)
+    {
+        lastTimeSensorRead = currentMillis;
         return true;
     }
     return false;

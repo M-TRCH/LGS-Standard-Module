@@ -134,18 +134,22 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
         }
         
         // Determine blink pattern based on press duration
-        uint8_t blinksPerCycle = 1;  // Default: DEMO mode
+        uint8_t blinksPerCycle = 0;  // Default: No blink (0-2s)
         if (pressDuration >= 8000)
         {
-            blinksPerCycle = 4;  // FACTORY_RESET: 4 blinks per cycle
+            blinksPerCycle = 4;  // FACTORY_RESET: 4 blinks per cycle (8-11s)
         }
-        else if (pressDuration >= 4000)
+        else if (pressDuration >= 5000)
         {
-            blinksPerCycle = 2;  // SET_ID: 2 blinks per cycle
+            blinksPerCycle = 2;  // SET_ID: 2 blinks per cycle (5-8s)
+        }
+        else if (pressDuration >= 2000)
+        {
+            blinksPerCycle = 1;  // DEMO: 1 blink per cycle (2-5s)
         }
         else
         {
-            blinksPerCycle = 1;  // DEMO: 1 blink per cycle
+            blinksPerCycle = 0;  // No action: 0 blinks (0-2s) - prevent accidental press
         }
         
         // Calculate position within current cycle (0-999ms)
@@ -181,26 +185,26 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     // Determine which mode based on press duration
     FunctionSwitchMode mode = FUNC_SW_RUN;
 
-    if (pressDuration >= 8000)  // 8 seconds or more (8-12s)
+    if (pressDuration >= 8000 && pressDuration < 11000)  // 8-11 seconds
     {
         mode = FUNC_SW_FACTORY_RESET;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (8-12s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (8-11s) detected\n"));
     }
-    else if (pressDuration >= 4000)  // 4 seconds or more (4-8s)
+    else if (pressDuration >= 5000 && pressDuration < 8000)  // 5-8 seconds
     {
         mode = FUNC_SW_SET_ID;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (4-8s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (5-8s) detected\n"));
     }
-    else if (pressDuration >= 0)  // Any press (0-3s)
+    else if (pressDuration >= 2000 && pressDuration < 5000)  // 2-5 seconds
     {
         mode = FUNC_SW_DEMO;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (0-3s) detected\n"));
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (2-5s) detected\n"));
     }
     else
     {
-        // This shouldn't happen, but keep for safety
+        // Less than 2 seconds or more than 11 seconds - no action
         mode = FUNC_SW_RUN;
-        LOG_DEBUG_SYS(F("[SYSTEM] Function switch released too quickly, continuing normal operation\n"));
+        LOG_INFO_SYS("[SYSTEM] Function switch: No action (press duration: " + String(pressDuration) + "ms)\n");
     }
     
     // Wait a bit to ensure switch is fully released

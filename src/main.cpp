@@ -191,17 +191,23 @@ void loop()
         for (int i = 0; i < LED_NUM; i++)
         {
             // Update individual LED statistics
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, led_counter[i]);             // Update on-count
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, (uint32_t)led_time_sum[i]);     // Update total on-time in seconds
+            uint16_t counter_value = (led_counter[i] > 65535) ? 65535 : led_counter[i];
+            uint16_t time_value = ((uint32_t)led_time_sum[i] > 65535) ? 65535 : (uint32_t)led_time_sum[i];
+            
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i*10, counter_value);     // Update on-count (clamped to uint16 max)
+            RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i*10, time_value);            // Update total on-time in seconds (clamped to uint16 max)
             
             // Accumulate totals
             total_led_counter += led_counter[i];
             total_led_time += (uint32_t)led_time_sum[i];
         }
         
-        // Update total LED statistics
-        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_CNT, total_led_counter);     // Total LED on count
-        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_TIME, total_led_time);       // Total LED on time in seconds
+        // Update total LED statistics (clamped to uint16 max)
+        uint16_t total_counter_value = (total_led_counter > 65535) ? 65535 : total_led_counter;
+        uint16_t total_time_value = (total_led_time > 65535) ? 65535 : total_led_time;
+        
+        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_CNT, total_counter_value);      // Total LED on count (clamped to uint16 max)
+        RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_TIME, total_time_value);        // Total LED on time in seconds (clamped to uint16 max)
     
         // Update time after last unlock
         if (isLatchLocked())  

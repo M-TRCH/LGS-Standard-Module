@@ -41,6 +41,10 @@
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
 #define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
 
+// Latch safety settings
+#define LATCH_MAX_UNLOCK_TIME       500     // Maximum unlock time in milliseconds (safety limit)
+#define LATCH_MIN_INTERVAL          2000    // Minimum interval between unlock calls in milliseconds
+
 // Function switch modes (returned by checkFunctionSwitch)
 enum FunctionSwitchMode
 {

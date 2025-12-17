@@ -9,7 +9,7 @@
 
 // Default configuration values
 #define DEFAULT_DEVICE_TYPE         10      // 10=standard, 20=narcotic
-#define DEFAULT_FW_VERSION          27115   // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)
+#define DEFAULT_FW_VERSION          17125   // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)
 #define DEFAULT_HW_VERSION          420     // mnp m=major, n=minor, p=production time
 #define DEFAULT_BAUD_RATE           9600
 #define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-246, 247=not set)

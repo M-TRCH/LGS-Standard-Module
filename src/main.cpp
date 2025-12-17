@@ -285,7 +285,7 @@ void loop()
         if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER)) 
         {
             delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Small delay to ensure coil state is stable
-            unlockLatch();
+            unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
             RTUServer.coilWrite(MB_COIL_LATCH_TRIGGER, 0); // Reset the coil
             LOG_INFO_MODBUS(F("[MODBUS] Latch unlock triggered via Modbus\n"));
         }
@@ -353,7 +353,7 @@ void loop()
 
                 // Trigger the latch unlock
                 delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
-                unlockLatch();
+                unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
                 LOG_INFO_MODBUS("[MODBUS] Latch unlock triggered via LED" + String(i+1) + " latch coil\n");
 
                 // Reset the latch coil and sync with enable coil

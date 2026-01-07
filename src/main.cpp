@@ -21,11 +21,32 @@ void oled_init()
     oled.display();
 }
 
+void testLatch()
+{
+    while (true)
+    {
+        if (isLatchLocked())
+            digitalWrite(LED_RUN_PIN, HIGH);
+        else
+            digitalWrite(LED_RUN_PIN, LOW);
+        
+        if (digitalRead(FUNC_SW_PIN) == LOW)
+        {
+            delay(50); // Debounce delay 
+            if (digitalRead(FUNC_SW_PIN) == LOW)
+            {   
+                unlockLatch(500);
+            }
+        }
+    }
+}
+
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_NONE);  // Initialize system
 
+    testLatch();  // Test latch functionality only
     // oled_init();    // Initialize OLED for testing
 #endif
 

@@ -46,7 +46,7 @@ void setup()
 #ifdef SYSTEM_H
     sysInit(LOG_NONE);  // Initialize system
 
-    testLatch();  // Test latch functionality only
+    // testLatch();  // Test latch functionality only
     // oled_init();    // Initialize OLED for testing
 #endif
 
@@ -57,6 +57,10 @@ void setup()
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
+    while (1)
+    {
+        testLed4(255); 
+    }
 #endif
 
 #ifdef MODBUS_UTILS_H

@@ -7,6 +7,7 @@
 #include "system.h"
 
 #define LED_NUM_PER_STRIP     1     // Number of LEDs per strip
+#define LED4_NUM_PER_STRIP    20    // Number of LEDs for LED4 strip
 #define LED_NUM               8     // Total number of LEDs
 #define DEFAULT_LED_POWER     20    // Default LED power percentage (0-100)
 #define DEFAULT_LED_PWM       (DEFAULT_LED_POWER / 100.0 * 255.0)
@@ -22,5 +23,7 @@ extern float led_time_sum[LED_NUM];     // Total time each LED has been on (in s
 void ledInit();
 
 void printLedStatus();
+
+void testLed4(uint8_t pwm = DEFAULT_LED_PWM);
 
 #endif

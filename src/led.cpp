@@ -4,7 +4,7 @@ Adafruit_NeoPixel null_led;
 Adafruit_NeoPixel led1(LED_NUM_PER_STRIP, LED1_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led2(LED_NUM_PER_STRIP, LED2_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led3(LED_NUM_PER_STRIP, LED3_PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel led4(LED_NUM_PER_STRIP, LED4_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel led4(LED4_NUM_PER_STRIP, LED4_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led5(LED_NUM_PER_STRIP, LED5_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led6(LED_NUM_PER_STRIP, LED6_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel led7(LED_NUM_PER_STRIP, LED7_PIN, NEO_GRB + NEO_KHZ800);
@@ -59,4 +59,70 @@ void printLedStatus()
               ", Count=" + String(led_counter[i]) +
               ", Time=" + String(led_time_sum[i], 2) + "s\n");
     }
+}
+
+void testLed4(uint8_t pwm) 
+{
+    LOG_INFO_LED(F("[LED] Testing LED4 strip with 20 LEDs (PWM="));
+    LOG_INFO_LED(String(pwm) + ")...\n");
+    
+    // Test 1: Rainbow cycle
+    LOG_INFO_LED(F("[LED] Test 1: Rainbow cycle\n"));
+    for (int j = 0; j < 256; j++) 
+    {
+        for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+        {
+            int pixelHue = (i * 65536L / LED4_NUM_PER_STRIP) + j * 256;
+            led4.setPixelColor(i, led4.gamma32(led4.ColorHSV(pixelHue)));
+        }
+        led4.show();
+        delay(10);
+    }
+    
+    // Test 2: Color wipe - Red
+    LOG_INFO_LED(F("[LED] Test 2: Red color wipe\n"));
+    for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+    {
+        led4.setPixelColor(i, led4.Color(pwm, 0, 0));
+        led4.show();
+        delay(50);
+    }
+    delay(500);
+    
+    // Test 3: Color wipe - Green
+    LOG_INFO_LED(F("[LED] Test 3: Green color wipe\n"));
+    for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+    {
+        led4.setPixelColor(i, led4.Color(0, pwm, 0));
+        led4.show();
+        delay(50);
+    }
+    delay(500);
+    
+    // Test 4: Color wipe - Blue
+    LOG_INFO_LED(F("[LED] Test 4: Blue color wipe\n"));
+    for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+    {
+        led4.setPixelColor(i, led4.Color(0, 0, pwm));
+        led4.show();
+        delay(50);
+    }
+    delay(500);
+    
+    // Test 5: All LEDs white
+    LOG_INFO_LED(F("[LED] Test 5: All LEDs white\n"));
+    for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+    {
+        led4.setPixelColor(i, led4.Color(pwm, pwm, pwm));
+    }
+    led4.show();
+    delay(1000);
+    
+    // Turn off all LEDs
+    LOG_INFO_LED(F("[LED] Test complete - turning off LED4\n"));
+    for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
+    {
+        led4.setPixelColor(i, led4.Color(0, 0, 0));
+    }
+    led4.show();
 }

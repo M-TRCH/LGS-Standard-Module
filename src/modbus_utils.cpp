@@ -5,6 +5,8 @@
 uint16_t last_global_brightness = 0;
 uint16_t last_global_max_on_time = 0;
 
+// ===== Modbus RTU Server (Commented Out) =====
+/*
 // Modbus RTU Server Object
 ModbusRTUServerClass RTUServer;
 
@@ -89,4 +91,103 @@ void eeprom2modbusMapping(bool loadEEPROM)
     RTUServer.holdingRegisterWrite(MB_REG_UNLOCK_DELAY, eepromConfig.unlockDelayTime);
     
     LOG_INFO_MODBUS(F("[MODBUS] EEPROM to Modbus mapping applied\n"));
+}
+*/
+
+// ===== Modbus RTU Client Functions =====
+
+// Modbus RTU Client Object
+ModbusRTUClientClass RTUClient;
+
+void modbusClientInit() 
+{
+    #if MODBUS_OUTPUT == MODBUS_SERIAL
+        RTUClient.begin(rs485, MODBUS_BAUD, SERIAL_8N1);
+        LOG_INFO_MODBUS(F("[MODBUS] Modbus RTU Client initialized on Serial (RS485)\n"));
+    #elif MODBUS_OUTPUT == MODBUS_SERIAL3
+        RTUClient.begin(rs4853, MODBUS_BAUD, SERIAL_8N1);
+        LOG_INFO_MODBUS(F("[MODBUS] Modbus RTU Client initialized on Serial3 (RS485)\n"));
+    #endif
+    
+    LOG_INFO_MODBUS(F("[MODBUS] Modbus RTU Client ready for broadcast\n"));
+}
+
+void broadcastOperate(bool ledStates[8]) 
+{
+    LOG_INFO_MODBUS(F("[MODBUS] Broadcasting LED states: ["));
+    for (int i = 0; i < 8; i++) 
+    {
+        LOG_INFO_MODBUS(String(ledStates[i] ? "1" : "0"));
+        if (i < 7) LOG_INFO_MODBUS(F(","));
+    }
+    LOG_INFO_MODBUS(F("]\n"));
+    
+    // Write multiple coils using broadcast address (0)
+    // Address 1001-1008 for LED 1-8 Enable
+    RTUClient.beginTransmission(MODBUS_BROADCAST_ID, COILS, MODBUS_COIL_START_ADDR, MODBUS_COIL_COUNT);
+    
+    for (int i = 0; i < MODBUS_COIL_COUNT; i++) 
+    {
+        RTUClient.write(ledStates[i]);
+    }
+    
+    int result = RTUClient.endTransmission();
+    
+    if (result == 1) 
+    {
+        LOG_INFO_MODBUS(F("[MODBUS] Broadcast successful\n"));
+    } 
+    else 
+    {
+        LOG_INFO_MODBUS(F("[MODBUS] Broadcast failed with error code: "));
+        LOG_INFO_MODBUS(String(result) + "\n");
+    }
+}
+
+void broadcastSingleLed(uint8_t ledNumber, bool state) 
+{
+    if (ledNumber < 1 || ledNumber > 8) 
+    {
+        LOG_INFO_MODBUS(F("[MODBUS] Invalid LED number. Must be 1-8\n"));
+        return;
+    }
+    
+    LOG_INFO_MODBUS(F("[MODBUS] Broadcasting LED"));
+    LOG_INFO_MODBUS(String(ledNumber));
+    LOG_INFO_MODBUS(F(" = "));
+    LOG_INFO_MODBUS(String(state ? "ON" : "OFF"));
+    LOG_INFO_MODBUS(F("\n"));
+    
+    // Calculate the coil address for the specific LED
+    uint16_t coilAddress = MODBUS_COIL_START_ADDR + (ledNumber - 1);
+    
+    // Write single coil using broadcast address (0)
+    int result = RTUClient.coilWrite(MODBUS_BROADCAST_ID, coilAddress, state);
+    
+    if (result == 1) 
+    {
+        LOG_INFO_MODBUS(F("[MODBUS] Broadcast successful\n"));
+    } 
+    else 
+    {
+        LOG_INFO_MODBUS(F("[MODBUS] Broadcast failed with error code: "));
+        LOG_INFO_MODBUS(String(result) + "\n");
+    }
+}
+
+void broadcastAllLeds(bool state) 
+{
+    bool ledStates[8];
+    
+    // Set all LEDs to the same state
+    for (int i = 0; i < 8; i++) 
+    {
+        ledStates[i] = state;
+    }
+    
+    LOG_INFO_MODBUS(F("[MODBUS] Broadcasting ALL LEDs = "));
+    LOG_INFO_MODBUS(String(state ? "ON" : "OFF"));
+    LOG_INFO_MODBUS(F("\n"));
+    
+    broadcastOperate(ledStates);
 }

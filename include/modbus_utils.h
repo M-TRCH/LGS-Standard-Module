@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ModbusRTUServer.h>
+#include <ModbusRTUClient.h>
 #include "system.h"
 #include "led.h"
 #include "eeprom_utils.h"
@@ -108,6 +109,11 @@
 #define MB_COIL_LED_6_ENABLE        1006
 #define MB_COIL_LED_7_ENABLE        1007
 #define MB_COIL_LED_8_ENABLE        1008
+
+// Modbus Client Configuration
+#define MODBUS_BROADCAST_ID         0       // Broadcast address
+#define MODBUS_COIL_START_ADDR      1001    // Start address for coils (LED 1-8 Enable)
+#define MODBUS_COIL_COUNT           8       // Number of coils to write
 #define MB_COIL_DISPLAY_ENABLE      1010    // Display Enable Control Start Address (read/write)
 #define MB_COIL_LED_1_DISPLAY       1011
 #define MB_COIL_LED_2_DISPLAY       1012
@@ -131,16 +137,34 @@
 extern uint16_t last_global_brightness;
 extern uint16_t last_global_max_on_time;
 
+// ===== Modbus RTU Server Functions (Commented Out) =====
 // Modbus RTU Server Object
-extern ModbusRTUServerClass RTUServer;
+// extern ModbusRTUServerClass RTUServer;
 
-// Modbus Initialization
-void modbusInit(int id=DEFAULT_IDENTIFIER);
+// Modbus Server Initialization
+// void modbusInit(int id=DEFAULT_IDENTIFIER);
 
 // Modbus to EEPROM Mapping
-void modbus2eepromMapping(bool saveEEPROM=true);
+// void modbus2eepromMapping(bool saveEEPROM=true);
 
 // EEPROM to Modbus Mapping
-void eeprom2modbusMapping(bool loadEEPROM=false);
+// void eeprom2modbusMapping(bool loadEEPROM=false);
+
+// ===== Modbus RTU Client Functions =====
+// Modbus RTU Client Object
+extern ModbusRTUClientClass RTUClient;
+
+// Modbus Client Initialization
+void modbusClientInit();
+
+// Broadcast LED control operation
+// ledStates: array of 8 boolean values for LED 1-8 enable status
+void broadcastOperate(bool ledStates[8]);
+
+// Broadcast single LED control
+void broadcastSingleLed(uint8_t ledNumber, bool state);
+
+// Broadcast all LEDs with same state
+void broadcastAllLeds(bool state);
 
 #endif

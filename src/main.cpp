@@ -41,13 +41,45 @@ void testLatch()
     }
 }
 
+void testControlPanel()
+{
+    static bool runLedState = false;
+    modbusClientInit(); // Initialize Modbus RTU Client for broadcasting
+   
+    while (true)
+    {
+        if (digitalRead(FUNC_SW_PIN) == LOW)
+        {
+            delay(50); // Debounce delay 
+            if (digitalRead(FUNC_SW_PIN) == LOW)
+            {
+                static uint32_t startFuncSW = millis();
+                
+                // Toggle RUN LED state
+                runLedState = !runLedState;
+
+                digitalWrite(LED_RUN_PIN, runLedState);
+                broadcastAllLeds(runLedState); // Broadcast all LEDs with the same state
+
+                while (digitalRead(FUNC_SW_PIN) == LOW)
+                {
+                    if (millis() - startFuncSW >= 3000) // timeout for long press
+                    {
+                        break;
+                    }
+                }
+            }
+        }  
+    }
+}
+
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_NONE);  // Initialize system
 
-    // testLatch();  // Test latch functionality only
-    // oled_init();    // Initialize OLED for testing
+    // testLatch();        // Test latch functionality only
+    // oled_init();        // Initialize OLED for testing
 #endif
 
 #ifdef EEPROM_UTILS_H
@@ -57,7 +89,7 @@ void setup()
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
-    while (1)
+    while (0)   // Test LED4 strip
     {
         testLed4(255); 
     }
@@ -65,13 +97,16 @@ void setup()
 
 #ifdef MODBUS_UTILS_H
     // Initialize Modbus server with ID from EEPROM, default ID (247) or special ID (246) for SET_ID mode
-    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    
-    eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
+    // modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    
+    // eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
+
+    testControlPanel(); // Test control panel functionality only
 #endif
 }
 
 void loop() 
 {   
+#ifdef ENABLE_MAIN_LOOP
     /*
     // static uint32_t lastWriteDisp = 0;
     // static uint8_t numCnt = 0;
@@ -394,5 +429,6 @@ void loop()
         }
     
     }
+#endif
 }
 

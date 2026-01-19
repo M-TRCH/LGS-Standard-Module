@@ -89,7 +89,7 @@ void setup()
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
-    while (0)   // Test LED4 strip
+    while (1)   // Test LED4 strip
     {
         testLed4(255); 
     }

@@ -79,6 +79,7 @@ void testLed4(uint8_t pwm)
         delay(10);
     }
     
+    /*
     // Test 2: Color wipe - Red
     LOG_INFO_LED(F("[LED] Test 2: Red color wipe\n"));
     for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
@@ -108,7 +109,7 @@ void testLed4(uint8_t pwm)
         delay(50);
     }
     delay(500);
-    
+   
     // Test 5: All LEDs white
     LOG_INFO_LED(F("[LED] Test 5: All LEDs white\n"));
     for (int i = 0; i < LED4_NUM_PER_STRIP; i++) 
@@ -124,5 +125,7 @@ void testLed4(uint8_t pwm)
     {
         led4.setPixelColor(i, led4.Color(0, 0, 0));
     }
+    */
+    
     led4.show();
 }

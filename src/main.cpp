@@ -89,9 +89,9 @@ void setup()
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
-    while (1)   // Test LED4 strip
+    while (1)   // Test LED8 strip
     {
-        testLed4(255); 
+        testLed8(255); 
     }
 #endif
 
@@ -100,7 +100,7 @@ void setup()
     // modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    
     // eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
 
-    testControlPanel(); // Test control panel functionality only
+    // testControlPanel(); // Test control panel functionality only
 #endif
 }
 

@@ -1,6 +1,6 @@
 """
-Modbus TCP Client - ควบคุมอุปกรณ์ 80 ID
-Device IDs: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78, 81-88, 91-98, 101-108
+Modbus TCP Client - ควบคุมอุปกรณ์หลายตู้ (Multi-IP Support)
+รองรับตู้หลายขนาด: 80, 68, 60, 40 ช่อง
 เขียนค่า coils ที่ address 1001-1008 สำหรับแต่ละ Device ID
 """
 
@@ -9,20 +9,83 @@ from pymodbus.exceptions import ModbusException
 import time
 
 # ตั้งค่าการเชื่อมต่อ
-SERVER_IP = "192.168.0.205"
 SERVER_PORT = 502
 START_ADDRESS = 1001
 NUM_COILS = 8  # addresses 1001-1008
 
-# LUT (Lookup Table) สำหรับเก็บ Device IDs ทั้งหมด 80 ตัว
-# รูปแบบ: 11-18, 21-28, 31-38, ..., 101-108
-DEVICE_IDS = []
-for tens in range(1, 11):  # 1x, 2x, 3x, ..., 10x
-    for ones in range(1, 9):  # x1-x8
-        device_id = tens * 10 + ones
-        DEVICE_IDS.append(device_id)
+# ฟังก์ชันสร้าง Device ID List ตามรูปแบบต่างๆ
+def generate_device_ids_80():
+    """ตู้ 80 ช่อง: 11-18, 21-28, ..., 101-108"""
+    device_ids = []
+    for tens in range(1, 11):  # 1x, 2x, ..., 10x
+        for ones in range(1, 9):  # x1-x8
+            device_ids.append(tens * 10 + ones)
+    return device_ids
 
-NUM_DEVICES = len(DEVICE_IDS)  # จำนวนอุปกรณ์ทั้งหมด = 80
+def generate_device_ids_68():
+    """ตู้ 68 ช่อง: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 และ 81-86, 91-96"""
+    device_ids = []
+    # ชุดแรก: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 (7 ชุด x 8 = 56 ไอดี)
+    for tens in range(1, 8):  # 1x-7x
+        for ones in range(1, 9):  # x1-x8
+            device_ids.append(tens * 10 + ones)
+    # ชุดที่สอง: 81-86, 91-96 (2 ชุด x 6 = 12 ไอดี)
+    for tens in range(8, 10):  # 8x, 9x
+        for ones in range(1, 7):  # x1-x6
+            device_ids.append(tens * 10 + ones)
+    return device_ids
+
+def generate_device_ids_40():
+    """ตู้ 40 ช่อง: 11-14, 21-24, ..., 101-104"""
+    device_ids = []
+    for tens in range(1, 11):  # 1x, 2x, ..., 10x
+        for ones in range(1, 5):  # x1-x4
+            device_ids.append(tens * 10 + ones)
+    return device_ids
+
+def generate_device_ids_60():
+    """ตู้ 60 ช่อง: 11-18, 21-28, 31-38 และ 41-44, 51-54, 61-64, 71-74, 81-84 และ 91-98, 101-108"""
+    device_ids = []
+    # ชุดแรก: 11-18, 21-28, 31-38 (8 ตัวต่อชุด)
+    for tens in range(1, 4):  # 1x, 2x, 3x
+        for ones in range(1, 9):  # x1-x8
+            device_ids.append(tens * 10 + ones)
+    # ชุดกลาง: 41-44, 51-54, 61-64, 71-74, 81-84 (4 ตัวต่อชุด)
+    for tens in range(4, 9):  # 4x, 5x, 6x, 7x, 8x
+        for ones in range(1, 5):  # x1-x4
+            device_ids.append(tens * 10 + ones)
+    # ชุดสุดท้าย: 91-98, 101-108 (8 ตัวต่อชุด)
+    for tens in range(9, 11):  # 9x, 10x
+        for ones in range(1, 9):  # x1-x8
+            device_ids.append(tens * 10 + ones)
+    return device_ids
+
+# กำหนดค่าตู้ทั้งหมด (Configuration)
+CABINETS = [
+    {"name": "ตู้ที่ 1",  "ip": "192.168.0.80",  "type": 80},
+    {"name": "ตู้ที่ 2",  "ip": "192.168.0.221", "type": 80},
+    {"name": "ตู้ที่ 3",  "ip": "192.168.0.76",  "type": 80},
+    {"name": "ตู้ที่ 4",  "ip": "192.168.0.210", "type": 80},
+    {"name": "ตู้ที่ 5",  "ip": "192.168.0.219", "type": 80},
+    {"name": "ตู้ที่ 6",  "ip": "192.168.0.78",  "type": 80},
+    {"name": "ตู้ที่ 7",  "ip": "192.168.0.216", "type": 80},
+    {"name": "ตู้ที่ 8",  "ip": "192.168.0.214", "type": 80},
+    {"name": "ตู้ที่ 9",  "ip": "192.168.0.205", "type": 80},
+    {"name": "ตู้ที่ 20", "ip": "192.168.0.201", "type": 68},
+]
+
+def get_device_ids_for_cabinet(cabinet_type):
+    """ดึง Device IDs ตามประเภทของตู้"""
+    if cabinet_type == 80:
+        return generate_device_ids_80()
+    elif cabinet_type == 68:
+        return generate_device_ids_68()
+    elif cabinet_type == 60:
+        return generate_device_ids_60()
+    elif cabinet_type == 40:
+        return generate_device_ids_40()
+    else:
+        raise ValueError(f"ไม่รองรับตู้ประเภท {cabinet_type} ช่อง")
 
 def write_coils_to_device(client, unit_id, values):
     """
@@ -58,23 +121,28 @@ def write_coils_to_device(client, unit_id, values):
         print(f"❌ Unit ID {unit_id}: Error - {e}")
         return False
 
-def set_all_devices_coils(client, values):
+def set_all_devices_coils(client, device_ids, values):
     """
-    ตั้งค่า coils สำหรับอุปกรณ์ทั้งหมด 80 ตัว
+    ตั้งค่า coils สำหรับอุปกรณ์ทั้งหมด
     
     Args:
         client: ModbusTcpClient object
+        device_ids: list ของ Device IDs
         values: list ของค่า True/False สำหรับ coils 8 ตัว
+    
+    Returns:
+        tuple: (success_count, fail_count)
     """
+    num_devices = len(device_ids)
     success_count = 0
     fail_count = 0
     
     print(f"\n{'='*60}")
-    print(f"เริ่มเขียนค่าไปยังอุปกรณ์ทั้งหมด {NUM_DEVICES} ตัว")
+    print(f"เริ่มเขียนค่าไปยังอุปกรณ์ทั้งหมด {num_devices} ตัว")
     print(f"ค่าที่จะเขียน: {values}")
     print(f"{'='*60}\n")
     
-    for idx, unit_id in enumerate(DEVICE_IDS, start=1):
+    for idx, unit_id in enumerate(device_ids, start=1):
         if write_coils_to_device(client, unit_id, values):
             success_count += 1
         else:
@@ -84,15 +152,17 @@ def set_all_devices_coils(client, values):
         time.sleep(0.05)
         
         # หน่วงเวลา 2 วินาทีระหว่างแต่ละชุด (ทุกๆ 8 อุปกรณ์)
-        if idx % 8 == 0 and idx < NUM_DEVICES:
+        if idx % 8 == 0 and idx < num_devices:
             print(f"   ⏸️  หน่วงเวลา 2 วินาที (เสร็จชุดที่ {idx//8})...")
             time.sleep(2)
     
     print(f"\n{'='*60}")
     print(f"สรุปผลการทำงาน:")
-    print(f"  ✅ สำเร็จ: {success_count}/{NUM_DEVICES}")
-    print(f"  ❌ ล้มเหลว: {fail_count}/{NUM_DEVICES}")
+    print(f"  ✅ สำเร็จ: {success_count}/{num_devices}")
+    print(f"  ❌ ล้มเหลว: {fail_count}/{num_devices}")
     print(f"{'='*60}\n")
+    
+    return success_count, fail_count
 
 def set_specific_device_coils(client, unit_id, values):
     """
@@ -110,58 +180,158 @@ def set_specific_device_coils(client, unit_id, values):
     
     write_coils_to_device(client, unit_id, values)
 
-def main():
-    """ฟังก์ชันหลัก"""
+def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
+    """
+    ทดสอบตู้หนึ่งตู้ (สั่ง True ทุก ID แล้วสั่ง False ทุก ID)
+    
+    Args:
+        cabinet: dict ข้อมูลตู้ (name, ip, type)
+        all_true: list ค่า True สำหรับ coils
+        all_false: list ค่า False สำหรับ coils
+        cabinet_num: หมายเลขตู้ปัจจุบัน
+        total_cabinets: จำนวนตู้ทั้งหมด
+    
+    Returns:
+        dict: สถิติการทำงานของตู้ (รวมเวลาที่ใช้)
+    """
+    start_time = time.time()  # เริ่มจับเวลา
+    
+    print(f"\n{'#'*70}")
+    print(f"# [{cabinet_num}/{total_cabinets}] {cabinet['name']} - IP: {cabinet['ip']} - จำนวน {cabinet['type']} ช่อง")
+    print(f"{'#'*70}")
+    
+    # สร้าง Device IDs สำหรับตู้นี้
+    device_ids = get_device_ids_for_cabinet(cabinet['type'])
+    print(f"📋 Device IDs: {device_ids[:5]} ... {device_ids[-5:]} (รวม {len(device_ids)} IDs)\n")
     
     # สร้าง Modbus TCP Client
-    print(f"กำลังเชื่อมต่อไปยัง {SERVER_IP}:{SERVER_PORT}...")
-    client = ModbusTcpClient(SERVER_IP, port=SERVER_PORT, timeout=3)
+    print(f"กำลังเชื่อมต่อไปยัง {cabinet['ip']}:{SERVER_PORT}...")
+    client = ModbusTcpClient(cabinet['ip'], port=SERVER_PORT, timeout=3)
     
     # เชื่อมต่อกับ server
     if not client.connect():
-        print(f"❌ ไม่สามารถเชื่อมต่อกับ {SERVER_IP}:{SERVER_PORT}")
-        return
+        elapsed_time = time.time() - start_time
+        print(f"❌ ไม่สามารถเชื่อมต่อกับ {cabinet['ip']}:{SERVER_PORT}")
+        return {'cabinet': cabinet['name'], 'connected': False, 'success': 0, 'fail': 0, 'elapsed_time': elapsed_time}
     
     print(f"✅ เชื่อมต่อสำเร็จ!\n")
     
-    # แสดง Device IDs ที่จะใช้งาน
-    print(f"📋 Device IDs ทั้งหมด ({NUM_DEVICES} ตัว):")
-    print(f"   {DEVICE_IDS[:10]} ... {DEVICE_IDS[-10:]}")
-    print()
-    
     try:
-        # ===== วนลูปสั่งงานแบบต่อเนื่อง =====
-        print("🔄 เริ่มวนลูปสั่งงาน (กด Ctrl+C เพื่อหยุด)\n")
+        # เซต True ทุก Device ID เรียงกัน
+        print(">>> ขั้นตอนที่ 1: สั่ง TRUE เรียงทุก Device ID")
+        success_true, fail_true = set_all_devices_coils(client, device_ids, all_true)
         
-        loop_count = 0
-        while True:
-            loop_count += 1
-            print(f"\n{'#'*60}")
-            print(f"# รอบที่ {loop_count}")
-            print(f"{'#'*60}")
-            
-            # เซต True ทุก coils สำหรับทุกอุปกรณ์
-            print("\n>>> ขั้นตอนที่ 1: ตั้งค่าทุก coils เป็น True")
-            all_true = [True] * NUM_COILS
-            set_all_devices_coils(client, all_true)
-            
-            time.sleep(1)  # รอสักครู่
-            
-            # เซต False ทุก coils สำหรับทุกอุปกรณ์
-            print("\n>>> ขั้นตอนที่ 2: ตั้งค่าทุก coils เป็น False")
-            all_false = [False] * NUM_COILS
-            set_all_devices_coils(client, all_false)
-            
-            time.sleep(1)  # รอสักครู่ก่อนรอบถัดไป
+        time.sleep(1)  # รอสักครู่
         
-    except KeyboardInterrupt:
-        print("\n\n⚠️  หยุดการทำงานโดยผู้ใช้")
-        print(f"📊 รวมทำงานไปแล้ว {loop_count} รอบ")
+        # เซต False ทุก Device ID เรียงกัน
+        print(">>> ขั้นตอนที่ 2: สั่ง FALSE เรียงทุก Device ID")
+        success_false, fail_false = set_all_devices_coils(client, device_ids, all_false)
+        
+        elapsed_time = time.time() - start_time
+        print(f"⏱️  เวลาที่ใช้: {elapsed_time:.2f} วินาที")
+        
+        return {
+            'cabinet': cabinet['name'],
+            'connected': True,
+            'success': success_true + success_false,
+            'fail': fail_true + fail_false,
+            'elapsed_time': elapsed_time
+        }
     
     finally:
         # ปิดการเชื่อมต่อ
         client.close()
-        print("\n✅ ปิดการเชื่อมต่อเรียบร้อย")
+        print(f"🔌 ปิดการเชื่อมต่อ {cabinet['name']}\n")
+
+def main():
+    """ฟังก์ชันหลัก - ทดสอบทุกตู้ (1 Cycle = ทดสอบครบทุกตู้)"""
+    
+    print("="*70)
+    print(" 🔧 Modbus TCP Multi-Cabinet Tester 🔧")
+    print("="*70)
+    print(f"\n📊 จำนวนตู้ทั้งหมด: {len(CABINETS)} ตู้")
+    print(f"💡 1 Cycle = ทดสอบทุกตู้ (แต่ละตู้สั่ง True และ False ทุก ID)")
+    print(f"\nรายการตู้:")
+    for idx, cab in enumerate(CABINETS, 1):
+        print(f"   {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} ช่อง")
+    print()
+    
+    # เตรียมค่าสำหรับ coils
+    all_true = [True] * NUM_COILS
+    all_false = [False] * NUM_COILS
+    
+    try:
+        # ===== วนลูปสั่งงานแบบต่อเนื่อง =====
+        print("\n🔄 เริ่มวนลูปสั่งงาน (กด Ctrl+C เพื่อหยุด)\n")
+        
+        loop_count = 0
+        total_stats = {'success': 0, 'fail': 0, 'disconnected': 0}
+        
+        while True:
+            loop_count += 1
+            cycle_start_time = time.time()  # เริ่มจับเวลา Cycle
+            
+            print(f"\n{'='*70}")
+            print(f"╔═══ CYCLE #{loop_count} - เริ่มทดสอบทุกตู้ ({len(CABINETS)} ตู้) ═══╗")
+            print(f"{'='*70}\n")
+            
+            loop_stats = {'success': 0, 'fail': 0, 'disconnected': 0}
+            cabinet_times = []  # เก็บเวลาของแต่ละตู้
+            
+            # ทดสอบทุกตู้เรียงตามลำดับ
+            for idx, cabinet in enumerate(CABINETS, 1):
+                result = test_cabinet(cabinet, all_true, all_false, idx, len(CABINETS))
+                
+                if result['connected']:
+                    loop_stats['success'] += result['success']
+                    loop_stats['fail'] += result['fail']
+                else:
+                    loop_stats['disconnected'] += 1
+                
+                # เก็บข้อมูลเวลาของแต่ละตู้
+                cabinet_times.append({
+                    'name': result['cabinet'],
+                    'time': result['elapsed_time'],
+                    'connected': result['connected']
+                })
+                
+                time.sleep(0.5)  # หน่วงเวลาระหว่างตู้
+            
+            # คำนวณเวลารวมของ Cycle
+            cycle_elapsed_time = time.time() - cycle_start_time
+            
+            # อัปเดตสถิติรวม
+            total_stats['success'] += loop_stats['success']
+            total_stats['fail'] += loop_stats['fail']
+            total_stats['disconnected'] += loop_stats['disconnected']
+            
+            # แสดงสรุปรอบนี้
+            print(f"\n{'='*70}")
+            print(f"╚═══ สรุป CYCLE #{loop_count} (ทดสอบครบทั้ง {len(CABINETS)} ตู้แล้ว) ═══╝")
+            print(f"   ✅ สำเร็จ: {loop_stats['success']} คำสั่ง")
+            print(f"   ❌ ล้มเหลว: {loop_stats['fail']} คำสั่ง")
+            print(f"   🔌 ไม่สามารถเชื่อมต่อ: {loop_stats['disconnected']} ตู้")
+            print(f"\n   ⏱️  เวลาทดสอบแต่ละตู้:")
+            for cab_time in cabinet_times:
+                status = "✅" if cab_time['connected'] else "❌"
+                print(f"      {status} {cab_time['name']:12} - {cab_time['time']:6.2f} วินาที")
+            print(f"\n   🕐 รวมเวลาทั้ง Cycle: {cycle_elapsed_time:.2f} วินาที ({cycle_elapsed_time/60:.2f} นาที)")
+            print(f"{'='*70}\n")
+            
+            print(f"⏳ รอ 3 วินาที ก่อนเริ่ม Cycle ถัดไป...\n")
+            time.sleep(3)  # รอก่อนรอบถัดไป
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️  หยุดการทำงานโดยผู้ใช้")
+        print(f"\n{'='*70}")
+        print(f"📊 สรุปการทำงานทั้งหมด ({loop_count} Cycles):")
+        print(f"   🔄 จำนวน Cycles ที่เสร็จ: {loop_count}")
+        print(f"   ✅ สำเร็จทั้งหมด: {total_stats['success']} คำสั่ง")
+        print(f"   ❌ ล้มเหลวทั้งหมด: {total_stats['fail']} คำสั่ง")
+        print(f"   🔌 การเชื่อมต่อล้มเหลว: {total_stats['disconnected']} ครั้ง")
+        print(f"{'='*70}")
+    
+    print("\n✅ โปรแกรมสิ้นสุดการทำงาน")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,629 @@
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - MODBUS TCP MULTI-CABINET TEST - START
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - Start Time: 2026-02-13 10:39:00
+2026-02-13 10:39:00 - INFO - Total Cabinets: 10
+2026-02-13 10:39:00 - INFO - Configuration:
+2026-02-13 10:39:00 - INFO -   - Server Port: 502
+2026-02-13 10:39:00 - INFO -   - Start Address: 1001
+2026-02-13 10:39:00 - INFO -   - Number of Coils: 8
+2026-02-13 10:39:00 - INFO - 
+2026-02-13 10:39:00 - INFO - Cabinet List:
+2026-02-13 10:39:00 - INFO -   1. ตู้ที่ 1     - 192.168.0.80    - 80 channels
+2026-02-13 10:39:00 - INFO -   2. ตู้ที่ 2     - 192.168.0.221   - 80 channels
+2026-02-13 10:39:00 - INFO -   3. ตู้ที่ 3     - 192.168.0.76    - 80 channels
+2026-02-13 10:39:00 - INFO -   4. ตู้ที่ 4     - 192.168.0.210   - 80 channels
+2026-02-13 10:39:00 - INFO -   5. ตู้ที่ 5     - 192.168.0.219   - 80 channels
+2026-02-13 10:39:00 - INFO -   6. ตู้ที่ 6     - 192.168.0.78    - 80 channels
+2026-02-13 10:39:00 - INFO -   7. ตู้ที่ 7     - 192.168.0.216   - 80 channels
+2026-02-13 10:39:00 - INFO -   8. ตู้ที่ 8     - 192.168.0.214   - 80 channels
+2026-02-13 10:39:00 - INFO -   9. ตู้ที่ 9     - 192.168.0.205   - 80 channels
+2026-02-13 10:39:00 - INFO -   10. ตู้ที่ 20    - 192.168.0.201   - 68 channels
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - 
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - CYCLE #1 - START
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - Cycle Start Time: 2026-02-13 10:39:00
+2026-02-13 10:39:00 - INFO - Testing 10 cabinets...
+2026-02-13 10:39:00 - INFO - ======================================================================
+2026-02-13 10:39:00 - INFO - Starting test - Cabinet [1/10]: ตู้ที่ 1
+2026-02-13 10:39:00 - INFO - IP: 192.168.0.80:502, Type: 80 channels
+2026-02-13 10:39:00 - INFO - Device IDs: [11, 12, 13, 14, 15] ... [104, 105, 106, 107, 108] (Total: 80 IDs)
+2026-02-13 10:39:00 - INFO - Attempting connection to 192.168.0.80:502
+2026-02-13 10:39:00 - INFO - Connection successful on attempt 1/2
+2026-02-13 10:39:00 - INFO - Step 1: Writing TRUE to all Device IDs
+2026-02-13 10:39:00 - INFO - Starting to write to 80 devices - Values: [True, True, True, True, True, True, True, True]
+2026-02-13 10:39:00 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:39:00 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:39:02 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:39:02 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:39:03 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:39:05 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:39:06 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:39:08 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:39:10 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:39:10 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:39:10 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:39:10 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:39:11 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:39:11 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:39:11 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:39:11 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:39:13 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:39:15 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:39:16 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:39:18 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:39:18 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:39:18 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:39:18 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:39:18 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:39:19 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:39:19 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:39:19 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 91: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 92: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 93: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:39:21 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:39:23 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:39:23 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:39:24 - INFO - Batch write completed - Success: 80/80, Failed: 0/80
+2026-02-13 10:39:25 - INFO - Step 2: Writing FALSE to all Device IDs
+2026-02-13 10:39:25 - INFO - Starting to write to 80 devices - Values: [False, False, False, False, False, False, False, False]
+2026-02-13 10:39:28 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:39:28 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:39:29 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:39:31 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:39:33 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:39:33 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:39:33 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:39:34 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:39:34 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:39:34 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:39:34 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:39:34 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:39:36 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:39:39 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:39:41 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:39:41 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:39:41 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:39:41 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:39:41 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:39:42 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:39:42 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:39:42 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:39:44 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:39:46 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:39:46 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:39:47 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 91: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 92: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 93: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:39:49 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:39:50 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:39:50 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:39:52 - INFO - Batch write completed - Success: 80/80, Failed: 0/80
+2026-02-13 10:39:52 - INFO - Cabinet test completed - Total Success: 160, Total Failed: 0
+2026-02-13 10:39:52 - INFO - Elapsed time: 52.68 seconds
+2026-02-13 10:39:52 - INFO - ======================================================================
+2026-02-13 10:39:52 - INFO - Connection closed for ตู้ที่ 1
+2026-02-13 10:39:53 - INFO - ======================================================================
+2026-02-13 10:39:53 - INFO - Starting test - Cabinet [2/10]: ตู้ที่ 2
+2026-02-13 10:39:53 - INFO - IP: 192.168.0.221:502, Type: 80 channels
+2026-02-13 10:39:53 - INFO - Device IDs: [11, 12, 13, 14, 15] ... [104, 105, 106, 107, 108] (Total: 80 IDs)
+2026-02-13 10:39:53 - INFO - Attempting connection to 192.168.0.221:502
+2026-02-13 10:39:53 - INFO - Connection successful on attempt 1/2
+2026-02-13 10:39:53 - INFO - Step 1: Writing TRUE to all Device IDs
+2026-02-13 10:39:53 - INFO - Starting to write to 80 devices - Values: [True, True, True, True, True, True, True, True]
+2026-02-13 10:39:53 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:39:53 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:39:56 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:39:58 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:39:58 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:39:58 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:39:58 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:39:59 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:39:59 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:39:59 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:39:59 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:40:01 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:40:03 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:40:04 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:40:06 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:40:06 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:40:06 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:40:06 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:40:06 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:40:07 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:40:07 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:40:07 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:40:09 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:40:11 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:40:12 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 91: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 92: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 93: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:40:14 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:40:15 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:40:15 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:40:17 - INFO - Batch write completed - Success: 80/80, Failed: 0/80
+2026-02-13 10:40:18 - INFO - Step 2: Writing FALSE to all Device IDs
+2026-02-13 10:40:18 - INFO - Starting to write to 80 devices - Values: [False, False, False, False, False, False, False, False]
+2026-02-13 10:40:21 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:40:21 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:40:22 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:40:24 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:40:25 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:40:27 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:40:29 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:40:29 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:40:29 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:40:29 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:40:30 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:40:30 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:40:30 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:40:30 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:40:32 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:40:35 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:40:37 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:40:37 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:40:37 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:40:37 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:40:37 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:40:38 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:40:38 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:40:38 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:40:40 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:40:43 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:40:57 - ERROR - Unit ID 91: Modbus Exception - Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-13 10:41:10 - ERROR - Unit ID 92: Modbus Exception - Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-13 10:41:22 - ERROR - Unit ID 93: Modbus Exception - Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-13 10:41:22 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:41:22 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:41:22 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:41:22 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:41:23 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:41:31 - INFO - Batch write completed - Success: 77/80, Failed: 3/80
+2026-02-13 10:41:31 - INFO - Cabinet test completed - Total Success: 157, Total Failed: 3
+2026-02-13 10:41:31 - INFO - Elapsed time: 98.63 seconds
+2026-02-13 10:41:31 - INFO - ======================================================================
+2026-02-13 10:41:31 - INFO - Connection closed for ตู้ที่ 2
+2026-02-13 10:41:32 - INFO - ======================================================================
+2026-02-13 10:41:32 - INFO - Starting test - Cabinet [3/10]: ตู้ที่ 3
+2026-02-13 10:41:32 - INFO - IP: 192.168.0.76:502, Type: 80 channels
+2026-02-13 10:41:32 - INFO - Device IDs: [11, 12, 13, 14, 15] ... [104, 105, 106, 107, 108] (Total: 80 IDs)
+2026-02-13 10:41:32 - INFO - Attempting connection to 192.168.0.76:502
+2026-02-13 10:41:32 - INFO - Connection successful on attempt 1/2
+2026-02-13 10:41:32 - INFO - Step 1: Writing TRUE to all Device IDs
+2026-02-13 10:41:32 - INFO - Starting to write to 80 devices - Values: [True, True, True, True, True, True, True, True]
+2026-02-13 10:41:32 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:41:32 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:41:32 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:41:32 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:41:32 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:41:32 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:41:33 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:41:33 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:41:35 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:41:37 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:41:37 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:41:37 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:41:38 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:41:38 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:41:38 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:41:38 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:41:38 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:41:40 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:41:41 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:41:41 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:41:43 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:41:45 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:41:45 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:41:45 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:41:46 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:41:46 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:41:46 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:41:46 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:41:46 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:41:48 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:41:51 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:41:53 - INFO - Unit ID 91: Write success - Coils 1001-1008
+2026-02-13 10:41:53 - INFO - Unit ID 92: Write success - Coils 1001-1008
+2026-02-13 10:41:53 - INFO - Unit ID 93: Write success - Coils 1001-1008
+2026-02-13 10:41:53 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:41:53 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:41:54 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:41:54 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:41:54 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:41:56 - INFO - Batch write completed - Success: 80/80, Failed: 0/80
+2026-02-13 10:41:57 - INFO - Step 2: Writing FALSE to all Device IDs
+2026-02-13 10:41:57 - INFO - Starting to write to 80 devices - Values: [False, False, False, False, False, False, False, False]
+2026-02-13 10:42:00 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:42:01 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:42:03 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:42:04 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:42:04 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:42:06 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:42:08 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:42:08 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:42:09 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:42:11 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:42:12 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:42:14 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:42:16 - INFO - Unit ID 71: Write success - Coils 1001-1008
+2026-02-13 10:42:16 - INFO - Unit ID 72: Write success - Coils 1001-1008
+2026-02-13 10:42:16 - INFO - Unit ID 73: Write success - Coils 1001-1008
+2026-02-13 10:42:17 - INFO - Unit ID 74: Write success - Coils 1001-1008
+2026-02-13 10:42:17 - INFO - Unit ID 75: Write success - Coils 1001-1008
+2026-02-13 10:42:17 - INFO - Unit ID 76: Write success - Coils 1001-1008
+2026-02-13 10:42:17 - INFO - Unit ID 77: Write success - Coils 1001-1008
+2026-02-13 10:42:17 - INFO - Unit ID 78: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 81: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 82: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 83: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 84: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 85: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 86: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 87: Write success - Coils 1001-1008
+2026-02-13 10:42:19 - INFO - Unit ID 88: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 91: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 92: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 93: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 94: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 95: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 96: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 97: Write success - Coils 1001-1008
+2026-02-13 10:42:22 - INFO - Unit ID 98: Write success - Coils 1001-1008
+2026-02-13 10:42:24 - INFO - Unit ID 101: Write success - Coils 1001-1008
+2026-02-13 10:42:24 - INFO - Unit ID 102: Write success - Coils 1001-1008
+2026-02-13 10:42:24 - INFO - Unit ID 103: Write success - Coils 1001-1008
+2026-02-13 10:42:24 - INFO - Unit ID 104: Write success - Coils 1001-1008
+2026-02-13 10:42:25 - INFO - Unit ID 105: Write success - Coils 1001-1008
+2026-02-13 10:42:25 - INFO - Unit ID 106: Write success - Coils 1001-1008
+2026-02-13 10:42:25 - INFO - Unit ID 107: Write success - Coils 1001-1008
+2026-02-13 10:42:25 - INFO - Unit ID 108: Write success - Coils 1001-1008
+2026-02-13 10:42:25 - INFO - Batch write completed - Success: 80/80, Failed: 0/80
+2026-02-13 10:42:25 - INFO - Cabinet test completed - Total Success: 160, Total Failed: 0
+2026-02-13 10:42:25 - INFO - Elapsed time: 52.88 seconds
+2026-02-13 10:42:25 - INFO - ======================================================================
+2026-02-13 10:42:25 - INFO - Connection closed for ตู้ที่ 3
+2026-02-13 10:42:25 - INFO - ======================================================================
+2026-02-13 10:42:25 - INFO - Starting test - Cabinet [4/10]: ตู้ที่ 4
+2026-02-13 10:42:25 - INFO - IP: 192.168.0.210:502, Type: 80 channels
+2026-02-13 10:42:25 - INFO - Device IDs: [11, 12, 13, 14, 15] ... [104, 105, 106, 107, 108] (Total: 80 IDs)
+2026-02-13 10:42:25 - INFO - Attempting connection to 192.168.0.210:502
+2026-02-13 10:42:26 - INFO - Connection successful on attempt 1/2
+2026-02-13 10:42:26 - INFO - Step 1: Writing TRUE to all Device IDs
+2026-02-13 10:42:26 - INFO - Starting to write to 80 devices - Values: [True, True, True, True, True, True, True, True]
+2026-02-13 10:42:26 - INFO - Unit ID 11: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 12: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 13: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 14: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 15: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 16: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 17: Write success - Coils 1001-1008
+2026-02-13 10:42:26 - INFO - Unit ID 18: Write success - Coils 1001-1008
+2026-02-13 10:42:28 - INFO - Unit ID 21: Write success - Coils 1001-1008
+2026-02-13 10:42:28 - INFO - Unit ID 22: Write success - Coils 1001-1008
+2026-02-13 10:42:28 - INFO - Unit ID 23: Write success - Coils 1001-1008
+2026-02-13 10:42:28 - INFO - Unit ID 24: Write success - Coils 1001-1008
+2026-02-13 10:42:29 - INFO - Unit ID 25: Write success - Coils 1001-1008
+2026-02-13 10:42:29 - INFO - Unit ID 26: Write success - Coils 1001-1008
+2026-02-13 10:42:29 - INFO - Unit ID 27: Write success - Coils 1001-1008
+2026-02-13 10:42:29 - INFO - Unit ID 28: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 31: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 32: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 33: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 34: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 35: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 36: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 37: Write success - Coils 1001-1008
+2026-02-13 10:42:31 - INFO - Unit ID 38: Write success - Coils 1001-1008
+2026-02-13 10:42:33 - INFO - Unit ID 41: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 42: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 43: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 44: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 45: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 46: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 47: Write success - Coils 1001-1008
+2026-02-13 10:42:34 - INFO - Unit ID 48: Write success - Coils 1001-1008
+2026-02-13 10:42:36 - INFO - Unit ID 51: Write success - Coils 1001-1008
+2026-02-13 10:42:36 - INFO - Unit ID 52: Write success - Coils 1001-1008
+2026-02-13 10:42:36 - INFO - Unit ID 53: Write success - Coils 1001-1008
+2026-02-13 10:42:36 - INFO - Unit ID 54: Write success - Coils 1001-1008
+2026-02-13 10:42:36 - INFO - Unit ID 55: Write success - Coils 1001-1008
+2026-02-13 10:42:37 - INFO - Unit ID 56: Write success - Coils 1001-1008
+2026-02-13 10:42:37 - INFO - Unit ID 57: Write success - Coils 1001-1008
+2026-02-13 10:42:37 - INFO - Unit ID 58: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 61: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 62: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 63: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 64: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 65: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 66: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 67: Write success - Coils 1001-1008
+2026-02-13 10:42:39 - INFO - Unit ID 68: Write success - Coils 1001-1008
+2026-02-13 10:42:40 - INFO - Connection closed for ตู้ที่ 4
+2026-02-13 10:42:40 - INFO - 
+2026-02-13 10:42:40 - INFO - ======================================================================
+2026-02-13 10:42:40 - INFO - PROGRAM TERMINATED - USER INTERRUPT
+2026-02-13 10:42:40 - INFO - ======================================================================
+2026-02-13 10:42:40 - INFO - End Time: 2026-02-13 10:42:40
+2026-02-13 10:42:40 - INFO - Total Runtime: 0:03:40.094683
+2026-02-13 10:42:40 - INFO - 
+2026-02-13 10:42:40 - INFO - Overall Statistics (1 Cycles completed):
+2026-02-13 10:42:40 - INFO -   - Total Cycles:              1
+2026-02-13 10:42:40 - INFO -   - Total Commands SUCCESS:    0 commands
+2026-02-13 10:42:40 - INFO -   - Total Commands FAILED:     0 commands
+2026-02-13 10:42:40 - INFO -   - Connection Failures:       0 times
+2026-02-13 10:42:40 - INFO - 
+2026-02-13 10:42:40 - INFO - Exit Reason: KeyboardInterrupt (Ctrl+C)
+2026-02-13 10:42:40 - INFO - ======================================================================
+2026-02-13 10:42:40 - INFO - Program ended successfully

@@ -26,37 +26,51 @@ def setup_logger():
     
     # สร้างชื่อไฟล์ log ตาม timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    log_filename = os.path.join(log_dir, f"modbus_test_{timestamp}.log")
+    event_log_filename = os.path.join(log_dir, f"modbus_test_{timestamp}.log")
+    stat_log_filename = os.path.join(log_dir, f"modbus_stats_{timestamp}.log")
     
-    # ตั้งค่า logging
-    logger = logging.getLogger('ModbusTester')
-    logger.setLevel(logging.INFO)
+    # ========== Event Logger (รายละเอียดทุกอย่าง) ==========
+    event_logger = logging.getLogger('ModbusEventLogger')
+    event_logger.setLevel(logging.INFO)
+    event_logger.handlers.clear()
     
-    # ลบ handlers เก่าออก (ถ้ามี)
-    logger.handlers.clear()
+    # Event file handler
+    event_file_handler = logging.FileHandler(event_log_filename, encoding='utf-8')
+    event_file_handler.setLevel(logging.INFO)
     
-    # สร้าง file handler (เขียนลงไฟล์)
-    file_handler = logging.FileHandler(log_filename, encoding='utf-8')
-    file_handler.setLevel(logging.INFO)
+    # Event console handler
+    event_console_handler = logging.StreamHandler()
+    event_console_handler.setLevel(logging.INFO)
     
-    # สร้าง console handler (แสดงบน console)
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    # Event formatter
+    event_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                        datefmt='%Y-%m-%d %H:%M:%S')
+    event_file_handler.setFormatter(event_formatter)
+    event_console_handler.setFormatter(event_formatter)
     
-    # สร้าง formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
-                                  datefmt='%Y-%m-%d %H:%M:%S')
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+    event_logger.addHandler(event_file_handler)
+    event_logger.addHandler(event_console_handler)
     
-    # เพิ่ม handlers เข้าไปใน logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+    # ========== Stat Logger (เฉพาะสถิติ) ==========
+    stat_logger = logging.getLogger('ModbusStatLogger')
+    stat_logger.setLevel(logging.INFO)
+    stat_logger.handlers.clear()
     
-    return logger, log_filename
+    # Stat file handler (เขียนเฉพาะลงไฟล์)
+    stat_file_handler = logging.FileHandler(stat_log_filename, encoding='utf-8')
+    stat_file_handler.setLevel(logging.INFO)
+    
+    # Stat formatter (รูปแบบง่ายๆ สำหรับสถิติ)
+    stat_formatter = logging.Formatter('%(asctime)s | %(message)s',
+                                       datefmt='%Y-%m-%d %H:%M:%S')
+    stat_file_handler.setFormatter(stat_formatter)
+    
+    stat_logger.addHandler(stat_file_handler)
+    
+    return event_logger, stat_logger, event_log_filename, stat_log_filename
 
 # สร้าง logger global
-logger, log_file = setup_logger()
+logger, stat_logger, log_file, stat_log_file = setup_logger()
 
 # ฟังก์ชันสร้าง Device ID List ตามรูปแบบต่างๆ
 def generate_device_ids_80():
@@ -345,13 +359,14 @@ def main():
     print("="*70)
     print(f"\n📊 จำนวนตู้ทั้งหมด: {len(CABINETS)} ตู้")
     print(f"💡 1 Cycle = ทดสอบทุกตู้ (แต่ละตู้สั่ง True และ False ทุก ID)")
-    print(f"📝 Log File: {log_file}")
+    print(f"📝 Event Log: {log_file}")
+    print(f"📊 Stats Log: {stat_log_file}")
     print(f"\nรายการตู้:")
     for idx, cab in enumerate(CABINETS, 1):
         print(f"   {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} ช่อง")
     print()
     
-    # เขียน Header ลงใน Log
+    # เขียน Header ลงใน Event Log
     logger.info("="*70)
     logger.info("MODBUS TCP MULTI-CABINET TEST - START")
     logger.info("="*70)
@@ -366,6 +381,15 @@ def main():
     for idx, cab in enumerate(CABINETS, 1):
         logger.info(f"  {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} channels")
     logger.info("="*70)
+    
+    # เขียน Header ลงใน Stat Log
+    stat_logger.info("="*70)
+    stat_logger.info("MODBUS TCP STATISTICS LOG")
+    stat_logger.info("="*70)
+    stat_logger.info(f"Test Start: {program_start_time.strftime('%Y-%m-%d %H:%M:%S')} | Cabinets: {len(CABINETS)}")
+    stat_logger.info("="*70)
+    stat_logger.info("Format: Cycle | Cabinet | Connected | Success | Failed | Time(s)")
+    stat_logger.info("-"*70)
     
     # เตรียมค่าสำหรับ coils
     all_true = [True] * NUM_COILS
@@ -394,6 +418,10 @@ def main():
             logger.info(f"Cycle Start Time: {cycle_start_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
             logger.info(f"Testing {len(CABINETS)} cabinets...")
             
+            # เขียน Cycle Start ใน Stat Log
+            stat_logger.info("")
+            stat_logger.info(f"CYCLE #{loop_count} START | {cycle_start_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+            
             loop_stats = {'success': 0, 'fail': 0, 'disconnected': 0}
             cabinet_times = []  # เก็บเวลาของแต่ละตู้
             
@@ -413,6 +441,10 @@ def main():
                     'time': result['elapsed_time'],
                     'connected': result['connected']
                 })
+                
+                # เขียนสถิติของแต่ละตู้ลง Stat Log
+                conn_status = "CONNECTED" if result['connected'] else "FAILED"
+                stat_logger.info(f"C{loop_count} | {result['cabinet']:12} | {conn_status:10} | {result['success']:6} | {result['fail']:6} | {result['elapsed_time']:7.2f}")
                 
                 time.sleep(0.5)  # หน่วงเวลาระหว่างตู้
             
@@ -457,6 +489,9 @@ def main():
             logger.info(f"Total Cycle Time: {cycle_elapsed_time:.2f} seconds ({cycle_elapsed_time/60:.2f} minutes)")
             logger.info("="*70)
             
+            # เขียนสรุป Cycle ลง Stat Log
+            stat_logger.info(f"CYCLE #{loop_count} SUMMARY | Success: {loop_stats['success']} | Failed: {loop_stats['fail']} | Disconnected: {loop_stats['disconnected']} | Time: {cycle_elapsed_time:.2f}s ({cycle_elapsed_time/60:.2f}m)")
+            
             print(f"⏳ รอ 3 วินาที ก่อนเริ่ม Cycle ถัดไป...\n")
             time.sleep(3)  # รอก่อนรอบถัดไป
         
@@ -489,9 +524,25 @@ def main():
         logger.info("")
         logger.info("Exit Reason: KeyboardInterrupt (Ctrl+C)")
         logger.info("="*70)
+        
+        # เขียน Final Summary ลง Stat Log
+        stat_logger.info("")
+        stat_logger.info("="*70)
+        stat_logger.info("FINAL SUMMARY")
+        stat_logger.info("="*70)
+        stat_logger.info(f"Test End: {program_end_time.strftime('%Y-%m-%d %H:%M:%S')} | Total Runtime: {total_runtime}")
+        stat_logger.info(f"Total Cycles: {loop_count}")
+        stat_logger.info(f"Total Success: {total_stats['success']} commands | Total Failed: {total_stats['fail']} commands")
+        stat_logger.info(f"Connection Failures: {total_stats['disconnected']} times")
+        if loop_count > 0:
+            avg_success = total_stats['success'] / loop_count
+            avg_fail = total_stats['fail'] / loop_count
+            stat_logger.info(f"Average per Cycle: Success: {avg_success:.1f} | Failed: {avg_fail:.1f}")
+        stat_logger.info("="*70)
     
     print("\n✅ โปรแกรมสิ้นสุดการทำงาน")
     logger.info("Program ended successfully")
+    stat_logger.info("Program ended successfully")
 
 if __name__ == "__main__":
     main()

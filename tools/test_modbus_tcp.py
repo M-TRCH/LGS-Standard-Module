@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 import os
 import csv
+import struct
 
 # Connection settings
 SERVER_PORT = 502
@@ -124,6 +125,43 @@ def get_device_ids_for_cabinet(cabinet_type):
         return generate_device_ids_40()
     else:
         raise ValueError(f"Unsupported cabinet type: {cabinet_type} channels")
+
+def broadcast_single_coil(client, address=4999, value=True, cabinet_name=''):
+    """
+    Broadcast wake-up packet to wake devices from standby mode
+    Send small packet (2 bytes) - fire and forget
+    
+    Args:
+        client: ModbusTcpClient object
+        address: Coil address (default: 4999) - not used for wake-up
+        value: Coil value (default: True) - not used for wake-up
+        cabinet_name: Cabinet name for CSV logging
+    """
+    try:
+        # Send minimal wake-up packet (2 bytes) to trigger devices out of standby
+        # This is NOT a valid Modbus packet - just to wake up the bus
+        wake_up_packet = b'\x00\x01'
+        
+        # Send directly to socket without waiting for response
+        if hasattr(client, 'socket') and client.socket:
+            client.socket.send(wake_up_packet)
+            success = True
+        else:
+            # Fallback if socket not accessible
+            success = False
+            
+    except Exception as e:
+        # Log error but don't stop execution
+        log_event_csv(event_csv_file, current_cycle, cabinet_name, 0, 
+                     'BROADCAST_WAKE', 'ERROR', '', '', '', 
+                     f'Error: {str(e)}')
+        print(f"[BROADCAST ERROR] {e}")
+        return
+    
+    # Log และแสดงผลว่าส่งไปแล้ว
+    log_event_csv(event_csv_file, current_cycle, cabinet_name, 0, 
+                 'BROADCAST_WAKE', 'SENT', '', '', '', 'Wake-up packet (2 bytes)')
+    print(f"[BROADCAST] Sent wake-up packet (2 bytes) to trigger devices out of standby")
 
 def read_temperature(client, unit_id, cabinet_name=''):
     """
@@ -247,22 +285,11 @@ def set_all_devices_coils(client, device_ids, values, cabinet_name='', read_temp
         
         if success:
             success_count += 1
-            
-            # Read temperature after successful write
-            if read_temp:
-                temp_success, temperature, temp_resp_time = read_temperature(client, unit_id, cabinet_name)
-                if temp_success:
-                    temp_readings.append({'unit_id': unit_id, 'temp': temperature, 'time': temp_resp_time})
         else:
             fail_count += 1
         
         # Small delay to avoid overwhelming the network
         time.sleep(0.05)
-        
-        # Delay between batches (every 8 devices)
-        if idx % 8 == 0 and idx < num_devices:
-            print(f"   [PAUSE] 3 second delay (batch {idx//8} completed)...")
-            time.sleep(3)
     
     avg_response = sum(response_times) / len(response_times) if response_times else 0
     
@@ -293,12 +320,8 @@ def set_specific_device_coils(client, unit_id, values, cabinet_name=''):
     print(f"Values to write: {values}")
     print(f"{'='*60}\n")
     
+    # Write coils
     success, resp_time = write_coils_to_device(client, unit_id, values, cabinet_name)
-    
-    # Read temperature
-    temp_success, temperature, temp_resp_time = read_temperature(client, unit_id, cabinet_name)
-    if temp_success:
-        print(f"Temperature: {temperature:.2f}C (Response: {temp_resp_time:.2f}ms)")
 
 def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
     """
@@ -331,7 +354,7 @@ def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
     
     # Create Modbus TCP Client
     print(f"Connecting to {cabinet['ip']}:{SERVER_PORT}...")
-    client = ModbusTcpClient(cabinet['ip'], port=SERVER_PORT, timeout=3)
+    client = ModbusTcpClient(cabinet['ip'], port=SERVER_PORT, timeout=3.0)
     
     # Connect to server (max 2 attempts)
     connection_attempts = 0
@@ -369,13 +392,13 @@ def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
     try:
         # Set True to all Device IDs
         print(">>> Step 1: Writing TRUE to all Device IDs")
+        time.sleep(2)  # Delay before starting batch
         success_true, fail_true, avg_resp_true, temp_true = set_all_devices_coils(
             client, device_ids, all_true, cabinet_name)
         
-        time.sleep(3)
-        
         # Set False to all Device IDs
         print(">>> Step 2: Writing FALSE to all Device IDs")
+        time.sleep(2)  # Delay before starting batch
         success_false, fail_false, avg_resp_false, temp_false = set_all_devices_coils(
             client, device_ids, all_false, cabinet_name)
         

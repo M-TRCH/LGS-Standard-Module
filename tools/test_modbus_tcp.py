@@ -1,80 +1,59 @@
 """
-Modbus TCP Client - ควบคุมอุปกรณ์หลายตู้ (Multi-IP Support)
-รองรับตู้หลายขนาด: 80, 68, 60, 40 ช่อง
-เขียนค่า coils ที่ address 1001-1008 สำหรับแต่ละ Device ID
+Modbus TCP Client - Multi-Cabinet Control (Multi-IP Support)
+Supports multiple cabinet sizes: 80, 68, 60, 40 channels
+Writes coil values to addresses 1001-1008 for each Device ID
+Reads temperature from holding register address 20
 """
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 import time
-import logging
 from datetime import datetime
 import os
+import csv
 
-# ตั้งค่าการเชื่อมต่อ
+# Connection settings
 SERVER_PORT = 502
 START_ADDRESS = 1001
 NUM_COILS = 8  # addresses 1001-1008
 
-# ตั้งค่า Logger
-def setup_logger():
-    """ตั้งค่า logging system แบบ real-time"""
-    # สร้างโฟลเดอร์ logs ถ้ายังไม่มี
+# Setup CSV Logger
+def setup_csv_logger():
+    """Setup CSV logging system"""
+    # Create logs folder if not exists
     log_dir = "logs"
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     
-    # สร้างชื่อไฟล์ log ตาม timestamp
+    # Create CSV filenames with timestamp
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    event_log_filename = os.path.join(log_dir, f"modbus_test_{timestamp}.log")
-    stat_log_filename = os.path.join(log_dir, f"modbus_stats_{timestamp}.log")
+    event_csv_filename = os.path.join(log_dir, f"modbus_events_{timestamp}.csv")
     
-    # ========== Event Logger (รายละเอียดทุกอย่าง) ==========
-    event_logger = logging.getLogger('ModbusEventLogger')
-    event_logger.setLevel(logging.INFO)
-    event_logger.handlers.clear()
+    # Create Event CSV file with headers
+    with open(event_csv_filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Timestamp', 'Cycle', 'Cabinet', 'Unit_ID', 'Event_Type', 
+                        'Status', 'Value', 'Response_Time_ms', 'Temperature_C', 'Details'])
     
-    # Event file handler
-    event_file_handler = logging.FileHandler(event_log_filename, encoding='utf-8')
-    event_file_handler.setLevel(logging.INFO)
-    
-    # Event console handler
-    event_console_handler = logging.StreamHandler()
-    event_console_handler.setLevel(logging.INFO)
-    
-    # Event formatter
-    event_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
-                                        datefmt='%Y-%m-%d %H:%M:%S')
-    event_file_handler.setFormatter(event_formatter)
-    event_console_handler.setFormatter(event_formatter)
-    
-    event_logger.addHandler(event_file_handler)
-    event_logger.addHandler(event_console_handler)
-    
-    # ========== Stat Logger (เฉพาะสถิติ) ==========
-    stat_logger = logging.getLogger('ModbusStatLogger')
-    stat_logger.setLevel(logging.INFO)
-    stat_logger.handlers.clear()
-    
-    # Stat file handler (เขียนเฉพาะลงไฟล์)
-    stat_file_handler = logging.FileHandler(stat_log_filename, encoding='utf-8')
-    stat_file_handler.setLevel(logging.INFO)
-    
-    # Stat formatter (รูปแบบง่ายๆ สำหรับสถิติ)
-    stat_formatter = logging.Formatter('%(asctime)s | %(message)s',
-                                       datefmt='%Y-%m-%d %H:%M:%S')
-    stat_file_handler.setFormatter(stat_formatter)
-    
-    stat_logger.addHandler(stat_file_handler)
-    
-    return event_logger, stat_logger, event_log_filename, stat_log_filename
+    return event_csv_filename
 
-# สร้าง logger global
-logger, stat_logger, log_file, stat_log_file = setup_logger()
+# CSV logging helper functions
+def log_event_csv(filename, cycle, cabinet, unit_id, event_type, status, value='', 
+                  response_time='', temperature='', details=''):
+    """Write event to CSV file"""
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open(filename, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow([timestamp, cycle, cabinet, unit_id, event_type, status, 
+                        value, response_time, temperature, details])
 
-# ฟังก์ชันสร้าง Device ID List ตามรูปแบบต่างๆ
+# Create global CSV file
+event_csv_file = setup_csv_logger()
+current_cycle = 0  # Global cycle counter
+
+# Functions to generate Device ID lists for different cabinet types
 def generate_device_ids_80():
-    """ตู้ 80 ช่อง: 11-18, 21-28, ..., 101-108"""
+    """80-channel cabinet: 11-18, 21-28, ..., 101-108"""
     device_ids = []
     for tens in range(1, 11):  # 1x, 2x, ..., 10x
         for ones in range(1, 9):  # x1-x8
@@ -82,20 +61,20 @@ def generate_device_ids_80():
     return device_ids
 
 def generate_device_ids_68():
-    """ตู้ 68 ช่อง: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 และ 81-86, 91-96"""
+    """68-channel cabinet: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 and 81-86, 91-96"""
     device_ids = []
-    # ชุดแรก: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 (7 ชุด x 8 = 56 ไอดี)
+    # First set: 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78 (7 groups x 8 = 56 IDs)
     for tens in range(1, 8):  # 1x-7x
         for ones in range(1, 9):  # x1-x8
             device_ids.append(tens * 10 + ones)
-    # ชุดที่สอง: 81-86, 91-96 (2 ชุด x 6 = 12 ไอดี)
+    # Second set: 81-86, 91-96 (2 groups x 6 = 12 IDs)
     for tens in range(8, 10):  # 8x, 9x
         for ones in range(1, 7):  # x1-x6
             device_ids.append(tens * 10 + ones)
     return device_ids
 
 def generate_device_ids_40():
-    """ตู้ 40 ช่อง: 11-14, 21-24, ..., 101-104"""
+    """40-channel cabinet: 11-14, 21-24, ..., 101-104"""
     device_ids = []
     for tens in range(1, 11):  # 1x, 2x, ..., 10x
         for ones in range(1, 5):  # x1-x4
@@ -103,38 +82,38 @@ def generate_device_ids_40():
     return device_ids
 
 def generate_device_ids_60():
-    """ตู้ 60 ช่อง: 11-18, 21-28, 31-38 และ 41-44, 51-54, 61-64, 71-74, 81-84 และ 91-98, 101-108"""
+    """60-channel cabinet: 11-18, 21-28, 31-38 and 41-44, 51-54, 61-64, 71-74, 81-84 and 91-98, 101-108"""
     device_ids = []
-    # ชุดแรก: 11-18, 21-28, 31-38 (8 ตัวต่อชุด)
+    # First set: 11-18, 21-28, 31-38 (8 per group)
     for tens in range(1, 4):  # 1x, 2x, 3x
         for ones in range(1, 9):  # x1-x8
             device_ids.append(tens * 10 + ones)
-    # ชุดกลาง: 41-44, 51-54, 61-64, 71-74, 81-84 (4 ตัวต่อชุด)
+    # Middle set: 41-44, 51-54, 61-64, 71-74, 81-84 (4 per group)
     for tens in range(4, 9):  # 4x, 5x, 6x, 7x, 8x
         for ones in range(1, 5):  # x1-x4
             device_ids.append(tens * 10 + ones)
-    # ชุดสุดท้าย: 91-98, 101-108 (8 ตัวต่อชุด)
+    # Last set: 91-98, 101-108 (8 per group)
     for tens in range(9, 11):  # 9x, 10x
         for ones in range(1, 9):  # x1-x8
             device_ids.append(tens * 10 + ones)
     return device_ids
 
-# กำหนดค่าตู้ทั้งหมด (Configuration)
+# Cabinet configuration
 CABINETS = [
-    {"name": "ตู้ที่ 1",  "ip": "192.168.0.80",  "type": 80},
-    {"name": "ตู้ที่ 2",  "ip": "192.168.0.221", "type": 80},
-    {"name": "ตู้ที่ 3",  "ip": "192.168.0.76",  "type": 80},
-    {"name": "ตู้ที่ 4",  "ip": "192.168.0.210", "type": 80},
-    {"name": "ตู้ที่ 5",  "ip": "192.168.0.219", "type": 80},
-    {"name": "ตู้ที่ 6",  "ip": "192.168.0.78",  "type": 80},
-    {"name": "ตู้ที่ 7",  "ip": "192.168.0.216", "type": 80},
-    {"name": "ตู้ที่ 8",  "ip": "192.168.0.214", "type": 80},
-    {"name": "ตู้ที่ 9",  "ip": "192.168.0.205", "type": 80},
-    {"name": "ตู้ที่ 20", "ip": "192.168.0.201", "type": 68},
+    {"name": "Cabinet 1",  "ip": "192.168.0.80",  "type": 80},
+    {"name": "Cabinet 2",  "ip": "192.168.0.221", "type": 80},
+    {"name": "Cabinet 3",  "ip": "192.168.0.76",  "type": 80},
+    {"name": "Cabinet 4",  "ip": "192.168.0.210", "type": 80},
+    {"name": "Cabinet 5",  "ip": "192.168.0.219", "type": 80},
+    {"name": "Cabinet 6",  "ip": "192.168.0.78",  "type": 80},
+    {"name": "Cabinet 7",  "ip": "192.168.0.216", "type": 80},
+    {"name": "Cabinet 8",  "ip": "192.168.0.214", "type": 80},
+    {"name": "Cabinet 9",  "ip": "192.168.0.205", "type": 80},
+    {"name": "Cabinet 20", "ip": "192.168.0.201", "type": 68},
 ]
 
 def get_device_ids_for_cabinet(cabinet_type):
-    """ดึง Device IDs ตามประเภทของตู้"""
+    """Get Device IDs based on cabinet type"""
     if cabinet_type == 80:
         return generate_device_ids_80()
     elif cabinet_type == 68:
@@ -144,148 +123,217 @@ def get_device_ids_for_cabinet(cabinet_type):
     elif cabinet_type == 40:
         return generate_device_ids_40()
     else:
-        raise ValueError(f"ไม่รองรับตู้ประเภท {cabinet_type} ช่อง")
+        raise ValueError(f"Unsupported cabinet type: {cabinet_type} channels")
 
-def write_coils_to_device(client, unit_id, values):
+def read_temperature(client, unit_id, cabinet_name=''):
     """
-    เขียนค่าไปยัง multiple coils ของอุปกรณ์
+    Read temperature from holding register address 20
+    Temperature value is divided by 100 to get actual temperature
     
     Args:
         client: ModbusTcpClient object
-        unit_id: Device ID ของอุปกรณ์ (11-18, 21-28, ..., 101-108)
-        values: list ของค่า True/False สำหรับ coils 8 ตัว
+        unit_id: Device ID
+        cabinet_name: Cabinet name for CSV logging
     
     Returns:
-        bool: True ถ้าสำเร็จ, False ถ้าล้มเหลว
+        tuple: (success, temperature, response_time)
     """
+    cmd_start = time.time()
     try:
-        # เขียน multiple coils
+        result = client.read_holding_registers(
+            address=20,
+            count=1,
+            device_id=unit_id
+        )
+        response_time = (time.time() - cmd_start) * 1000  # Convert to ms
+        
+        if result.isError():
+            log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                         'TEMPERATURE_READ', 'FAILED', '', f"{response_time:.2f}", '', str(result))
+            print(f"[FAIL] Unit ID {unit_id}: Temperature read failed - {result} | Response: {response_time:.2f}ms")
+            return False, None, response_time
+        else:
+            # Divide by 100 to get actual temperature
+            temperature = result.registers[0] / 100.0
+            log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                         'TEMPERATURE_READ', 'SUCCESS', '', f"{response_time:.2f}", f"{temperature:.2f}", '')
+            print(f"[OK] Unit ID {unit_id}: Temperature = {temperature:.2f}C | Response: {response_time:.2f}ms")
+            return True, temperature, response_time
+            
+    except Exception as e:
+        response_time = (time.time() - cmd_start) * 1000
+        log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                     'TEMPERATURE_READ', 'ERROR', '', f"{response_time:.2f}", '', str(e))
+        print(f"[ERROR] Unit ID {unit_id}: Temperature read error - {e} | Response: {response_time:.2f}ms")
+        return False, None, response_time
+
+def write_coils_to_device(client, unit_id, values, cabinet_name=''):
+    """
+    Write values to multiple coils of device with timing
+    
+    Args:
+        client: ModbusTcpClient object
+        unit_id: Device ID (11-18, 21-28, ..., 101-108)
+        values: list of True/False values for 8 coils
+        cabinet_name: Cabinet name for CSV logging
+    
+    Returns:
+        tuple: (success, response_time_ms)
+    """
+    cmd_start = time.time()
+    try:
+        # Write multiple coils
         result = client.write_coils(
             address=START_ADDRESS,
             values=values,
             device_id=unit_id
         )
+        response_time = (time.time() - cmd_start) * 1000  # Convert to milliseconds
+        value_str = str(values)
         
         if result.isError():
-            msg = f"❌ Unit ID {unit_id}: เขียนค่าล้มเหลว - {result}"
-            print(msg)
-            logger.error(f"Unit ID {unit_id}: Write failed - {result}")
-            return False
+            log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                         'WRITE_COILS', 'FAILED', value_str, f"{response_time:.2f}", '', str(result))
+            print(f"[FAIL] Unit ID {unit_id}: Write failed - {result} | Response: {response_time:.2f}ms")
+            return False, response_time
         else:
-            msg = f"✅ Unit ID {unit_id}: เขียนค่าสำเร็จ - Coils {START_ADDRESS}-{START_ADDRESS+NUM_COILS-1} = {values}"
-            print(msg)
-            logger.info(f"Unit ID {unit_id}: Write success - Coils {START_ADDRESS}-{START_ADDRESS+NUM_COILS-1}")
-            return True
+            log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                         'WRITE_COILS', 'SUCCESS', value_str, f"{response_time:.2f}", '', '')
+            print(f"[OK] Unit ID {unit_id}: Write success - Coils {START_ADDRESS}-{START_ADDRESS+NUM_COILS-1} = {values} | Response: {response_time:.2f}ms")
+            return True, response_time
             
     except ModbusException as e:
-        msg = f"❌ Unit ID {unit_id}: Modbus Exception - {e}"
-        print(msg)
-        logger.error(f"Unit ID {unit_id}: Modbus Exception - {e}")
-        return False
+        response_time = (time.time() - cmd_start) * 1000
+        log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                     'WRITE_COILS', 'EXCEPTION', str(values), f"{response_time:.2f}", '', str(e))
+        print(f"[FAIL] Unit ID {unit_id}: Modbus Exception - {e} | Response: {response_time:.2f}ms")
+        return False, response_time
     except Exception as e:
-        msg = f"❌ Unit ID {unit_id}: Error - {e}"
-        print(msg)
-        logger.error(f"Unit ID {unit_id}: Unexpected error - {e}")
-        return False
+        response_time = (time.time() - cmd_start) * 1000
+        log_event_csv(event_csv_file, current_cycle, cabinet_name, unit_id, 
+                     'WRITE_COILS', 'ERROR', str(values), f"{response_time:.2f}", '', str(e))
+        print(f"[FAIL] Unit ID {unit_id}: Error - {e} | Response: {response_time:.2f}ms")
+        return False, response_time
 
-def set_all_devices_coils(client, device_ids, values):
+def set_all_devices_coils(client, device_ids, values, cabinet_name='', read_temp=True):
     """
-    ตั้งค่า coils สำหรับอุปกรณ์ทั้งหมด
+    Write coil values to all devices with temperature reading
     
     Args:
         client: ModbusTcpClient object
-        device_ids: list ของ Device IDs
-        values: list ของค่า True/False สำหรับ coils 8 ตัว
+        device_ids: list of Device IDs
+        values: list of True/False values for 8 coils
+        cabinet_name: Cabinet name for CSV logging
+        read_temp: whether to read temperature (default: True)
     
     Returns:
-        tuple: (success_count, fail_count)
+        tuple: (success_count, fail_count, avg_response_time, temp_readings)
     """
     num_devices = len(device_ids)
     success_count = 0
     fail_count = 0
+    response_times = []
+    temp_readings = []
     
     print(f"\n{'='*60}")
-    print(f"เริ่มเขียนค่าไปยังอุปกรณ์ทั้งหมด {num_devices} ตัว")
-    print(f"ค่าที่จะเขียน: {values}")
+    print(f"Writing to {num_devices} devices")
+    print(f"Values to write: {values}")
     print(f"{'='*60}\n")
     
-    logger.info(f"Starting to write to {num_devices} devices - Values: {values}")
-    
     for idx, unit_id in enumerate(device_ids, start=1):
-        if write_coils_to_device(client, unit_id, values):
+        # Write coils
+        success, resp_time = write_coils_to_device(client, unit_id, values, cabinet_name)
+        response_times.append(resp_time)
+        
+        if success:
             success_count += 1
+            
+            # Read temperature after successful write
+            if read_temp:
+                temp_success, temperature, temp_resp_time = read_temperature(client, unit_id, cabinet_name)
+                if temp_success:
+                    temp_readings.append({'unit_id': unit_id, 'temp': temperature, 'time': temp_resp_time})
         else:
             fail_count += 1
         
-        # หน่วงเวลาเล็กน้อยเพื่อไม่ให้ส่งคำสั่งเร็วเกินไป
+        # Small delay to avoid overwhelming the network
         time.sleep(0.05)
         
-        # หน่วงเวลา 2 วินาทีระหว่างแต่ละชุด (ทุกๆ 8 อุปกรณ์)
+        # Delay between batches (every 8 devices)
         if idx % 8 == 0 and idx < num_devices:
-            print(f"   ⏸️  หน่วงเวลา 2 วินาที (เสร็จชุดที่ {idx//8})...")
-            time.sleep(2)
+            print(f"   [PAUSE] 3 second delay (batch {idx//8} completed)...")
+            time.sleep(3)
+    
+    avg_response = sum(response_times) / len(response_times) if response_times else 0
     
     print(f"\n{'='*60}")
-    print(f"สรุปผลการทำงาน:")
-    print(f"  ✅ สำเร็จ: {success_count}/{num_devices}")
-    print(f"  ❌ ล้มเหลว: {fail_count}/{num_devices}")
+    print(f"Batch Summary:")
+    print(f"  Success: {success_count}/{num_devices}")
+    print(f"  Failed: {fail_count}/{num_devices}")
+    print(f"  Avg Response Time: {avg_response:.2f}ms")
+    if temp_readings:
+        avg_temp = sum(t['temp'] for t in temp_readings) / len(temp_readings)
+        print(f"  Temperature readings: {len(temp_readings)} devices | Avg: {avg_temp:.2f}C")
     print(f"{'='*60}\n")
     
-    logger.info(f"Batch write completed - Success: {success_count}/{num_devices}, Failed: {fail_count}/{num_devices}")
-    
-    return success_count, fail_count
+    return success_count, fail_count, avg_response, temp_readings
 
-def set_specific_device_coils(client, unit_id, values):
+def set_specific_device_coils(client, unit_id, values, cabinet_name=''):
     """
-    ตั้งค่า coils สำหรับอุปกรณ์ตัวเดียว
+    Write coil values to a specific device
     
     Args:
         client: ModbusTcpClient object
-        unit_id: Unit ID ของอุปกรณ์
-        values: list ของค่า True/False สำหรับ coils 8 ตัว
+        unit_id: Unit ID of device
+        values: list of True/False values for 8 coils
+        cabinet_name: Cabinet name for CSV logging
     """
     print(f"\n{'='*60}")
-    print(f"เขียนค่าไปยัง Unit ID {unit_id}")
-    print(f"ค่าที่จะเขียน: {values}")
+    print(f"Writing to Unit ID {unit_id}")
+    print(f"Values to write: {values}")
     print(f"{'='*60}\n")
     
-    write_coils_to_device(client, unit_id, values)
+    success, resp_time = write_coils_to_device(client, unit_id, values, cabinet_name)
+    
+    # Read temperature
+    temp_success, temperature, temp_resp_time = read_temperature(client, unit_id, cabinet_name)
+    if temp_success:
+        print(f"Temperature: {temperature:.2f}C (Response: {temp_resp_time:.2f}ms)")
 
 def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
     """
-    ทดสอบตู้หนึ่งตู้ (สั่ง True ทุก ID แล้วสั่ง False ทุก ID)
+    Test one cabinet (send True to all IDs then send False to all IDs)
     
     Args:
-        cabinet: dict ข้อมูลตู้ (name, ip, type)
-        all_true: list ค่า True สำหรับ coils
-        all_false: list ค่า False สำหรับ coils
-        cabinet_num: หมายเลขตู้ปัจจุบัน
-        total_cabinets: จำนวนตู้ทั้งหมด
+        cabinet: dict of cabinet info (name, ip, type)
+        all_true: list of True values for coils
+        all_false: list of False values for coils
+        cabinet_num: current cabinet number
+        total_cabinets: total number of cabinets
     
     Returns:
-        dict: สถิติการทำงานของตู้ (รวมเวลาที่ใช้)
+        dict: cabinet test statistics (including elapsed time)
     """
-    start_time = time.time()  # เริ่มจับเวลา
+    start_time = time.time()
+    cabinet_name = cabinet['name']
     
     print(f"\n{'#'*70}")
-    print(f"# [{cabinet_num}/{total_cabinets}] {cabinet['name']} - IP: {cabinet['ip']} - จำนวน {cabinet['type']} ช่อง")
+    print(f"# [{cabinet_num}/{total_cabinets}] {cabinet_name} - IP: {cabinet['ip']} - {cabinet['type']} channels")
     print(f"{'#'*70}")
     
-    logger.info(f"="*70)
-    logger.info(f"Starting test - Cabinet [{cabinet_num}/{total_cabinets}]: {cabinet['name']}")
-    logger.info(f"IP: {cabinet['ip']}:{SERVER_PORT}, Type: {cabinet['type']} channels")
+    # Log connection attempt
+    log_event_csv(event_csv_file, current_cycle, cabinet_name, '', 'CONNECTION_START', 
+                 'ATTEMPTING', '', '', '', f"IP: {cabinet['ip']}:{SERVER_PORT}")
     
-    # สร้าง Device IDs สำหรับตู้นี้
+    # Generate Device IDs for this cabinet
     device_ids = get_device_ids_for_cabinet(cabinet['type'])
-    print(f"📋 Device IDs: {device_ids[:5]} ... {device_ids[-5:]} (รวม {len(device_ids)} IDs)\n")
-    logger.info(f"Device IDs: {device_ids[:5]} ... {device_ids[-5:]} (Total: {len(device_ids)} IDs)")
+    print(f"Device IDs: {device_ids[:5]} ... {device_ids[-5:]} (Total: {len(device_ids)} IDs)\n")
     
-    # สร้าง Modbus TCP Client
-    print(f"กำลังเชื่อมต่อไปยัง {cabinet['ip']}:{SERVER_PORT}...")
-    logger.info(f"Attempting connection to {cabinet['ip']}:{SERVER_PORT}")
+    # Create Modbus TCP Client
+    print(f"Connecting to {cabinet['ip']}:{SERVER_PORT}...")
     client = ModbusTcpClient(cabinet['ip'], port=SERVER_PORT, timeout=3)
     
-    # เชื่อมต่อกับ server (ลองสูงสุด 2 ครั้ง)
+    # Connect to server (max 2 attempts)
     connection_attempts = 0
     max_attempts = 2
     connected = False
@@ -295,137 +343,115 @@ def test_cabinet(cabinet, all_true, all_false, cabinet_num, total_cabinets):
         
         if client.connect():
             connected = True
-            print(f"✅ เชื่อมต่อสำเร็จ!\n")
-            logger.info(f"Connection successful on attempt {connection_attempts}/{max_attempts}")
+            print(f"[CONNECTED] Connection successful!\n")
+            log_event_csv(event_csv_file, current_cycle, cabinet_name, '', 'CONNECTION', 
+                         'SUCCESS', '', '', '', f"Attempt {connection_attempts}/{max_attempts}")
         else:
             if connection_attempts < max_attempts:
-                print(f"❌ เชื่อมต่อครั้งที่ {connection_attempts} ล้มเหลว - รอ 20 วินาทีก่อนลองใหม่...")
-                logger.warning(f"Connection attempt {connection_attempts} failed - Waiting 20 seconds before retry")
+                print(f"[RETRY] Connection attempt {connection_attempts} failed - waiting 20 seconds before retry...")
+                log_event_csv(event_csv_file, current_cycle, cabinet_name, '', 'CONNECTION', 
+                             'RETRY', '', '', '', f"Attempt {connection_attempts} failed")
                 time.sleep(20)
-                print(f"🔄 กำลังลองเชื่อมต่อครั้งที่ {connection_attempts + 1}...")
-                logger.info(f"Retrying connection (attempt {connection_attempts + 1}/{max_attempts})")
+                print(f"Retrying connection (attempt {connection_attempts + 1}/{max_attempts})...")
             else:
                 elapsed_time = time.time() - start_time
-                print(f"❌ ไม่สามารถเชื่อมต่อกับ {cabinet['ip']}:{SERVER_PORT} หลังจากพยายาม {max_attempts} ครั้ง - ข้าม")
-                logger.error(f"Connection failed after {max_attempts} attempts to {cabinet['ip']}:{SERVER_PORT} - Skipping cabinet")
-                return {'cabinet': cabinet['name'], 'connected': False, 'success': 0, 'fail': 0, 'elapsed_time': elapsed_time}
+                print(f"[FAILED] Unable to connect to {cabinet['ip']}:{SERVER_PORT} after {max_attempts} attempts - Skipping")
+                log_event_csv(event_csv_file, current_cycle, cabinet_name, '', 'CONNECTION', 
+                             'FAILED', '', '', '', f"All {max_attempts} attempts failed")
+                return {'cabinet': cabinet_name, 'connected': False, 'success': 0, 'fail': 0, 
+                       'elapsed_time': elapsed_time, 'avg_response': 0, 'temp_data': []}
     
     if not connected:
         elapsed_time = time.time() - start_time
-        logger.error(f"Final connection check failed for {cabinet['name']}")
-        return {'cabinet': cabinet['name'], 'connected': False, 'success': 0, 'fail': 0, 'elapsed_time': elapsed_time}
+        return {'cabinet': cabinet_name, 'connected': False, 'success': 0, 'fail': 0, 
+               'elapsed_time': elapsed_time, 'avg_response': 0, 'temp_data': []}
     
     try:
-        # เซต True ทุก Device ID เรียงกัน
-        print(">>> ขั้นตอนที่ 1: สั่ง TRUE เรียงทุก Device ID")
-        logger.info("Step 1: Writing TRUE to all Device IDs")
-        success_true, fail_true = set_all_devices_coils(client, device_ids, all_true)
+        # Set True to all Device IDs
+        print(">>> Step 1: Writing TRUE to all Device IDs")
+        success_true, fail_true, avg_resp_true, temp_true = set_all_devices_coils(
+            client, device_ids, all_true, cabinet_name)
         
-        time.sleep(1)  # รอสักครู่
+        time.sleep(3)
         
-        # เซต False ทุก Device ID เรียงกัน
-        print(">>> ขั้นตอนที่ 2: สั่ง FALSE เรียงทุก Device ID")
-        logger.info("Step 2: Writing FALSE to all Device IDs")
-        success_false, fail_false = set_all_devices_coils(client, device_ids, all_false)
+        # Set False to all Device IDs
+        print(">>> Step 2: Writing FALSE to all Device IDs")
+        success_false, fail_false, avg_resp_false, temp_false = set_all_devices_coils(
+            client, device_ids, all_false, cabinet_name)
         
         elapsed_time = time.time() - start_time
-        print(f"⏱️  เวลาที่ใช้: {elapsed_time:.2f} วินาที")
+        avg_response = (avg_resp_true + avg_resp_false) / 2
+        temp_data = temp_true + temp_false
         
-        logger.info(f"Cabinet test completed - Total Success: {success_true + success_false}, Total Failed: {fail_true + fail_false}")
-        logger.info(f"Elapsed time: {elapsed_time:.2f} seconds")
-        logger.info(f"="*70)
+        print(f"Elapsed time: {elapsed_time:.2f} seconds | Avg Response: {avg_response:.2f}ms")
         
         return {
-            'cabinet': cabinet['name'],
+            'cabinet': cabinet_name,
             'connected': True,
             'success': success_true + success_false,
             'fail': fail_true + fail_false,
-            'elapsed_time': elapsed_time
+            'elapsed_time': elapsed_time,
+            'avg_response': avg_response,
+            'temp_data': temp_data
         }
     
     finally:
-        # ปิดการเชื่อมต่อ
+        # Close connection
         client.close()
-        print(f"🔌 ปิดการเชื่อมต่อ {cabinet['name']}\n")
-        logger.info(f"Connection closed for {cabinet['name']}")
+        print(f"Connection closed for {cabinet_name}\n")
+        log_event_csv(event_csv_file, current_cycle, cabinet_name, '', 'CONNECTION', 
+                     'CLOSED', '', '', '', '')
 
 def main():
-    """ฟังก์ชันหลัก - ทดสอบทุกตู้ (1 Cycle = ทดสอบครบทุกตู้)"""
+    """Main function - Test all cabinets (1 Cycle = test all cabinets)"""
     
+    global current_cycle
     program_start_time = datetime.now()
     
     print("="*70)
-    print(" 🔧 Modbus TCP Multi-Cabinet Tester 🔧")
+    print(" Modbus TCP Multi-Cabinet Tester")
     print("="*70)
-    print(f"\n📊 จำนวนตู้ทั้งหมด: {len(CABINETS)} ตู้")
-    print(f"💡 1 Cycle = ทดสอบทุกตู้ (แต่ละตู้สั่ง True และ False ทุก ID)")
-    print(f"📝 Event Log: {log_file}")
-    print(f"📊 Stats Log: {stat_log_file}")
-    print(f"\nรายการตู้:")
+    print(f"\nTotal Cabinets: {len(CABINETS)}")
+    print(f"1 Cycle = Test all cabinets (each cabinet: write True and False to all IDs)")
+    print(f"Event CSV: {event_csv_file}")
+    print(f"\nCabinet List:")
     for idx, cab in enumerate(CABINETS, 1):
-        print(f"   {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} ช่อง")
+        print(f"   {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} channels")
     print()
     
-    # เขียน Header ลงใน Event Log
-    logger.info("="*70)
-    logger.info("MODBUS TCP MULTI-CABINET TEST - START")
-    logger.info("="*70)
-    logger.info(f"Start Time: {program_start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Total Cabinets: {len(CABINETS)}")
-    logger.info("Configuration:")
-    logger.info(f"  - Server Port: {SERVER_PORT}")
-    logger.info(f"  - Start Address: {START_ADDRESS}")
-    logger.info(f"  - Number of Coils: {NUM_COILS}")
-    logger.info("")
-    logger.info("Cabinet List:")
-    for idx, cab in enumerate(CABINETS, 1):
-        logger.info(f"  {idx}. {cab['name']:12} - {cab['ip']:15} - {cab['type']:2} channels")
-    logger.info("="*70)
+    # Log program start to CSV
+    log_event_csv(event_csv_file, 0, 'SYSTEM', '', 'PROGRAM_START', 'INFO', '', '', '', 
+                 f"Total Cabinets: {len(CABINETS)}")
     
-    # เขียน Header ลงใน Stat Log
-    stat_logger.info("="*70)
-    stat_logger.info("MODBUS TCP STATISTICS LOG")
-    stat_logger.info("="*70)
-    stat_logger.info(f"Test Start: {program_start_time.strftime('%Y-%m-%d %H:%M:%S')} | Cabinets: {len(CABINETS)}")
-    stat_logger.info("="*70)
-    stat_logger.info("Format: Cycle | Cabinet | Connected | Success | Failed | Time(s)")
-    stat_logger.info("-"*70)
-    
-    # เตรียมค่าสำหรับ coils
+    # Prepare values for coils
     all_true = [True] * NUM_COILS
     all_false = [False] * NUM_COILS
     
     try:
-        # ===== วนลูปสั่งงานแบบต่อเนื่อง =====
-        print("\n🔄 เริ่มวนลูปสั่งงาน (กด Ctrl+C เพื่อหยุด)\n")
+        # ===== Continuous loop =====
+        print("\nStarting continuous loop (Press Ctrl+C to stop)\n")
         
         loop_count = 0
         total_stats = {'success': 0, 'fail': 0, 'disconnected': 0}
         
         while True:
             loop_count += 1
-            cycle_start_time = time.time()  # เริ่มจับเวลา Cycle
+            current_cycle = loop_count  # Update global cycle counter
+            cycle_start_time = time.time()
             cycle_start_datetime = datetime.now()
             
             print(f"\n{'='*70}")
-            print(f"╔═══ CYCLE #{loop_count} - เริ่มทดสอบทุกตู้ ({len(CABINETS)} ตู้) ═══╗")
+            print(f"CYCLE #{loop_count} - Testing all cabinets ({len(CABINETS)} cabinets)")
             print(f"{'='*70}\n")
             
-            logger.info("")
-            logger.info("="*70)
-            logger.info(f"CYCLE #{loop_count} - START")
-            logger.info("="*70)
-            logger.info(f"Cycle Start Time: {cycle_start_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
-            logger.info(f"Testing {len(CABINETS)} cabinets...")
-            
-            # เขียน Cycle Start ใน Stat Log
-            stat_logger.info("")
-            stat_logger.info(f"CYCLE #{loop_count} START | {cycle_start_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+            # Log cycle start
+            log_event_csv(event_csv_file, loop_count, 'SYSTEM', '', 'CYCLE_START', 'INFO', '', '', '', 
+                         f"Testing {len(CABINETS)} cabinets")
             
             loop_stats = {'success': 0, 'fail': 0, 'disconnected': 0}
-            cabinet_times = []  # เก็บเวลาของแต่ละตู้
+            cabinet_times = []
             
-            # ทดสอบทุกตู้เรียงตามลำดับ
+            # Test all cabinets in order
             for idx, cabinet in enumerate(CABINETS, 1):
                 result = test_cabinet(cabinet, all_true, all_false, idx, len(CABINETS))
                 
@@ -435,114 +461,71 @@ def main():
                 else:
                     loop_stats['disconnected'] += 1
                 
-                # เก็บข้อมูลเวลาของแต่ละตู้
+                # Store cabinet timing data
                 cabinet_times.append({
                     'name': result['cabinet'],
                     'time': result['elapsed_time'],
-                    'connected': result['connected']
+                    'connected': result['connected'],
+                    'avg_response': result.get('avg_response', 0),
+                    'temp_data': result.get('temp_data', [])
                 })
                 
-                # เขียนสถิติของแต่ละตู้ลง Stat Log
-                conn_status = "CONNECTED" if result['connected'] else "FAILED"
-                stat_logger.info(f"C{loop_count} | {result['cabinet']:12} | {conn_status:10} | {result['success']:6} | {result['fail']:6} | {result['elapsed_time']:7.2f}")
-                
-                time.sleep(0.5)  # หน่วงเวลาระหว่างตู้
+                time.sleep(0.5)
             
-            # คำนวณเวลารวมของ Cycle
+            # Calculate total cycle time
             cycle_elapsed_time = time.time() - cycle_start_time
             cycle_end_datetime = datetime.now()
             
-            # อัปเดตสถิติรวม
+            # Update total statistics
             total_stats['success'] += loop_stats['success']
             total_stats['fail'] += loop_stats['fail']
             total_stats['disconnected'] += loop_stats['disconnected']
             
-            # แสดงสรุปรอบนี้
+            # Display cycle summary
             print(f"\n{'='*70}")
-            print(f"╚═══ สรุป CYCLE #{loop_count} (ทดสอบครบทั้ง {len(CABINETS)} ตู้แล้ว) ═══╝")
-            print(f"   ✅ สำเร็จ: {loop_stats['success']} คำสั่ง")
-            print(f"   ❌ ล้มเหลว: {loop_stats['fail']} คำสั่ง")
-            print(f"   🔌 ไม่สามารถเชื่อมต่อ: {loop_stats['disconnected']} ตู้")
-            print(f"\n   ⏱️  เวลาทดสอบแต่ละตู้:")
+            print(f"CYCLE #{loop_count} SUMMARY (Completed all {len(CABINETS)} cabinets)")
+            print(f"   Success: {loop_stats['success']} commands")
+            print(f"   Failed: {loop_stats['fail']} commands")
+            print(f"   Disconnected: {loop_stats['disconnected']} cabinets")
+            print(f"\n   Cabinet test times:")
             for cab_time in cabinet_times:
-                status = "✅" if cab_time['connected'] else "❌"
-                print(f"      {status} {cab_time['name']:12} - {cab_time['time']:6.2f} วินาที")
-            print(f"\n   🕐 รวมเวลาทั้ง Cycle: {cycle_elapsed_time:.2f} วินาที ({cycle_elapsed_time/60:.2f} นาที)")
+                status = "[OK]" if cab_time['connected'] else "[FAIL]"
+                temp_data = cab_time['temp_data']
+                avg_temp = sum(t['temp'] for t in temp_data) / len(temp_data) if temp_data else 0
+                temp_str = f"Temp: {avg_temp:.2f}C" if temp_data else "Temp: N/A"
+                print(f"      {status} {cab_time['name']:12} - {cab_time['time']:6.2f}s | Resp: {cab_time['avg_response']:6.2f}ms | {temp_str}")
+            print(f"\n   Total cycle time: {cycle_elapsed_time:.2f} seconds ({cycle_elapsed_time/60:.2f} minutes)")
             print(f"{'='*70}\n")
             
-            # เขียน Summary ลง Log
-            logger.info("="*70)
-            logger.info(f"CYCLE #{loop_count} - SUMMARY")
-            logger.info("="*70)
-            logger.info(f"Cycle End Time: {cycle_end_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
-            logger.info("Results:")
-            logger.info(f"  - Commands SUCCESS: {loop_stats['success']} commands")
-            logger.info(f"  - Commands FAILED:  {loop_stats['fail']} commands")
-            logger.info(f"  - Cabinets CONNECTED: {len(CABINETS) - loop_stats['disconnected']}/{len(CABINETS)}")
-            logger.info(f"  - Cabinets FAILED:    {loop_stats['disconnected']}/{len(CABINETS)}")
-            logger.info("")
-            logger.info("Cabinet Performance:")
-            for cab_time in cabinet_times:
-                status = "SUCCESS" if cab_time['connected'] else "FAILED"
-                logger.info(f"  [{status}] {cab_time['name']:12} - {cab_time['time']:6.2f} seconds")
-            logger.info("")
-            logger.info(f"Total Cycle Time: {cycle_elapsed_time:.2f} seconds ({cycle_elapsed_time/60:.2f} minutes)")
-            logger.info("="*70)
+            # Log cycle summary
+            log_event_csv(event_csv_file, loop_count, 'SYSTEM', '', 'CYCLE_SUMMARY', 'INFO', 
+                         f"Success:{loop_stats['success']},Failed:{loop_stats['fail']}", 
+                         '', '', f"Time: {cycle_elapsed_time:.2f}s, Disconnected: {loop_stats['disconnected']}")
             
-            # เขียนสรุป Cycle ลง Stat Log
-            stat_logger.info(f"CYCLE #{loop_count} SUMMARY | Success: {loop_stats['success']} | Failed: {loop_stats['fail']} | Disconnected: {loop_stats['disconnected']} | Time: {cycle_elapsed_time:.2f}s ({cycle_elapsed_time/60:.2f}m)")
-            
-            print(f"⏳ รอ 3 วินาที ก่อนเริ่ม Cycle ถัดไป...\n")
-            time.sleep(3)  # รอก่อนรอบถัดไป
+            print(f"Waiting 3 seconds before next cycle...\n")
+            time.sleep(3)
         
     except KeyboardInterrupt:
         program_end_time = datetime.now()
         total_runtime = program_end_time - program_start_time
         
-        print("\n\n⚠️  หยุดการทำงานโดยผู้ใช้")
+        print("\n\nProgram stopped by user")
         print(f"\n{'='*70}")
-        print(f"📊 สรุปการทำงานทั้งหมด ({loop_count} Cycles):")
-        print(f"   🔄 จำนวน Cycles ที่เสร็จ: {loop_count}")
-        print(f"   ✅ สำเร็จทั้งหมด: {total_stats['success']} คำสั่ง")
-        print(f"   ❌ ล้มเหลวทั้งหมด: {total_stats['fail']} คำสั่ง")
-        print(f"   🔌 การเชื่อมต่อล้มเหลว: {total_stats['disconnected']} ครั้ง")
+        print(f"Overall Summary ({loop_count} Cycles):")
+        print(f"   Completed Cycles: {loop_count}")
+        print(f"   Total Success: {total_stats['success']} commands")
+        print(f"   Total Failed: {total_stats['fail']} commands")
+        print(f"   Connection Failures: {total_stats['disconnected']} times")
         print(f"{'='*70}")
         
-        # เขียน Final Summary ลง Log
-        logger.info("")
-        logger.info("="*70)
-        logger.info("PROGRAM TERMINATED - USER INTERRUPT")
-        logger.info("="*70)
-        logger.info(f"End Time: {program_end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"Total Runtime: {total_runtime}")
-        logger.info("")
-        logger.info(f"Overall Statistics ({loop_count} Cycles completed):")
-        logger.info(f"  - Total Cycles:              {loop_count}")
-        logger.info(f"  - Total Commands SUCCESS:    {total_stats['success']} commands")
-        logger.info(f"  - Total Commands FAILED:     {total_stats['fail']} commands")
-        logger.info(f"  - Connection Failures:       {total_stats['disconnected']} times")
-        logger.info("")
-        logger.info("Exit Reason: KeyboardInterrupt (Ctrl+C)")
-        logger.info("="*70)
-        
-        # เขียน Final Summary ลง Stat Log
-        stat_logger.info("")
-        stat_logger.info("="*70)
-        stat_logger.info("FINAL SUMMARY")
-        stat_logger.info("="*70)
-        stat_logger.info(f"Test End: {program_end_time.strftime('%Y-%m-%d %H:%M:%S')} | Total Runtime: {total_runtime}")
-        stat_logger.info(f"Total Cycles: {loop_count}")
-        stat_logger.info(f"Total Success: {total_stats['success']} commands | Total Failed: {total_stats['fail']} commands")
-        stat_logger.info(f"Connection Failures: {total_stats['disconnected']} times")
-        if loop_count > 0:
-            avg_success = total_stats['success'] / loop_count
-            avg_fail = total_stats['fail'] / loop_count
-            stat_logger.info(f"Average per Cycle: Success: {avg_success:.1f} | Failed: {avg_fail:.1f}")
-        stat_logger.info("="*70)
+        # Log program end
+        log_event_csv(event_csv_file, loop_count, 'SYSTEM', '', 'PROGRAM_END', 'INFO', 
+                     f"Cycles:{loop_count}", '', '', 
+                     f"Runtime: {total_runtime}, Success: {total_stats['success']}, Failed: {total_stats['fail']}")
     
-    print("\n✅ โปรแกรมสิ้นสุดการทำงาน")
-    logger.info("Program ended successfully")
-    stat_logger.info("Program ended successfully")
+    print("\nProgram terminated")
+    # Final log entry
+    log_event_csv(event_csv_file, current_cycle, 'SYSTEM', '', 'PROGRAM_TERMINATED', 'INFO', '', '', '', '')
 
 if __name__ == "__main__":
     main()

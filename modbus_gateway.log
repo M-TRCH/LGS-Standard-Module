@@ -1,0 +1,1278 @@
+2026-02-18 14:55:27 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 14:55:27 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:55:27 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 14:55:27 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:55:27 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 14:55:27 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 14:55:27 [DEBUG   ] pymodbus.logging         : Connecting to COM3:0.
+2026-02-18 14:55:27 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 14:55:27 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM3': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2026-02-18 14:55:27 [ERROR   ] GW-RTU                   : Failed to open serial port COM3
+2026-02-18 14:55:54 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:55:54 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 14:55:54 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 14:55:54 [DEBUG   ] pymodbus.logging         : Connecting to COM3:0.
+2026-02-18 14:55:54 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 14:55:54 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM3': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2026-02-18 14:55:54 [ERROR   ] GW-RTU                   : Failed to open serial port COM3
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : Forwarding to RTU serial COM3 @ 9600 baud
+2026-02-18 14:55:54 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 14:55:54 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 14:55:54 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 14:56:19 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:56:19 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 14:56:19 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 14:56:19 [DEBUG   ] pymodbus.logging         : Connecting to COM3:0.
+2026-02-18 14:56:19 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 14:56:19 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM3': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2026-02-18 14:56:19 [ERROR   ] GW-RTU                   : Failed to open serial port COM3
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : Forwarding to RTU serial COM3 @ 9600 baud
+2026-02-18 14:56:19 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 14:56:19 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 14:56:19 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 14:56:51 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:56:51 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 14:56:51 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 14:56:51 [DEBUG   ] pymodbus.logging         : Connecting to COM3:0.
+2026-02-18 14:56:51 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 14:56:51 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM3': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2026-02-18 14:56:51 [ERROR   ] GW-RTU                   : Failed to open serial port COM3
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : Forwarding to RTU serial COM3 @ 9600 baud
+2026-02-18 14:56:51 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 14:56:51 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 14:56:51 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:01:34 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:01:34 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:01:34 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:01:34 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:01:34 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:01:34 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:01:34 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:01:34 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:01:34 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:01:34 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:02:16 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:02:24 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x6d 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:02:24 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x6d 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:02:24 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:02:24 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:02:24 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:02:24 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x6d 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:02:34 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:02:34 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:02:34 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:02:34 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:02:34 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:02:34 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:02:38 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:02:38 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:02:38 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:02:38 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:02:38 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:02:38 [DEBUG   ] pymodbus.logging         : send: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:02:48 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:02:48 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:02:48 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:02:57 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:03:03 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:03:03 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:03:03 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:03:03 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:03:03 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:03:03 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:03:06 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 15:03:06 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:03:06 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 15:03:06 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=1
+2026-02-18 15:03:06 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:03:06 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:03:55 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:03:55 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:03:55 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:03:55 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:03:55 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:03:55 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:03:55 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:03:55 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:03:55 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:03:55 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:03:59 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:03:59 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:03:59 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:03:59 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:04:01 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:04:01 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:04:01 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:04:38 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:05:21 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:05:21 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:05:21 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:05:32 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:05:43 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:05:43 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:05:43 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:05:43 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:05:43 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:05:43 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:06:30 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:06:30 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:06:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:06:30 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:06:30 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:06:30 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:11:41 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:11:41 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:11:41 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:11:41 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:11:41 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:11:41 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:11:41 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:11:41 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:11:41 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:11:41 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:11:54 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:12:11 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:12:11 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:12:11 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:12:11 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:12:11 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:12:11 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:12:11 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:12:11 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:12:11 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:12:11 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:12:36 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:12:36 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:12:36 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:12:36 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:12:36 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:12:36 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:12:36 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:12:36 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:12:36 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:12:36 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:13:03 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:13:03 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:13:03 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:13:03 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:13:03 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:13:03 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:13:03 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:13:03 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:13:03 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:13:03 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:15:46 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:15:46 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:15:46 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:15:46 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:15:46 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:15:46 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:15:46 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:15:46 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:15:46 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:15:46 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:16:27 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:16:27 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:16:27 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:16:27 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:16:27 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:16:27 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:16:27 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:16:27 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:16:27 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:16:28 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:16:28 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:16:28 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:16:28 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:16:28 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:16:28 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:17:16 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:17:16 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:17:16 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:17:16 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:17:16 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:17:16 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:17:16 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:17:16 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:17:16 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:17:16 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:20:50 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:20:50 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:20:50 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:20:50 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:20:50 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:20:50 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:20:50 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:20:50 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:20:50 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:20:50 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:20:55 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:20:55 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:20:55 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:20:55 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:20:58 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:20:58 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:20:58 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:20:58 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:20:58 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:20:58 [WARNING ] pymodbus.logging         : Failed to connect could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:20:58 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:20:58 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:20:58 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:20:58 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:21:06 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:21:11 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:21:11 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:21:11 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:21:11 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:21:13 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:21:13 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:21:15 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:21:15 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:21:15 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:21:15 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:21:15 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:21:15 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:21:25 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:21:25 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:21:25 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:21:25 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:21:27 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:21:27 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:21:29 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:21:29 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:21:29 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:21:29 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:21:29 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:21:29 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:21:54 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:21:54 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:21:54 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:21:54 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:22:05 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:22:05 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:22:05 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:22:05 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:22:05 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:22:05 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:22:05 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:22:05 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:22:05 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:22:05 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:22:16 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:22:16 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:22:16 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:22:16 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:22:18 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:22:18 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:22:18 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:22:18 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:22:20 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:22:20 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:22:22 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:22:22 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:22:22 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:22:22 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:22:22 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:22:22 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:22:26 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:22:26 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:22:26 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:22:26 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:22:28 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:22:28 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:22:30 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:22:30 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:22:30 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:22:30 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:22:30 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:22:30 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:22:38 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:22:38 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:22:38 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:22:38 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:22:48 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:22:48 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:22:48 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:22:48 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:22:54 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:22:54 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:22:54 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:22:54 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:22:54 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:22:54 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:22:54 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:5020
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:22:54 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:22:54 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:22:54 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:23:12 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:23:12 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:23:12 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:23:13 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:23:16 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:23:16 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:23:16 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:23:16 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:23:18 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:23:18 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:23:20 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:23:20 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:23:20 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:23:20 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:23:20 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:23:20 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:23:53 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:23:53 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:23:53 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:24:04 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:24:04 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:24:05 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:24:05 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:25:29 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:25:29 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:25:29 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:25:29 [DEBUG   ] pymodbus.logging         : Connecting to COM23:0.
+2026-02-18 15:25:29 [DEBUG   ] pymodbus.logging         : Connecting comm
+2026-02-18 15:25:29 [DEBUG   ] pymodbus.logging         : Connected to comm
+2026-02-18 15:25:29 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:25:29 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:25:29 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:25:29 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:25:50 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:25:54 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:25:54 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:25:54 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:25:55 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:26:02 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:26:02 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:26:02 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:26:02 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:26:04 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:26:04 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:26:06 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:26:06 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:26:06 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:26:06 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:26:06 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:26:06 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:26:23 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:26:23 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:26:23 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:26:23 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:26:25 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:26:25 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:26:27 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:26:27 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:26:27 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:26:27 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:26:27 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:26:27 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:26:31 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:26:31 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:26:31 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:26:31 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:26:33 [ERROR   ] GW-TCP                   : Error writing to RTU: 
+2026-02-18 15:26:33 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:26:35 [ERROR   ] GW-TCP                   : Error reading from RTU: 
+2026-02-18 15:26:35 [DEBUG   ] pymodbus.logging         : send: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:26:35 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:26:35 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:26:35 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:26:35 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:28:48 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:28:48 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:28:48 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:28:48 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:28:59 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:29:24 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:29:24 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:29:24 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:29:24 [ERROR   ] GW-RTU                   : Unexpected error while connecting RTU: ModbusSerialClient.__init__() got an unexpected keyword argument 'method'
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:29:24 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:29:24 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:29:24 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:30:06 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:30:06 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:30:06 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:30:06 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:30:06 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:30:06 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:30:06 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:30:59 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:30:59 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:30:59 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:30:59 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:30:59 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:30:59 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:30:59 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:30:59 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:31:05 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:31:06 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:31:06 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:31:06 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:31:08 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:31:09 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:31:09 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:31:09 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:31:15 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:31:15 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:31:15 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 15:31:15 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:31:15 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:31:24 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:31:24 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:31:24 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:31:24 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:31:24 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:31:24 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:31:24 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:31:24 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:31:31 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:31:33 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:31:33 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:31:33 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:31:33 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:31:35 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:31:35 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:31:35 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:31:38 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:31:38 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:31:38 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 15:31:38 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:31:38 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:31:58 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:31:58 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:31:58 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:31:58 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:31:58 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:31:58 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:31:58 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:32:01 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:32:07 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:32:07 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:32:07 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:32:07 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:32:07 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True slave=1
+2026-02-18 15:32:07 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:32:07 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:32:07 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 slave=1
+2026-02-18 15:32:07 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'slave'
+2026-02-18 15:32:07 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:32:24 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:32:24 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:32:24 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 15:32:24 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:32:24 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:37:30 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:37:30 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:37:30 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:37:30 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:37:30 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:37:30 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:37:30 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:40:25 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:40:25 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:40:25 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:40:25 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:40:25 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:40:25 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:40:25 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:40:25 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:42:51 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:42:51 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:42:51 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:42:51 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:42:51 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:42:51 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:42:51 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:42:51 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:44:56 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:44:56 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:44:56 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:44:56 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:44:56 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:44:56 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:44:56 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:45:51 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:45:51 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:45:51 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:45:51 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:45:51 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:45:51 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:45:51 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:45:51 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:46:05 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:46:08 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:46:08 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:46:08 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:46:12 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:46:12 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:46:12 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 15:46:12 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:46:12 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:46:41 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:46:41 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:46:41 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:46:41 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:46:41 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:46:41 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:46:41 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:46:46 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:46:51 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:46:51 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:46:51 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:46:51 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:46:51 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True unit=1
+2026-02-18 15:46:51 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'unit'
+2026-02-18 15:46:51 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:46:51 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 unit=1
+2026-02-18 15:46:51 [ERROR   ] GW-RTU                   : Unexpected error during forwarding: ModbusClientMixin.write_coil() got an unexpected keyword argument 'unit'
+2026-02-18 15:46:51 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 15:47:48 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:47:48 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:47:48 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:47:52 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 15:47:52 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 15:47:52 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 15:47:52 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 15:47:52 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 15:51:29 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:51:29 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:51:29 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:51:29 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:51:29 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:51:29 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:51:29 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:53:26 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:53:26 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:53:26 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:53:26 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 15:53:26 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:53:26 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:53:26 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:53:26 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:53:30 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:53:31 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 15:53:31 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 15:53:31 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 15:53:53 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:53:53 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 15:53:53 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 15:53:53 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 15:53:53 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 15:53:53 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 15:53:53 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 15:53:57 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 15:54:00 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 15:54:00 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 15:54:00 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 15:54:00 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 15:54:00 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=1
+2026-02-18 15:54:08 [ERROR   ] pymodbus.logging         : No response received after 3 retries, continue with next request
+2026-02-18 15:54:08 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 15:54:08 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 15:54:08 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=1
+2026-02-18 15:54:16 [ERROR   ] pymodbus.logging         : Repeating....
+2026-02-18 15:54:16 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 15:54:16 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:01:32 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 16:01:32 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 16:01:32 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 16:01:32 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:01:38 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:01:38 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:01:38 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:01:38 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 16:01:38 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=1
+2026-02-18 16:01:46 [ERROR   ] pymodbus.logging         : No response received after 3 retries, continue with next request
+2026-02-18 16:01:46 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 16:01:46 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 16:01:46 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=1
+2026-02-18 16:01:54 [ERROR   ] pymodbus.logging         : Repeating....
+2026-02-18 16:01:54 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 16:01:54 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:02:30 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x13 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:02:30 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x13 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:02:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:02:30 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=1
+2026-02-18 16:02:30 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=1
+2026-02-18 16:02:38 [ERROR   ] pymodbus.logging         : No response received after 3 retries, continue with next request
+2026-02-18 16:02:38 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 16:02:38 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=1
+2026-02-18 16:02:38 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=1
+2026-02-18 16:02:46 [ERROR   ] pymodbus.logging         : Repeating....
+2026-02-18 16:02:46 [ERROR   ] GW-RTU                   : Modbus exception during forwarding: Modbus Error: [Input/Output] No response received after 3 retries, continue with next request
+2026-02-18 16:02:46 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x13 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:05:59 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:05:59 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:05:59 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:05:59 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:05:59 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:05:59 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:05:59 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:06:45 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:06:45 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:06:45 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:06:45 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:06:45 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:06:45 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:06:45 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:06:53 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:00 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:07:00 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:00 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0)
+2026-02-18 16:07:00 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:07:00 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:00 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0)
+2026-02-18 16:07:00 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:15 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:07:15 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:15 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0)
+2026-02-18 16:07:15 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:07:15 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:15 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0)
+2026-02-18 16:07:15 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:19 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:07:19 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:19 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0)
+2026-02-18 16:07:19 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:07:19 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:19 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0)
+2026-02-18 16:07:19 [DEBUG   ] pymodbus.logging         : send: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:29 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:07:29 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:07:29 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0)
+2026-02-18 16:07:29 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:07:29 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:07:29 [DEBUG   ] GW-RTU                   : << RTU OK  WriteSingleCoilResponse(dev_id=99, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0)
+2026-02-18 16:07:29 [DEBUG   ] pymodbus.logging         : send: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:07:30 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 16:07:30 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 16:07:30 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 16:07:37 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 16:07:37 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 16:07:37 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 16:07:37 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 16:07:37 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 16:08:50 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:08:50 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:08:50 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:08:50 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:08:50 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:08:50 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:08:50 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:10:18 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:10:18 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:10:18 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:10:18 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 16:10:18 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:10:18 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:10:18 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:10:18 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:10:23 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:10:24 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 16:10:24 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 16:10:24 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 16:10:27 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 16:10:27 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 16:10:27 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 16:10:27 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 16:10:27 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 16:10:47 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:10:47 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:10:47 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:10:47 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:10:47 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:10:47 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:10:47 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:10:51 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:10:55 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:10:55 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 0x5 0x3 wait for more data
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:10:55 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:10:55 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:10:55 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:10:55 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:10:55 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:10:57 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:10:57 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:10:57 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:10:57 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:10:57 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:10:57 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:10:57 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:11:01 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:11:01 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:11:01 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:11:01 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:11:01 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:11:01 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:11:01 [DEBUG   ] pymodbus.logging         : send: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:11:13 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:11:13 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:11:13 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:11:13 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:11:13 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:11:13 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:11:13 [DEBUG   ] pymodbus.logging         : send: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:11:53 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 16:11:53 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 16:11:53 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 16:11:55 [INFO    ] GW-Main                  : Shutdown signal received (Ctrl+C) — cleaning up …
+2026-02-18 16:11:55 [INFO    ] GW-Main                  : Cleaning up and closing connections…
+2026-02-18 16:11:55 [INFO    ] GW-RTU                   : RTU serial port closed.
+2026-02-18 16:11:55 [INFO    ] GW-Main                  : Gateway shutdown complete.
+2026-02-18 16:11:55 [INFO    ] pymodbus.logging         : Server graceful shutdown.
+2026-02-18 16:14:10 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:14:10 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:14:10 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:14:10 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:14:10 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:14:10 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:14:10 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:14:51 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:14:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:14:51 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:14:51 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:14:51 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:14:51 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:14:51 [ERROR   ] pymodbus.logging         : could not open port 'COM23': PermissionError(13, 'Access is denied.', None, 5)
+2026-02-18 16:14:51 [ERROR   ] GW-RTU                   : Failed to open serial port COM23
+2026-02-18 16:14:52 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:14:52 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:14:52 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:14:52 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:14:52 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:14:59 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:15:00 [DEBUG   ] pymodbus.logging         : -> transport: received eof
+2026-02-18 16:15:00 [DEBUG   ] pymodbus.logging         : Connection lost server due to None
+2026-02-18 16:15:00 [DEBUG   ] pymodbus.logging         : Handler for stream [server] has been canceled
+2026-02-18 16:15:18 [DEBUG   ] asyncio                  : Using proactor: IocpProactor
+2026-02-18 16:15:18 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:15:18 [INFO    ] GW-Main                  :   Modbus TCP → RTU Gateway starting …
+2026-02-18 16:15:18 [INFO    ] GW-Main                  : ============================================================
+2026-02-18 16:15:18 [INFO    ] GW-Main                  : Available serial ports:
+2026-02-18 16:15:18 [INFO    ] GW-Main                  :   COM23       USB Serial Port (COM23)  [USB VID:PID=0403:6001 SER=AQ0288NWA]
+2026-02-18 16:15:18 [INFO    ] GW-RTU                   : Connected to RTU serial port COM23 @ 9600 baud
+2026-02-18 16:15:19 [INFO    ] GW-Main                  : TCP server listening on 0.0.0.0:502
+2026-02-18 16:15:19 [INFO    ] GW-Main                  : Forwarding to RTU serial COM23 @ 9600 baud
+2026-02-18 16:15:19 [INFO    ] GW-Main                  : Press Ctrl+C to stop.
+
+2026-02-18 16:15:19 [DEBUG   ] pymodbus.logging         : Awaiting connections server_listener
+2026-02-18 16:15:19 [INFO    ] pymodbus.logging         : Server listening.
+2026-02-18 16:15:22 [DEBUG   ] pymodbus.logging         : Connected to server
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:26 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:15:26 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:26 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:15:26 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:15:26 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:15:26 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:26 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:15:26 [DEBUG   ] pymodbus.logging         : send: 0x0 0x1 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:15:30 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:15:30 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:15:30 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:15:30 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:15:30 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:30 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:15:30 [DEBUG   ] pymodbus.logging         : send: 0x0 0x2 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:53 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:15:53 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:15:53 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 0x5 0x3 wait for more data
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:53 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:15:53 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:15:53 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:15:53 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:15:53 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:15:53 [DEBUG   ] pymodbus.logging         : send: 0x0 0x3 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:16:03 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:16:03 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:16:03 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : Processing: 0x63
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 wait for more data
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:16:03 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:16:03 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:16:03 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:16:03 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:16:03 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:16:03 [DEBUG   ] pymodbus.logging         : send: 0x0 0x4 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x5 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x5 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:16:05 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:16:05 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:16:05 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:16:05 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:16:05 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:16:05 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:16:05 [DEBUG   ] pymodbus.logging         : send: 0x0 0x5 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x6 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x6 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:19:20 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:19:20 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 0x5 0x3 wait for more data
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:19:20 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:19:20 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:19:20 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:19:20 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:19:20 [DEBUG   ] pymodbus.logging         : send: 0x0 0x6 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x7 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0xff 0x0 extra data: 
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x7 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0xff 0x0
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1008, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:19 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1008  values=[True]  unit=99
+2026-02-18 16:21:19 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1008 value=True device_id=99
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 0x5 wait for more data
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xf0 0xff 0x0 0x84 0xf
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1008, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:19 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:19 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1008  count=1  unit=99
+2026-02-18 16:21:19 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1008  unit=99
+2026-02-18 16:21:19 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1008 value=1 device_id=99
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xf0 0xff 0x0 0x84 0xf
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1008, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:19 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:19 [DEBUG   ] pymodbus.logging         : send: 0x0 0x7 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0x0 0x0
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x8 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0x0 0x0 extra data: 
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x8 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0x0 0x0
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1008, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:24 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1008  values=[False]  unit=99
+2026-02-18 16:21:24 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1008 value=False device_id=99
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : Processing: 0x63
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 wait for more data
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xf0 0x0 0x0 0xc5 0xff
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1008, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:24 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:21:24 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1008  count=1  unit=99
+2026-02-18 16:21:24 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1008 value=1 device_id=99
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xf0 0xff 0x0 0x84 0xf
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1008, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:24 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:24 [DEBUG   ] pymodbus.logging         : send: 0x0 0x8 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xf0 0x0 0x0
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x9 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff extra data: 
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x9 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True, True, True, True, True, True, True, True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:27 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[True, True, True, True, True, True, True, True]  unit=99
+2026-02-18 16:21:27 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[True, True, True, True, True, True, True, True] device_id=99
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:27 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:27 [DEBUG   ] pymodbus.logging         : send: 0x0 0x9 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xa 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0 extra data: 
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xa 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False, False, False, False, False, False, False, False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:28 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[False, False, False, False, False, False, False, False]  unit=99
+2026-02-18 16:21:28 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=15  addr=1001  unit=99
+2026-02-18 16:21:28 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[False, False, False, False, False, False, False, False] device_id=99
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:28 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:28 [DEBUG   ] pymodbus.logging         : send: 0x0 0xa 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xb 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff extra data: 
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xb 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True, True, True, True, True, True, True, True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:30 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[True, True, True, True, True, True, True, True]  unit=99
+2026-02-18 16:21:30 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=15  addr=1001  unit=99
+2026-02-18 16:21:30 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[True, True, True, True, True, True, True, True] device_id=99
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : Short frame: 0x63 0xf wait for more data
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:30 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:30 [DEBUG   ] pymodbus.logging         : send: 0x0 0xb 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xc 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0 extra data: 
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xc 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False, False, False, False, False, False, False, False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:32 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[False, False, False, False, False, False, False, False]  unit=99
+2026-02-18 16:21:32 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=15  addr=1001  unit=99
+2026-02-18 16:21:32 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[False, False, False, False, False, False, False, False] device_id=99
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:32 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:32 [DEBUG   ] pymodbus.logging         : send: 0x0 0xc 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xd 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0 extra data: 
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xd 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0xff 0x0
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:34 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[True]  unit=99
+2026-02-18 16:21:34 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=True device_id=99
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:34 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:34 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:21:34 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=5  addr=1001  unit=99
+2026-02-18 16:21:34 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:34 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:34 [DEBUG   ] pymodbus.logging         : send: 0x0 0xd 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xe 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xe 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:36 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:21:36 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:36 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:21:36 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:21:36 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:36 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:36 [DEBUG   ] pymodbus.logging         : send: 0x0 0xe 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : recv: 0x0 0xf 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0 extra data: 
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0xf 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:37 [INFO    ] GW-TCP                   : ← TCP WRITE fc=5  addr=1001  values=[False]  unit=99
+2026-02-18 16:21:37 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=False device_id=99
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0x0 0x0 0x14 0x38
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:37 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[False]
+2026-02-18 16:21:37 [INFO    ] GW-TCP                   : ← TCP READ  fc=5  addr=1001  count=1  unit=99
+2026-02-18 16:21:37 [DEBUG   ] GW-TCP                   : >> FC05 Write Single Coil  addr=1001 value=1 device_id=99
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0x5 0x3 0xe9 0xff 0x0 0x55 0xc8
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(5 sub -1) -> WriteSingleCoilResponse(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:37 [DEBUG   ] GW-RTU                   : << RTU OK  fc=5  bits=[True]
+2026-02-18 16:21:37 [DEBUG   ] pymodbus.logging         : send: 0x0 0xf 0x0 0x0 0x0 0x6 0x63 0x5 0x3 0xe9 0x0 0x0
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x10 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff extra data: 
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x10 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0xff
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[True, True, True, True, True, True, True, True], registers=[], status=1, retries=0) 
+2026-02-18 16:21:43 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[True, True, True, True, True, True, True, True]  unit=99
+2026-02-18 16:21:43 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[True, True, True, True, True, True, True, True] device_id=99
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:43 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:43 [DEBUG   ] pymodbus.logging         : send: 0x0 0x10 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : recv: 0x0 0x11 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0 extra data: 
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : Processing: 0x0 0x11 0x0 0x0 0x0 0x8 0x63 0xf 0x3 0xe9 0x0 0x8 0x1 0x0
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsRequest(dev_id=0, transaction_id=0, address=1001, count=0, bits=[False, False, False, False, False, False, False, False], registers=[], status=1, retries=0) 
+2026-02-18 16:21:44 [INFO    ] GW-TCP                   : ← TCP WRITE fc=15  addr=1001  values=[False, False, False, False, False, False, False, False]  unit=99
+2026-02-18 16:21:44 [WARNING ] GW-RTU                   : ⚠ DUPLICATE FORWARD DETECTED: fc=15  addr=1001  unit=99
+2026-02-18 16:21:44 [DEBUG   ] GW-TCP                   : >> FC15 Write Multiple Coils  addr=1001 values=[False, False, False, False, False, False, False, False] device_id=99
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : Frame - not ready
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : Processing: 0x63 0xf 0x3 0xe9 0x0 0x8 0x8d 0xff
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : decoded PDU function_code(15 sub -1) -> WriteMultipleCoilsResponse(dev_id=0, transaction_id=0, address=1001, count=8, bits=[], registers=[], status=1, retries=0) 
+2026-02-18 16:21:44 [DEBUG   ] GW-RTU                   : << RTU OK  fc=15  bits=[]
+2026-02-18 16:21:44 [DEBUG   ] pymodbus.logging         : send: 0x0 0x11 0x0 0x0 0x0 0x6 0x63 0xf 0x3 0xe9 0x0 0x8

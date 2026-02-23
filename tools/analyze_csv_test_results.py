@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+import re
 import os
 import sys
 
@@ -345,12 +346,20 @@ def plot_cabinet_unit_analysis(df, output_dir):
     plt.close()
 
 
-def plot_overall_summary(df, output_dir):
+def plot_overall_summary(df, output_dir, title_date_str=None):
     """
     Plot overall summary with key metrics
     """
+    # If a title date was provided (from filename), use it; otherwise fall back to data timestamps
+    if title_date_str is None:
+        if 'Timestamp' in df.columns and not df['Timestamp'].empty:
+            title_date = df['Timestamp'].max().date()
+            title_date_str = title_date.strftime('%d/%m/%Y')
+        else:
+            title_date_str = datetime.now().strftime('%d/%m/%Y')
+
     fig, axes = plt.subplots(2, 2, figsize=(18, 14))
-    fig.suptitle('Overall Test Summary', fontsize=18, fontweight='bold')
+    fig.suptitle(f'LGS Test Summary - {title_date_str}', fontsize=18, fontweight='bold')
     
     # 1. Response time distribution for WRITE_SINGLE_COIL and READ_REGISTER
     ax1 = axes[0, 0]
@@ -419,7 +428,7 @@ def plot_overall_summary(df, output_dir):
     
     # 3. Event Rate Over Time (events per minute)
     ax3 = axes[1, 0]
-    df_events = df[df['Event_Type'].notna()].copy()
+    df_events = df[df['Event_Type'].isin(['READ_REGISTER', 'WRITE_SINGLE_COIL'])].copy()
     if not df_events.empty:
         df_events['Minute'] = df_events['Timestamp'].dt.floor('min')
         events_per_minute = df_events.groupby('Minute').size()
@@ -551,7 +560,20 @@ def generate_analysis_report(csv_file_path):
     
     # Generate all plots
     print("\nGenerating analysis charts...")
-    plot_overall_summary(df, output_dir)
+    # Derive date from CSV filename (expecting YYYY-MM-DD or YYYY_MM_DD in name)
+    basename = os.path.basename(csv_file_path)
+    m = re.search(r"(\d{4}[-_]\d{2}[-_]\d{2})", basename)
+    if m:
+        date_part = m.group(1).replace('_', '-')
+        try:
+            file_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+            title_date_str = file_date.strftime('%d/%m/%Y')
+        except Exception:
+            title_date_str = None
+    else:
+        title_date_str = None
+
+    plot_overall_summary(df, output_dir, title_date_str)
     plot_response_time_analysis(df, output_dir)
     plot_success_rate_analysis(df, output_dir)
     plot_cycle_performance(df, output_dir)

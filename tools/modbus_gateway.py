@@ -14,6 +14,7 @@ Author: Gemini (Refactored for LGS Project)
 import asyncio
 import logging
 import time
+import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple, Optional, Any, Union
 
@@ -24,14 +25,15 @@ from pymodbus.datastore import (
     ModbusSparseDataBlock,
 )
 from pymodbus.client import ModbusSerialClient
-from pymodbus.exceptions import ModbusException
+from pymodbus.exceptions import ModbusException, ModbusIOException
+from pymodbus.constants import ExcCodes
 
 # ================= Configuration =================
 TCP_HOST = "0.0.0.0"
 TCP_PORT = 502  # Use 502 if running as root/admin
 
 SERIAL_CONFIG = {
-    "port": "COM23",  # Change to your port (e.g., /dev/ttyUSB0)
+    "port": "/dev/ttyUSB0",  # Change to your port (e.g., /dev/ttyUSB0)
     "baudrate": 9600,
     "bytesize": 8,
     "parity": "N",
@@ -41,6 +43,8 @@ SERIAL_CONFIG = {
 
 # Caching Strategy
 CACHE_TTL = 0.2  # Seconds (prevent spamming identical commands)
+# Default timeout for waiting RTU responses from serial_manager
+SERVER_TIMEOUT = 2.0  # seconds
 
 # ================= Logger Setup =================
 logging.basicConfig(
@@ -88,7 +92,10 @@ class SerialManager:
     This prevents race conditions and RS485 collisions.
     """
     def __init__(self):
-        self.queue = asyncio.Queue()
+        # The async queue must be created on the event loop that will run
+        # the serial worker. Create it later inside `serial_runner` after
+        # the serial loop is set. For now keep a placeholder.
+        self.queue = None
         self.client = ModbusSerialClient(**SERIAL_CONFIG)
         # Dedicated thread pool for blocking serial I/O
         self.executor = ThreadPoolExecutor(max_workers=8)
@@ -98,6 +105,18 @@ class SerialManager:
         self.reconnect_delay = 0.5
         self._write_history = {} # Key: (unit, addr, type) -> (value, timestamp)
         self._read_cache = {}    # Key: (unit, addr, fc, count) -> (value, timestamp)
+        # Internal cleanup thresholds
+        self._history_ttl = max(10 * CACHE_TTL, 1.0)
+
+    def _clean_write_history(self):
+        """Remove stale entries from write history."""
+        now = time.time()
+        to_del = [k for k, (_, ts) in self._write_history.items() if (now - ts) > self._history_ttl]
+        for k in to_del:
+            try:
+                del self._write_history[k]
+            except KeyError:
+                pass
 
     def start(self):
         """Start the background worker task"""
@@ -113,6 +132,9 @@ class SerialManager:
         # Type 'c' for Coils, 'r' for Registers
         req_type = 'c' if req.func_code in (5, 15) else 'r'
         
+        # Simple cleanup for write history to prevent unbounded growth
+        self._clean_write_history()
+
         if req.func_code in (5, 6, 15, 16): # Write commands
             cache_key = (req.unit_id, req.address, req_type)
             last = self._write_history.get(cache_key)
@@ -121,6 +143,13 @@ class SerialManager:
             val_to_check = req.value
             if req.func_code in (5, 6) and isinstance(req.value, (list, tuple)):
                 val_to_check = req.value[0]
+
+            # Normalize coil values for comparison (so dedupe compares 0/1)
+            if req_type == 'c':
+                if isinstance(val_to_check, (list, tuple)):
+                    val_to_check = [1 if v else 0 for v in val_to_check]
+                else:
+                    val_to_check = 1 if val_to_check else 0
             
             # If value matches last write and is within TTL, skip hardware send
             if last:
@@ -128,7 +157,13 @@ class SerialManager:
                 if last_val == val_to_check and (time.time() - last_ts) < CACHE_TTL:
                     dedupe_log.debug("SKIP Redundant Write: %s = %s (ttl=%.3f)", cache_key, val_to_check, CACHE_TTL)
                     # Fake success response
-                    return req.value if isinstance(req.value, list) else [req.value]
+                    # Normalize coil values to integers (0/1) for returned packet
+                    if req_type == 'c':
+                        if isinstance(req.value, (list, tuple)):
+                            return [1 if v else 0 for v in req.value]
+                        return [1 if req.value else 0]
+                    else:
+                        return req.value if isinstance(req.value, list) else [req.value]
 
         # record queue timestamp and log
         req.queue_ts = time.time()
@@ -138,11 +173,17 @@ class SerialManager:
         # Create a Future bound to this running loop (serial manager loop)
         loop = asyncio.get_running_loop()
         req.future = loop.create_future()
+        if self.queue is None:
+            raise RuntimeError("SerialManager queue not initialized on serial loop")
         await self.queue.put(req)
 
         # 3. Wait for result (Non-blocking wait)
         serial_log.debug("Waiting for RTU result for request: unit=%s fc=%s addr=%s queued_ts=%.6f", req.unit_id, req.func_code, req.address, req.queue_ts)
-        result = await req.future
+        try:
+            result = await req.future
+        except Exception as exc:
+            # Propagate serial errors to caller
+            raise
         # result may have timestamps filled by worker
         now = time.time()
         resp_ts = getattr(req, 'resp_ts', now)
@@ -153,9 +194,18 @@ class SerialManager:
         if req.func_code in (5, 6, 15, 16) and not isinstance(result, Exception):
             cache_key = (req.unit_id, req.address, req_type)
             val_to_store = req.value
+            # For single writes, extract scalar
             if req.func_code in (5, 6) and isinstance(req.value, (list, tuple)):
                 val_to_store = req.value[0]
-            self._write_history[cache_key] = (val_to_store, time.time())
+            # Normalize coil storage to int 0/1
+            if req_type == 'c':
+                if isinstance(val_to_store, (list, tuple)):
+                    val_normalized = [1 if v else 0 for v in val_to_store]
+                else:
+                    val_normalized = 1 if val_to_store else 0
+                self._write_history[cache_key] = (val_normalized, time.time())
+            else:
+                self._write_history[cache_key] = (val_to_store, time.time())
 
         return result
 
@@ -219,24 +269,72 @@ class SerialManager:
                         data = data[:req.count]
                 elif req.func_code == 5:
                     # write single coil
-                    await loop.run_in_executor(self.executor, lambda: self.client.write_coil(addr, req.value, device_id=req.unit_id))
-                    data = [req.value] if not isinstance(req.value, list) else req.value
+                    try:
+                        await loop.run_in_executor(self.executor, lambda: self.client.write_coil(addr, req.value, device_id=req.unit_id))
+                        # Normalize coil response to 0/1
+                        if isinstance(req.value, (list, tuple)):
+                            data = [1 if v else 0 for v in req.value]
+                        else:
+                            data = [1 if req.value else 0]
+                    except Exception as e:
+                        # Broadcast (unit 0) devices do not reply — treat as success
+                        if isinstance(e, ModbusIOException) and req.unit_id == 0:
+                            if isinstance(req.value, (list, tuple)):
+                                data = [1 if v else 0 for v in req.value]
+                            else:
+                                data = [1 if req.value else 0]
+                        else:
+                            raise
                 elif req.func_code == 6:
                     # write single register
-                    await loop.run_in_executor(self.executor, lambda: self.client.write_register(addr, req.value, device_id=req.unit_id))
-                    data = [req.value] if not isinstance(req.value, list) else req.value
+                    try:
+                        await loop.run_in_executor(self.executor, lambda: self.client.write_register(addr, req.value, device_id=req.unit_id))
+                        data = [req.value] if not isinstance(req.value, list) else req.value
+                    except Exception as e:
+                        # Broadcasts may not return a response; treat as success
+                        if isinstance(e, ModbusIOException) and req.unit_id == 0:
+                            data = [req.value] if not isinstance(req.value, list) else req.value
+                        else:
+                            raise
                 elif req.func_code == 15:
                     # write multiple coils
-                    resp = await loop.run_in_executor(self.executor, lambda: self.client.write_coils(addr, req.value, device_id=req.unit_id))
-                    data = getattr(resp, 'bits', None)
-                    if data is not None:
-                        data = data[:req.count]
+                    try:
+                        resp = await loop.run_in_executor(self.executor, lambda: self.client.write_coils(addr, req.value, device_id=req.unit_id))
+                        data = getattr(resp, 'bits', None)
+                        if data is not None:
+                            # Ensure ints 0/1
+                            data = [1 if b else 0 for b in data[:req.count]]
+                        else:
+                            # Fallback to echoing requested values (normalized to 0/1)
+                            if isinstance(req.value, (list, tuple)):
+                                data = [1 if v else 0 for v in req.value][:req.count]
+                            else:
+                                data = [1 if req.value else 0]
+                    except Exception as e:
+                        # No response expected for Modbus broadcast — treat as success
+                        if isinstance(e, ModbusIOException) and req.unit_id == 0:
+                            if isinstance(req.value, (list, tuple)):
+                                data = [1 if v else 0 for v in req.value][:req.count]
+                            else:
+                                data = [1 if req.value else 0]
+                        else:
+                            raise
                 elif req.func_code == 16:
                     # write multiple registers
-                    resp = await loop.run_in_executor(self.executor, lambda: self.client.write_registers(addr, req.value, device_id=req.unit_id))
-                    data = getattr(resp, 'registers', None)
-                    if data is not None:
-                        data = data[:req.count]
+                    try:
+                        resp = await loop.run_in_executor(self.executor, lambda: self.client.write_registers(addr, req.value, device_id=req.unit_id))
+                        data = getattr(resp, 'registers', None)
+                        if data is not None:
+                            data = data[:req.count]
+                        else:
+                            # Fallback to echoing requested values
+                            data = req.value if isinstance(req.value, (list, tuple)) else [req.value]
+                    except Exception as e:
+                        # Broadcasts may not return a response; treat as success
+                        if isinstance(e, ModbusIOException) and req.unit_id == 0:
+                            data = req.value if isinstance(req.value, (list, tuple)) else [req.value]
+                        else:
+                            raise
                 else:
                     log.warning("Unsupported function code: %s", req.func_code)
                     data = []
@@ -264,7 +362,7 @@ class SerialManager:
                 except Exception:
                     pass
                 if req.future and not req.future.done():
-                    req.future.set_result(e)
+                        req.future.set_exception(e)
             finally:
                 # Force small delay to give RS485 bus a breather (Optional)
                 await asyncio.sleep(0.01)
@@ -308,8 +406,17 @@ class GatewayContext(ModbusDeviceContext):
         context_log.debug("TCP READ request fc=%s id=%s addr=%s count=%s", fc, self.unit_id, address, count)
         tcp_log.debug("TCP activity: READ fc=%s id=%s addr=%s count=%s", fc, self.unit_id, address, count)
         
-        # Create Request Wrapper
-        req = RtuRequest(self.unit_id, fc, address, count=count)
+        # Allow unit 0 (broadcast) through; broadcast read-after-write is
+        # handled by write-path (fire-and-forget). Do not early-return here.
+
+        # Map write FCs (called by pymodbus after a write) to read-coils
+        # so that getValues used for read-after-write does not perform another write.
+        read_fc = fc
+        if fc in (5, 15):
+            read_fc = 1
+
+        # Create Request Wrapper (use mapped read_fc)
+        req = RtuRequest(self.unit_id, read_fc, address, count=count)
         
         # Submit to Manager and WAIT for result (Threadsafe)
         # Note: getValues is sync, but we need to wait for async result.
@@ -328,22 +435,24 @@ class GatewayContext(ModbusDeviceContext):
         # Actually, let's use the Future's result.
         
         try:
-            # Submit to serial manager and wait for response
+            # Fallback synchronous bridge for environments that call this sync.
             fut = asyncio.run_coroutine_threadsafe(
-                serial_manager.submit_request(req), 
-                serial_manager_loop
+                serial_manager.submit_request(req),
+                serial_manager_loop,
             )
             server_wait_start = time.time()
-            res = fut.result()
+            res = fut.result(timeout=SERVER_TIMEOUT)
             server_wait_end = time.time()
             server_wait_ms = (server_wait_end - server_wait_start) * 1000
             context_log.debug("getValues result fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), server_wait_ms)
             tcp_log.debug("TCP READ result fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), server_wait_ms)
             return res
-            # Wait! run_coroutine_threadsafe is for calling FROM another thread INTO the loop.
-            # We are IN the loop.
         except RuntimeError:
-            pass # We are in the loop
+            # We're likely already running in the event loop; fall through to async path
+            pass
+        except Exception as e:
+            context_log.exception("Synchronous getValues bridge failed: %s", e)
+            return []
 
         # Direct Await Hack:
         # Since we are in the loop, we can't easily wait for another task without 'await'.
@@ -353,43 +462,8 @@ class GatewayContext(ModbusDeviceContext):
         # However, for this specific request, let's use the 'Context' approach 
         # that allows passing the work to the worker.
         
-        # PROPER FIX: We assume `serial_manager.submit_request` is fast enough via queue.
-        # But we need the return value.
-        # If we return default, the client gets 0.
-        
-        # FORCED ASYNC: We create a coroutine but we can't await it.
-        # There is no clean way to make `getValues` async in Pymodbus v3.6 without patching.
-        # UNLESS... we assume the user is okay with "Best Effort" read 
-        # or we use the `serial_manager` in a way that blocks just enough.
-        
-        # Let's revert to a slightly different approach for READs vs WRITEs:
-        # For a true Gateway, we want to hold the TCP socket until RTU replies.
-        
-        # TRICK: We can block the thread if we run the server in a thread?
-        # No, user wants Async.
-        
-        # Let's use the provided `serial_manager` but we have to cheat.
-        # We will use `asyncio.ensure_future` to start the request, but we can't wait for it.
-        # This means READs might return stale data if we don't block.
-        
-        # RE-EVALUATION: The only way to do this *correctly* in Async Pymodbus 
-        # is if the DataBlock supports async, which it doesn't.
-        # So... We have to use the `submit_request` in a way that creates a new Loop runner? No.
-        
-        # FINAL DECISION: Use the `serial_manager` queue logic, but execute the wait 
-        # via a helper that forces the event loop to turn until result is ready.
-        # Actually, simplest is:
-        # fallback: submit to serial manager loop
-        future = asyncio.run_coroutine_threadsafe(
-            serial_manager.submit_request(req),
-            serial_manager_loop
-        )
-        server_wait_start = time.time()
-        res = future.result()
-        server_wait_end = time.time()
-        server_wait_ms = (server_wait_end - server_wait_start) * 1000
-        context_log.debug("getValues (fallback) fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), server_wait_ms)
-        return res
+        # If synchronous bridge failed, return gateway no response
+        return ExcCodes.GATEWAY_NO_RESPONSE
 
     def setValues(self, fc, address, values):
         """Intercept WRITE requests"""
@@ -398,26 +472,84 @@ class GatewayContext(ModbusDeviceContext):
         
         # For writes, we handle single values logic
         val = values[0] if len(values) == 1 else values
-        
-        req = RtuRequest(self.unit_id, fc, address, value=val)
+
+        # Ensure request `count` reflects number of items for multi-write
+        req_count = len(values) if isinstance(values, (list, tuple)) else 1
+        req = RtuRequest(self.unit_id, fc, address, value=val, count=req_count)
         
         # Same sync/async bridge issue.
         # We will solve this by running the Serial Manager in a SEPARATE THREAD with its own Loop.
-        future = asyncio.run_coroutine_threadsafe(
-            serial_manager.submit_request(req),
-            serial_manager_loop
-        )
+        # Broadcast writes (unit id 0) should be forwarded but do not wait
+        # for a response and should not cause read-after-write behavior.
+        if self.unit_id == 0:
+            try:
+                # fire-and-forget the write to the serial loop
+                asyncio.run_coroutine_threadsafe(serial_manager.submit_request(req), serial_manager_loop)
+                # Return normalized success for FC5/6/15/16 as pymodbus expects
+                if fc in (5,):
+                    if isinstance(val, (list, tuple)):
+                        return [1 if v else 0 for v in val]
+                    return [1 if val else 0]
+                if fc in (15,):
+                    if isinstance(val, (list, tuple)):
+                        return [1 if v else 0 for v in val]
+                    return [1 if val else 0]
+                if fc in (6,16):
+                    return val if isinstance(val, list) else [val]
+                return []
+            except Exception as e:
+                context_log.exception("Broadcast write scheduling failed: %s", e)
+                raise
+
+        # Bridge to serial_manager on its loop (normal non-broadcast)
         try:
-            server_wait_start = time.time()
-            res = future.result()
-            server_wait_end = time.time()
-            server_wait_ms = (server_wait_end - server_wait_start) * 1000
-            context_log.debug("setValues completed fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), server_wait_ms)
-            tcp_log.debug("TCP WRITE result fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), server_wait_ms)
+            cf = asyncio.run_coroutine_threadsafe(serial_manager.submit_request(req), serial_manager_loop)
+            res = cf.result(timeout=SERVER_TIMEOUT)
+            context_log.debug("setValues completed fc=%s id=%s addr=%s -> %s (server_wait_ms=%.1f)", fc, self.unit_id, address, repr(res), (time.time()-req.queue_ts)*1000 if req.queue_ts else 0)
+            tcp_log.debug("TCP WRITE result fc=%s id=%s addr=%s -> %s", fc, self.unit_id, address, repr(res))
             return res
         except Exception as e:
-            context_log.error("Write Failed: %s", e)
+            context_log.exception("Write Failed: %s", e)
             raise
+
+    async def async_getValues(self, fc, address, count=1):
+        """Async datastore read used by pymodbus async server."""
+        # Allow unit 0 (broadcast) through; read-after-write is suppressed
+        # by mapping write FCs to read and by the write-path handling.
+
+        # Map write FCs (called by pymodbus after a write) to read-coils
+        read_fc = fc
+        if fc in (5, 15):
+            read_fc = 1
+        req = RtuRequest(self.unit_id, read_fc, address, count=count)
+        try:
+            cf = asyncio.run_coroutine_threadsafe(serial_manager.submit_request(req), serial_manager_loop)
+            wrapped = asyncio.wrap_future(cf)
+            res = await asyncio.wait_for(wrapped, timeout=SERVER_TIMEOUT)
+            return res
+        except Exception as e:
+            context_log.exception("async_getValues error: %s", e)
+            return ExcCodes.GATEWAY_NO_RESPONSE
+
+    async def async_setValues(self, fc, address, values):
+        """Async datastore write used by pymodbus async server."""
+        val = values[0] if len(values) == 1 else values
+        req_count = len(values) if isinstance(values, (list, tuple)) else 1
+        req = RtuRequest(self.unit_id, fc, address, value=val, count=req_count)
+        try:
+            # For broadcast, schedule and return immediately (no response from RTU)
+            if self.unit_id == 0:
+                asyncio.run_coroutine_threadsafe(serial_manager.submit_request(req), serial_manager_loop)
+                return None
+
+            cf = asyncio.run_coroutine_threadsafe(serial_manager.submit_request(req), serial_manager_loop)
+            wrapped = asyncio.wrap_future(cf)
+            res = await asyncio.wait_for(wrapped, timeout=SERVER_TIMEOUT)
+            # On success return 0/None, on failure return an ExcCodes
+            return None
+        except Exception as e:
+            context_log.exception("async_setValues error: %s", e)
+            return ExcCodes.GATEWAY_NO_RESPONSE
         
 # ================= Setup & Main =================
 
@@ -427,6 +559,9 @@ serial_manager_loop = asyncio.new_event_loop()
 def serial_runner():
     """Entry point for the background thread"""
     asyncio.set_event_loop(serial_manager_loop)
+    # Create the async queue on the serial loop so all queue operations
+    # are bound to this event loop (avoids cross-loop errors).
+    serial_manager.queue = asyncio.Queue()
     # Schedule the serial worker directly on this loop and run
     serial_manager_loop.create_task(serial_manager._worker_loop())
     serial_manager_loop.run_forever()
@@ -438,9 +573,9 @@ t.start()
 async def main():
     print("--- LGS Smart Gateway Starting ---")
     
-    # 1. Setup Contexts (Map Unit IDs 1-247)
+    # 1. Setup Contexts (Map Unit IDs 0-247) - include broadcast (0)
     slaves = {
-        i: GatewayContext(unit_id=i) for i in range(1, 248)
+        i: GatewayContext(unit_id=i) for i in range(0, 248)
     }
     context = ModbusServerContext(devices=slaves, single=False)
     
@@ -449,11 +584,22 @@ async def main():
     # offloads work to 'serial_manager_loop' (in another thread),
     # we can use 'future.result()' in getValues without blocking the TCP loop!
     
-    print(f"Listening on {TCP_HOST}:{TCP_PORT}...")
-    tcp_log.debug("Starting TCP server on %s:%s", TCP_HOST, TCP_PORT)
+    # If the process is not root on Unix, binding to ports < 1024 will fail.
+    bind_port = TCP_PORT
+    try:
+        if TCP_PORT < 1024 and os.geteuid() != 0:
+            tcp_log.warning("Insufficient privileges for port %d; falling back to 1502", TCP_PORT)
+            print(f"Insufficient privileges for port {TCP_PORT}; falling back to 1502")
+            bind_port = 1502
+    except AttributeError:
+        # os.geteuid() may not exist on some platforms (Windows), ignore
+        pass
+
+    print(f"Listening on {TCP_HOST}:{bind_port}...")
+    tcp_log.debug("Starting TCP server on %s:%s", TCP_HOST, bind_port)
     await StartAsyncTcpServer(
         context=context,
-        address=(TCP_HOST, TCP_PORT)
+        address=(TCP_HOST, bind_port)
     )
     tcp_log.debug("StartAsyncTcpServer returned (server stopped)")
 

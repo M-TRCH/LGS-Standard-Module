@@ -3,8 +3,13 @@
 #define EEPROM_UTILS_H
 
 #include <Arduino.h>
-#include <EEPROM.h>
+#include <Wire.h>
 #include "system.h"
+
+// AT24C32D External EEPROM (I2C)
+#define AT24C32D_ADDR       0x50    // I2C address
+#define AT24C32D_PAGE_SIZE  32      // Page write size (bytes)
+#define AT24C32D_CONFIG_ADDR 0x0000 // Start address for config storage
 
 // Example struct for all persistent config
 typedef struct 
@@ -44,5 +49,9 @@ void loadEepromConfig();
     @return true if saved successfully, false otherwise
 */
 bool saveEepromConfig();
+
+/*  @brief Print all EEPROM configuration values to Serial
+*/
+void printEepromConfig();
 
 #endif

@@ -21,147 +21,6 @@ void oled_init()
     oled.display();
 }
 
-// ---- AT24C32D External EEPROM Test (I2C Address: 0x50) ----
-#define AT24C32D_ADDR       0x50
-#define AT24C32D_PAGE_SIZE  32      // AT24C32D page write size (bytes)
-#define AT24C32D_TEST_ADDR  0x0000  // Start address for test data
-#define AT24C32D_TEST_LEN   128     // Total bytes to write/read in test
-
-// Write up to one page within the same page boundary
-bool at24c32d_writePage(uint16_t memAddr, const uint8_t *buf, uint8_t len)
-{
-    Wire.beginTransmission(AT24C32D_ADDR);
-    Wire.write((uint8_t)(memAddr >> 8));    // MSB of memory address
-    Wire.write((uint8_t)(memAddr & 0xFF));  // LSB of memory address
-    for (uint8_t i = 0; i < len; i++)
-        Wire.write(buf[i]);
-    uint8_t err = Wire.endTransmission();
-    delay(5); // AT24C32D write cycle time (max 5ms)
-    return (err == 0);
-}
-
-// Write multiple bytes using page writes (respects 32-byte page boundaries)
-bool at24c32d_writeBytes(uint16_t memAddr, const uint8_t *buf, uint16_t len)
-{
-    uint16_t written = 0;
-    while (written < len)
-    {
-        uint8_t pageOffset = (uint8_t)((memAddr + written) % AT24C32D_PAGE_SIZE);
-        uint8_t pageRemain = AT24C32D_PAGE_SIZE - pageOffset;
-        uint8_t toWrite    = ((len - written) < pageRemain) ? (uint8_t)(len - written) : pageRemain;
-
-        if (!at24c32d_writePage(memAddr + written, buf + written, toWrite))
-            return false;
-        written += toWrite;
-    }
-    return true;
-}
-
-// Read multiple bytes sequentially (up to 32 bytes per requestFrom)
-bool at24c32d_readBytes(uint16_t memAddr, uint8_t *buf, uint16_t len)
-{
-    Wire.beginTransmission(AT24C32D_ADDR);
-    Wire.write((uint8_t)(memAddr >> 8));
-    Wire.write((uint8_t)(memAddr & 0xFF));
-    if (Wire.endTransmission() != 0) return false;
-
-    uint16_t remaining = len;
-    uint16_t offset = 0;
-    while (remaining > 0)
-    {
-        uint8_t chunk = (remaining > 32) ? 32 : (uint8_t)remaining;
-        Wire.requestFrom((uint8_t)AT24C32D_ADDR, chunk);
-        uint8_t received = 0;
-        while (Wire.available() && received < chunk)
-        {
-            buf[offset++] = Wire.read();
-            received++;
-        }
-        if (received != chunk) return false;
-        remaining -= chunk;
-    }
-    return true;
-}
-
-// testAT24C32D(doWrite):
-//   doWrite = true  → write test pattern to EEPROM (run once before power cycle)
-//   doWrite = false → read back and verify after power cycle
-void testAT24C32D(bool doWrite = true)
-{
-    Serial.println(F("\n[AT24C32D] === External EEPROM Test ==="));
-    Serial.println(doWrite ? F("[AT24C32D] Mode: WRITE") : F("[AT24C32D] Mode: READ (verify after power cycle)"));
-    Serial.println("[AT24C32D] Address: 0x" + String(AT24C32D_TEST_ADDR, HEX) +
-                   "  Length: " + String(AT24C32D_TEST_LEN) + " bytes");
-
-    // Test pattern: sequential 0x00, 0x01, ..., 0xFF, 0x00, ...
-    uint8_t testBuf[AT24C32D_TEST_LEN];
-    for (uint16_t i = 0; i < AT24C32D_TEST_LEN; i++)
-        testBuf[i] = (uint8_t)(i & 0xFF);
-
-    if (doWrite)
-    {
-        // --- WRITE MODE ---
-        Serial.println(F("[AT24C32D] Writing test pattern..."));
-        Serial.print(F("[AT24C32D] Data: "));
-        for (uint16_t i = 0; i < AT24C32D_TEST_LEN; i++)
-        {
-            if (testBuf[i] < 0x10) Serial.print("0");
-            Serial.print(testBuf[i], HEX);
-            Serial.print(" ");
-            if ((i + 1) % 16 == 0) Serial.println();
-        }
-
-        if (at24c32d_writeBytes(AT24C32D_TEST_ADDR, testBuf, AT24C32D_TEST_LEN))
-            Serial.println(F("[AT24C32D] Write OK. Power cycle the MCU, then run with doWrite=false to verify."));
-        else
-            Serial.println(F("[AT24C32D] Write FAILED - check I2C wiring and address 0x50"));
-    }
-    else
-    {
-        // --- READ & VERIFY MODE ---
-        uint8_t readBuf[AT24C32D_TEST_LEN] = {0};
-        Serial.println(F("[AT24C32D] Reading back data..."));
-
-        if (!at24c32d_readBytes(AT24C32D_TEST_ADDR, readBuf, AT24C32D_TEST_LEN))
-        {
-            Serial.println(F("[AT24C32D] Read FAILED - check I2C wiring and address 0x50"));
-            return;
-        }
-
-        Serial.print(F("[AT24C32D] Data: "));
-        uint16_t errCount = 0;
-        for (uint16_t i = 0; i < AT24C32D_TEST_LEN; i++)
-        {
-            if (readBuf[i] < 0x10) Serial.print("0");
-            Serial.print(readBuf[i], HEX);
-            Serial.print(" ");
-            if ((i + 1) % 16 == 0) Serial.println();
-            if (readBuf[i] != testBuf[i]) errCount++;
-        }
-
-        if (errCount == 0)
-        {
-            Serial.println(F("[AT24C32D] >> ALL PASS - Data retained correctly across power cycle!"));
-        }
-        else
-        {
-            Serial.println("[AT24C32D] >> FAIL - " + String(errCount) + " byte(s) mismatched");
-            for (uint16_t i = 0; i < AT24C32D_TEST_LEN; i++)
-            {
-                if (readBuf[i] != testBuf[i])
-                {
-                    Serial.println("[AT24C32D]   First mismatch at addr 0x" + String(AT24C32D_TEST_ADDR + i, HEX) +
-                                   ": expected 0x" + String(testBuf[i], HEX) +
-                                   ", got 0x" + String(readBuf[i], HEX));
-                    break;
-                }
-            }
-        }
-    }
-
-    Serial.println(F("[AT24C32D] === Test Complete ===\n"));
-}
-
 void testLatch()
 {
     while (true)
@@ -217,21 +76,21 @@ void testControlPanel()
 void setup() 
 {
 #ifdef SYSTEM_H
-    sysInit(LOG_NONE);  // Initialize system
+    sysInit(LOG_INFO);  // Initialize system
 
     // testLatch();        // Test latch functionality only
     // oled_init();        // Initialize OLED for testing
-    testAT24C32D(false);  // true = WRITE mode, false = READ/verify mode (after power cycle)
 #endif
 
 #ifdef EEPROM_UTILS_H
     // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
-    eepromInit();        // Initialize EEPROM and load configuration
+    eepromInit();           // Initialize EEPROM and load configuration
+    printEepromConfig();    // Print loaded configuration for verification
 #endif
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
-    while (1)   // Test LED8 strip
+    while (0)   // Test LED8 strip
     {
         testLed8(255); 
     }
@@ -248,6 +107,13 @@ void setup()
 
 void loop() 
 {   
+    // Routine blink for run LED
+    if (ON_ROUTINE_BLINK_RUN())
+    {
+        digitalWrite(LED_RUN_PIN, blink_run_state);
+    }
+
+// #define ENABLE_MAIN_LOOP
 #ifdef ENABLE_MAIN_LOOP
     /*
     // static uint32_t lastWriteDisp = 0;

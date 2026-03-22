@@ -4,82 +4,44 @@
 #include <Arduino.h>
 #include "led.h"
 #include "eeprom_utils.h"
-#include "modbus_utils.h"
+// #include "modbus_utils.h"
 
-// for testing oled display
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-Adafruit_SSD1306 oled(128, 64, &Wire, -1);
-
-void oled_init()
-{
-    oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    oled.setTextColor(WHITE);
-    oled.setTextSize(2);    
-    oled.setRotation(0);      
-    oled.clearDisplay();    
-    oled.display();
-}
-
-void testLatch()
-{
-    while (true)
-    {
-        if (isLatchLocked())
-            digitalWrite(LED_RUN_PIN, HIGH);
-        else
-            digitalWrite(LED_RUN_PIN, LOW);
-        
-        if (digitalRead(FUNC_SW_PIN) == LOW)
-        {
-            delay(50); // Debounce delay 
-            if (digitalRead(FUNC_SW_PIN) == LOW)
-            {   
-                unlockLatch(500);
-            }
-        }
-    }
-}
-
-void testControlPanel()
-{
-    static bool runLedState = false;
-    modbusClientInit(); // Initialize Modbus RTU Client for broadcasting
-   
-    while (true)
-    {
-        if (digitalRead(FUNC_SW_PIN) == LOW)
-        {
-            delay(50); // Debounce delay 
-            if (digitalRead(FUNC_SW_PIN) == LOW)
-            {
-                static uint32_t startFuncSW = millis();
-                
-                // Toggle RUN LED state
-                runLedState = !runLedState;
-
-                digitalWrite(LED_RUN_PIN, runLedState);
-                broadcastAllLeds(runLedState); // Broadcast all LEDs with the same state
-
-                while (digitalRead(FUNC_SW_PIN) == LOW)
-                {
-                    if (millis() - startFuncSW >= 3000) // timeout for long press
-                    {
-                        break;
-                    }
-                }
-            }
-        }  
-    }
-}
+// void testControlPanel()
+// {
+//     static bool runLedState = false;
+//     modbusClientInit(); // Initialize Modbus RTU Client for broadcasting
+//  
+//     while (true)
+//     {
+//         if (digitalRead(FUNC_SW_PIN) == LOW)
+//         {
+//             delay(50); // Debounce delay 
+//             if (digitalRead(FUNC_SW_PIN) == LOW)
+//             {
+//                 static uint32_t startFuncSW = millis();
+//      
+//                 // Toggle RUN LED state
+//                 runLedState = !runLedState;
+//
+//                 digitalWrite(LED_RUN_PIN, runLedState);
+//                 broadcastAllLeds(runLedState); // Broadcast all LEDs with the same state
+//
+//                 while (digitalRead(FUNC_SW_PIN) == LOW)
+//                 {
+//                     if (millis() - startFuncSW >= 3000) // timeout for long press
+//                     {
+//                         break;
+//                     }
+//                 }
+//             }
+//         }  
+//     }
+// }
 
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_INFO);  // Initialize system
-
-    // testLatch();        // Test latch functionality only
-    // oled_init();        // Initialize OLED for testing
 #endif
 
 #ifdef EEPROM_UTILS_H
@@ -90,10 +52,6 @@ void setup()
 
 #ifdef LED_H
     ledInit();  // Initialize LEDs
-    while (0)   // Test LED8 strip
-    {
-        testLed8(255); 
-    }
 #endif
 
 #ifdef MODBUS_UTILS_H

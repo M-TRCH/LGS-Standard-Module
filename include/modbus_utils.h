@@ -2,7 +2,6 @@
 #define MODBUS_UTILS_H
 
 #include <Arduino.h>
-#include <ModbusRTUServer.h>
 #include <ModbusRTUClient.h>
 #include "system.h"
 #include "led.h"

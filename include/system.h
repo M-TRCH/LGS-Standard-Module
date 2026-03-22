@@ -36,7 +36,7 @@
 #define MODBUS_BAUD     9600
 
 // System settings
-#define ROUTINE_BLINK_RUN_MS        1200    // LED blink interval in normal operation
+#define ROUTINE_BLINK_RUN_MS        1000    // LED blink interval in normal operation
 #define ROUTINE_BLINK_DEMO_MS       800     // LED blink interval in demo mode
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
 #define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
@@ -49,9 +49,7 @@
 enum FunctionSwitchMode
 {
     FUNC_SW_RUN = 0,            // No switch pressed (normal operation)
-    FUNC_SW_DEMO = 1,           // Pressed > 1 second
-    FUNC_SW_SET_ID = 2,         // Pressed > 5 seconds
-    FUNC_SW_FACTORY_RESET = 3   // Pressed > 10 seconds
+    FUNC_SW_OTA = 1             // Pressed >= 3 seconds (OTA firmware update)
 };
 
 // Global variables
@@ -156,17 +154,15 @@ bool unlockLatch(int unlockTimeout = 300);
 /* @brief Check function switch state at startup
  *
  * This function checks if the function switch (FUNC_SW_PIN) is pressed during startup.
- * It determines the press duration and returns the corresponding mode.
+ * If held >= 3 seconds, enters OTA firmware update mode.
  * The switch is active LOW (pressed = LOW).
  *
- * @param maxWaitTime Maximum time to wait for switch press in milliseconds (default 15000ms)
+ * @param maxWaitTime Maximum time to wait for switch press in milliseconds (default 10000ms)
  * @return FunctionSwitchMode:
- *         - FUNC_SW_RUN (0): Switch not pressed, continue normal operation
- *         - FUNC_SW_DEMO (1): Pressed 0-3 seconds
- *         - FUNC_SW_SET_ID (2): Pressed 4-8 seconds
- *         - FUNC_SW_FACTORY_RESET (3): Pressed 8-12 seconds
+ *         - FUNC_SW_RUN (0): Switch not pressed or < 3s
+ *         - FUNC_SW_OTA (1): Pressed >= 3 seconds (OTA firmware update)
  */
-FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
+FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 10000);
 
 /* @brief Check if it's time for routine blink
  *

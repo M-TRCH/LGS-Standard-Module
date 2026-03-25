@@ -27,23 +27,6 @@ void loadEepromConfig()
     LOG_DEBUG_EEPROM(F("[EEPROM] Configuration loaded from EEPROM\n"));
 }
 
-void clearEeprom(bool whileRunning) 
-{
-    LOG_INFO_EEPROM(F("[EEPROM] Clearing EEPROM...\n"));
-    EEPROM.begin();
-    for (int i = 0; i < sizeof(EepromConfig_t); i++) 
-    {
-        EEPROM.write(i, 0xFF);
-    }
-    EEPROM.end();
-    LOG_INFO_EEPROM(F("[EEPROM] EEPROM cleared successfully\n"));
-    while (whileRunning)
-    {
-        LOG_VERBOSE_EEPROM(F("."));
-        delay(3000);
-    }
-}
-
 bool saveEepromConfig() 
 {
     // Only write if data changed

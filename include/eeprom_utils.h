@@ -32,11 +32,6 @@ extern EepromConfig_t eepromConfig_default;
 */
 void eepromInit();
 
-/*  @brief Clear entire EEPROM (set all bytes to 0xFF)
-    @param whileRunning If true, will enter infinite loop after clearing (for debugging)
-*/
-void clearEeprom(bool whileRunning=false);
-
 // Load all config from EEPROM to RAM
 void loadEepromConfig();
 

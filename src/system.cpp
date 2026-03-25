@@ -2,15 +2,12 @@
 #include "system.h"
 
 HardwareSerial Serial3(RX3_PIN, TX3_PIN);
-RS485Class rs485(Serial, DUMMY_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and Serial3
-RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);     
-SensirionI2CSts4x sts4x;
+RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);
 
 // Global variables
 uint32_t lastTimeRoutineBlink = 0;
 uint32_t lastTimeRoutineDemo = 0;
 uint32_t lastTimeRoutineSetID = 0;
-uint32_t lastTimeSensorRead = 0;
 bool blink_run_state = false;
 bool blink_demo_state = false;
 bool blink_set_id_state = false;
@@ -18,14 +15,17 @@ FunctionSwitchMode functionMode = FUNC_SW_RUN;
 uint32_t lastTimeLatchLocked = 0;
 
 // Log configuration
+#ifdef ENABLE_LOGGING
 LogLevel globalLogLevel = LOG_INFO;                     // Default log level
 uint8_t enabledLogCategories = LOG_CAT_ALL;            // Enable all categories by default
+#endif
 
 void sysInit(LogLevel logLevel, uint8_t logCategories)
 {
-    // Set global log configuration
+#ifdef ENABLE_LOGGING
     globalLogLevel = logLevel;
     enabledLogCategories = logCategories;
+#endif
 
     LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));   
 
@@ -52,12 +52,6 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     Serial.setTx(TX_PIN);
     Serial.begin(DEBUG_BAUD);
     Serial3.begin(MODBUS_BAUD);
-
-    // Initialize I2C and STS4x sensor
-    Wire.setSDA(SDA1_PIN);
-    Wire.setSCL(SCL1_PIN);
-    Wire.begin(); // Initialize I2C
-    sts4x.begin(Wire, ADDR_STS4X_ALT);
 
     // Check function switch immediately after system init
     functionMode = checkFunctionSwitch();
@@ -236,48 +230,13 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     return mode;
 }
 
-bool ON_ROUTINE_BLINK_RUN()
+bool onRoutineTimer(uint32_t &lastTime, uint32_t intervalMs, bool *state)
 {
-    uint32_t currentMillis = millis();
-    if (currentMillis - lastTimeRoutineBlink >= ROUTINE_BLINK_RUN_MS)
+    uint32_t now = millis();
+    if (now - lastTime >= intervalMs)
     {
-        lastTimeRoutineBlink = currentMillis;
-        blink_run_state = !blink_run_state;
-        return true;
-    }
-    return false;
-}
-
-bool ON_ROUTINE_BLINK_DEMO()
-{
-    uint32_t currentMillis = millis();
-    if (currentMillis - lastTimeRoutineDemo >= ROUTINE_BLINK_DEMO_MS)
-    {
-        lastTimeRoutineDemo = currentMillis;
-        blink_demo_state = !blink_demo_state;
-        return true;
-    }
-    return false;
-}
-
-bool ON_ROUTINE_BLINK_SET_ID()
-{
-    uint32_t currentMillis = millis();
-    if (currentMillis - lastTimeRoutineSetID >= ROUTINE_BLINK_SET_ID_MS)
-    {
-        lastTimeRoutineSetID = currentMillis;
-        blink_set_id_state = !blink_set_id_state;
-        return true;
-    }
-    return false;
-}
-
-bool ON_ROUTINE_SENSOR_READ()
-{
-    uint32_t currentMillis = millis();
-    if (currentMillis - lastTimeSensorRead >= ROUTINE_SENSOR_READ_MS)
-    {
-        lastTimeSensorRead = currentMillis;
+        lastTime = now;
+        if (state) *state = !*state;
         return true;
     }
     return false;

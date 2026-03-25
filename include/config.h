@@ -7,6 +7,9 @@
 #define MODBUS_SERIAL3      0x01
 #define MODBUS_OUTPUT       MODBUS_SERIAL3  // Select the physical output
 
+// Logging: uncomment to enable logging for debugging (disabled saves ~2-3KB flash)
+// #define ENABLE_LOGGING
+
 // Default configuration values
 #define DEFAULT_DEVICE_TYPE         10      // 10=standard, 20=narcotic
 #define DEFAULT_FW_VERSION          17125   // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)

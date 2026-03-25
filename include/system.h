@@ -6,8 +6,6 @@
 #include <Stream.h>
 #include <HardwareSerial.h>
 #include <ArduinoRS485.h>
-#include <Wire.h>
-#include <SensirionI2CSts4x.h>
 #include "config.h"
 
 // Pin definitions
@@ -16,8 +14,6 @@
 #define RX3_PIN         PA3
 #define TX3_PIN         PA2
 #define DUMMY_PIN       PA1     // (New) dummy pin for rs485
-#define SCL1_PIN        PB8     // (New) I2C1 SCL pin
-#define SDA1_PIN        PB9     // (New) I2C1 SDA pin
 #define LED_RUN_PIN     PA15    // (New) Run LED pin
 #define LED1_PIN        PB1 
 #define LED2_PIN        PB2     
@@ -39,7 +35,6 @@
 #define ROUTINE_BLINK_RUN_MS        1200    // LED blink interval in normal operation
 #define ROUTINE_BLINK_DEMO_MS       800     // LED blink interval in demo mode
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
-#define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
 
 // Latch safety settings
 #define LATCH_MAX_UNLOCK_TIME       500     // Maximum unlock time in milliseconds (safety limit)
@@ -58,7 +53,6 @@ enum FunctionSwitchMode
 extern uint32_t lastTimeRoutineBlink;
 extern uint32_t lastTimeRoutineDemo;
 extern uint32_t lastTimeRoutineSetID;
-extern uint32_t lastTimeSensorRead;
 extern bool blink_run_state;
 extern bool blink_demo_state;
 extern bool blink_set_id_state;
@@ -67,9 +61,7 @@ extern uint32_t lastTimeLatchLocked;
 
 // Object declarations
 extern HardwareSerial Serial3; 
-extern RS485Class rs485;
 extern RS485Class rs4853;
-extern SensirionI2CSts4x sts4x;
 
 // Constants definitions
 // Log level definitions
@@ -95,16 +87,22 @@ enum LogCategory
 };
 
 // Global log configuration
+#ifdef ENABLE_LOGGING
 extern LogLevel globalLogLevel;
 extern uint8_t enabledLogCategories;
+#endif
 
 // Logging macros
+#ifdef ENABLE_LOGGING
 #define LOG(level, category, msg) \
     do { \
         if ((globalLogLevel >= level) && (enabledLogCategories & category)) { \
             Serial.print(msg); \
         } \
     } while(0)
+#else
+#define LOG(level, category, msg) ((void)0)
+#endif
 
 #define LOG_ERROR_SYS(msg)      LOG(LOG_ERROR, LOG_CAT_SYSTEM, msg)
 #define LOG_WARNING_SYS(msg)    LOG(LOG_WARNING, LOG_CAT_SYSTEM, msg)
@@ -168,35 +166,10 @@ bool unlockLatch(int unlockTimeout = 300);
  */
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
 
-/* @brief Check if it's time for routine blink
- *
- * This function checks if the routine blink interval has elapsed.
- *
- * @return true if it's time to blink, false otherwise
- */
-bool ON_ROUTINE_BLINK_RUN();
+bool onRoutineTimer(uint32_t &lastTime, uint32_t intervalMs, bool *state = nullptr);
 
-/* @brief Check if it's time for routine demo blink
- *
- * This function checks if the routine demo blink interval has elapsed.
- *
- * @return true if it's time to blink, false otherwise
- */
-bool ON_ROUTINE_BLINK_DEMO();
+#define ON_ROUTINE_BLINK_RUN()    onRoutineTimer(lastTimeRoutineBlink, ROUTINE_BLINK_RUN_MS, &blink_run_state)
+#define ON_ROUTINE_BLINK_DEMO()   onRoutineTimer(lastTimeRoutineDemo, ROUTINE_BLINK_DEMO_MS, &blink_demo_state)
+#define ON_ROUTINE_BLINK_SET_ID() onRoutineTimer(lastTimeRoutineSetID, ROUTINE_BLINK_SET_ID_MS, &blink_set_id_state)
 
-/* @brief Check if it's time for routine set ID
- *
- * This function checks if the routine set ID interval has elapsed.
- *
- * @return true if it's time to set ID, false otherwise
- */
-bool ON_ROUTINE_BLINK_SET_ID();
-
-/* @brief Check if it's time for routine sensor read
- *
- * This function checks if the routine sensor read interval has elapsed.
- *
- * @return true if it's time to read the sensor, false otherwise
- */
-bool ON_ROUTINE_SENSOR_READ();
 #endif

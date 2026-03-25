@@ -7,7 +7,7 @@
 #include "led.h"
 #include "eeprom_utils.h"
 
-#define COIL_NUM                    5000    // Number of coils
+#define COIL_NUM                    1100    // Number of coils
 #define DISCRETE_INPUT_NUM          1       // Number of discrete inputs
 #define HOLDING_REGISTER_NUM        400     // Number of holding registers
 #define INPUT_REGISTER_NUM          1       // Number of input registers

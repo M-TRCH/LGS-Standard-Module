@@ -6,31 +6,22 @@
 #include "eeprom_utils.h"
 #include "modbus_utils.h"
 
-// for testing oled display
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-Adafruit_SSD1306 oled(128, 64, &Wire, -1);
-
-void oled_init()
-{
-    oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    oled.setTextColor(WHITE);
-    oled.setTextSize(2);    
-    oled.setRotation(0);      
-    oled.clearDisplay();    
-    oled.display();
+// Helper: apply LED color from Modbus registers with brightness scaling
+static void setLedFromRegisters(int i, float brightness) {
+    leds[i]->setPixelColor(0, leds[i]->Color(
+        (uint8_t)(RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness),
+        (uint8_t)(RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness),
+        (uint8_t)(RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness)));
+    leds[i]->show();
 }
 
 void setup() 
 {
 #ifdef SYSTEM_H
     sysInit(LOG_NONE);  // Initialize system
-
-    // oled_init();    // Initialize OLED for testing
 #endif
 
 #ifdef EEPROM_UTILS_H
-    // clearEeprom(true);   // Uncomment to clear EEPROM for debugging  
     eepromInit();        // Initialize EEPROM and load configuration
 #endif
 
@@ -47,54 +38,6 @@ void setup()
 
 void loop() 
 {   
-    /*
-    // static uint32_t lastWriteDisp = 0;
-    // static uint8_t numCnt = 0;
-    // static uint8_t colorCnt = 0;
-    // static uint8_t led_index = 0;
-    // if (millis() - lastWriteDisp >= 1000) // Update display every second
-    // {
-    //     lastWriteDisp = millis();
-
-    //     // Increment number counter
-    //     numCnt++;
-    //     if (numCnt > 100) numCnt = 0;
-    //     // Increment color counter
-    //     colorCnt++;
-    //     if (colorCnt > 3) colorCnt = 0;
-
-    //     oled.clearDisplay();
-    //     oled.setCursor(18, 22);
-    //     oled.println("LGS: " + String(numCnt));
-    //     oled.display();
-
-    //     for (int i = 0; i < 4; i++) 
-    //     {
-    //         if (i == 0) led_index = 2; 
-    //         else if (i == 1) led_index = 3;
-    //         else if (i == 2) led_index = 6;
-    //         else if (i == 3) led_index = 7;
-
-    //         if (colorCnt == 0)
-    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(204,0,0)); // Red
-    //         else if (colorCnt == 1)
-    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,204,0)); // Green
-    //         else if (colorCnt == 2)
-    //             leds[led_index]->setPixelColor(0, leds[led_index]->Color(0,0,204)); // Blue
-            
-    //         // update LED
-    //         leds[led_index]->show();
-    //     }
-    // }
-    */
-
-    // static uint32_t lastTestPrint = 0;
-    // if (millis() - lastTestPrint >= 10) // Print every 1 seconds
-    // {
-    //     lastTestPrint = millis();
-    //     LOG_DEBUG_SYS("[SYSTEM] Unlocked in " + String(RTUServer.holdingRegisterRead(MB_REG_TIME_AFTER_UNLOCK)) + " seconds\n");
-    // }
-
     // Demo mode: cycle through LEDs
     if (functionMode == FUNC_SW_DEMO)
     {
@@ -102,14 +45,8 @@ void loop()
         {
             for (int i = 0; i < LED_NUM; i++) 
             {
-                float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;   // Scale brightness to 0.0 - 1.0
-                if (!blink_demo_state)  brightness = 0.0; // Turn off LEDs when blink state is off
-
-                leds[i]->setPixelColor(0, leds[i]->Color(
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,    // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
-                leds[i]->show();
+                float brightness = blink_demo_state ? RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0f : 0.0f;
+                setLedFromRegisters(i, brightness);
             }
         }
     }
@@ -149,15 +86,6 @@ void loop()
         if (ON_ROUTINE_BLINK_RUN())
         {
             digitalWrite(LED_RUN_PIN, blink_run_state);
-        }
-
-        // Routine sensor read
-        if (ON_ROUTINE_SENSOR_READ())
-        {
-            float temp;
-            sts4x.measureHighPrecision(temp);
-            RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temp * 100)); // Store temperature as integer (e.g., 2534 for 25.34°C)
-            // LOG_DEBUG_SYS("Temperature: " + String(temp, 2) + " °C\n");
         }
 
         // Enforce max on-time limits for all LEDs
@@ -300,55 +228,38 @@ void loop()
         for (int i = 0; i < LED_NUM; i++) 
         {
             int led_state = RTUServer.coilRead(MB_COIL_LED_1_ENABLE + i);
-            if (led_state != last_led_state[i]) // Check if the LED state has changed
+            if (led_state != last_led_state[i])
             {
                 last_led_state[i] = led_state;
 
-                if (led_state) // If the LED state is ON
+                if (led_state)
                 {
-                    float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;   // Scale brightness to 0.0 - 1.0
-                    leds[i]->setPixelColor(0, leds[i]->Color(
-                        RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,    // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
-                        RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
-                        RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
-                    leds[i]->show();
-
-                    led_counter[i]++;           // Increment counter for how many times this LED has been turned on
-                    led_timer[i] = millis();    // Start timer for how long this LED has been on
+                    setLedFromRegisters(i, RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0f);
+                    led_counter[i]++;
+                    led_timer[i] = millis();
                     LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned ON\n");
                 }   
-                else    // If the LED state is OFF
+                else
                 {
-                    leds[i]->setPixelColor(0, leds[i]->Color(0, 0, 0));
+                    leds[i]->setPixelColor(0, 0);
                     leds[i]->show();
-                
-                    // Stop timer and accumulate time if it was running
                     if (led_timer[i] != 0) 
                     {
-                        led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-                        led_timer[i] = 0; // Reset timer
+                        led_time_sum[i] += (millis() - led_timer[i]) / 1000.0f;
+                        led_timer[i] = 0;
                     }
                     LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned OFF\n");
                 }
-                // printLedStatus();
             }
         }
 
         // Apply LED state changes with latch trigger (Addr.1021-1028)
         for (int i = 0; i < LED_NUM; i++) 
         {
-            int led_latch_state = RTUServer.coilRead(MB_COIL_LED_1_LATCH + i);
-            if (led_latch_state) // Check if the LED latch coil is triggered
+            if (RTUServer.coilRead(MB_COIL_LED_1_LATCH + i))
             {
-                // Turn ON the LED (same as LED enable)
-                float brightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0;
-                leds[i]->setPixelColor(0, leds[i]->Color(
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10) * brightness,
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10) * brightness,
-                    RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10) * brightness));
-                leds[i]->show();
+                setLedFromRegisters(i, RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10) / 100.0f);
 
-                // Update LED state tracking
                 if (!last_led_state[i]) 
                 {
                     led_counter[i]++;
@@ -357,12 +268,10 @@ void loop()
                     LOG_DEBUG_LED("[LED] L" + String(i+1) + " turned ON via latch\n");
                 }
 
-                // Trigger the latch unlock
                 delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
-                unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
+                unlockLatch(300);
                 LOG_INFO_MODBUS("[MODBUS] Latch unlock triggered via LED" + String(i+1) + " latch coil\n");
 
-                // Reset the latch coil and sync with enable coil
                 RTUServer.coilWrite(MB_COIL_LED_1_LATCH + i, 0);
                 RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 1);
             }

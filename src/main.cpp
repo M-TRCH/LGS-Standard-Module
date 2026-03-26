@@ -16,6 +16,42 @@ static void setLedFromRegisters(int i, float brightness) {
     leds[i]->show();
 }
 
+// Helper: enter OTA mode with running LED animation, retry forever
+static void otaWaitLoop(HardwareSerial &serial)
+{
+    int pos = 0;
+    int dir = 1;
+    while (true)
+    {
+        // Running LED chase animation (scan back and forth)
+        for (int i = 0; i < LED_NUM; i++)
+        {
+            uint8_t b = (i == pos) ? 120 : 0;
+            leds[i]->setPixelColor(0, leds[i]->Color(0, b, b)); // Cyan on active
+            // leds[i]->setPixelColor(0, leds[i]->Color(b, 0, 0)); // Red on active
+            leds[i]->show();
+        }
+        digitalWrite(LED_RUN_PIN, (pos % 2) ? HIGH : LOW);
+
+        pos += dir;
+        if (pos >= LED_NUM - 1 || pos <= 0) dir = -dir;
+        delay(100);
+
+        // Try to receive firmware (non-blocking check for sync byte)
+        if (serial.available())
+        {
+            // Turn all LEDs off before entering OTA receive
+            for (int i = 0; i < LED_NUM; i++)
+            {
+                leds[i]->setPixelColor(0, 0);
+                leds[i]->show();
+            }
+            otaReceiveFirmware(serial);
+            // If OTA failed, continue animation and retry
+        }
+    }
+}
+
 void setup() 
 {
 #ifdef SYSTEM_H
@@ -41,9 +77,7 @@ void setup()
     if (functionMode == FUNC_SW_OTA)
     {
         otaSavePersistentConfig(eepromConfig.identifier, eepromConfig.baudRate);
-        otaReceiveFirmware(Serial3);
-        // If OTA failed, reset the MCU
-        NVIC_SystemReset();
+        otaWaitLoop(Serial3); // Never returns
     }
 #endif
 }
@@ -210,9 +244,7 @@ void loop()
             otaSavePersistentConfig(eepromConfig.identifier, eepromConfig.baudRate);
             RTUServer.end();              // Stop Modbus server, frees RS485
             Serial3.begin(MODBUS_BAUD);   // Re-init Serial3 for direct OTA use
-            otaReceiveFirmware(Serial3);
-            // If OTA failed, reset
-            NVIC_SystemReset();
+            otaWaitLoop(Serial3);         // Never returns
         }
         
         // Configuration group:

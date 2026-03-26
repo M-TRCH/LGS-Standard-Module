@@ -1,5 +1,6 @@
 
 #include "eeprom_utils.h"
+#include "ota.h"
 
 EepromConfig_t eepromConfig;
 EepromConfig_t eepromConfig_cache;
@@ -45,6 +46,23 @@ void eepromInit()
 {
     // Load configuration from EEPROM
     loadEepromConfig(); 
+
+    // Check if EEPROM data is corrupt (erased flash = 0xFFFF)
+    // If so, try to recover critical config from OTA persistent page
+    if (eepromConfig.identifier == 0xFFFF || eepromConfig.identifier == 0)
+    {
+        LOG_WARNING_EEPROM(F("[EEPROM] Corrupt/blank data detected - checking OTA persistent backup\n"));
+        uint16_t saved_id, saved_baud;
+        if (otaLoadPersistentConfig(&saved_id, &saved_baud))
+        {
+            LOG_INFO_EEPROM(F("[EEPROM] Recovered Unit ID from persistent config\n"));
+            eepromConfig = eepromConfig_default;
+            eepromConfig.identifier = saved_id;
+            eepromConfig.baudRate   = saved_baud;
+            saveEepromConfig();
+            NVIC_SystemReset();
+        }
+    }
 
     // Check if first boot
     // write default values to EEPROM

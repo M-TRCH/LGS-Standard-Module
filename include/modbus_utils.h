@@ -26,6 +26,7 @@
 #define MB_COIL_APPLY_FACTORY_RESET_ALL_DATA    502     // Apply Factory Reset (write)
 #define MB_COIL_WRITE_TO_EEPROM                 503     // Write to EEPROM (write)
 #define MB_COIL_SOFTWARE_RESET                  504     // Software Reset (write)
+#define MB_COIL_OTA_UPDATE                      505     // Enter OTA firmware update mode (write)
 
 // Sensor groups:
 #define MB_REG_BUILT_IN_TEMP                    20      // Built-in Temperature Sensor Value (read-only)

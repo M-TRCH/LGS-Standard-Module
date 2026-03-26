@@ -46,7 +46,8 @@ enum FunctionSwitchMode
     FUNC_SW_RUN = 0,            // No switch pressed (normal operation)
     FUNC_SW_DEMO = 1,           // Pressed > 1 second
     FUNC_SW_SET_ID = 2,         // Pressed > 5 seconds
-    FUNC_SW_FACTORY_RESET = 3   // Pressed > 10 seconds
+    FUNC_SW_FACTORY_RESET = 3,  // Pressed > 10 seconds
+    FUNC_SW_OTA = 4             // Pressed > 11 seconds (OTA firmware update)
 };
 
 // Global variables

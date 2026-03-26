@@ -152,7 +152,11 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
         
         // Determine blink pattern based on press duration
         uint8_t blinksPerCycle = 0;  // Default: No blink (0-2s)
-        if (pressDuration >= 8000)
+        if (pressDuration >= 11000)
+        {
+            blinksPerCycle = 5;  // OTA: 5 blinks per cycle (11-15s)
+        }
+        else if (pressDuration >= 8000)
         {
             blinksPerCycle = 4;  // FACTORY_RESET: 4 blinks per cycle (8-11s)
         }
@@ -202,7 +206,12 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     // Determine which mode based on press duration
     FunctionSwitchMode mode = FUNC_SW_RUN;
 
-    if (pressDuration >= 8000 && pressDuration < 11000)  // 8-11 seconds
+    if (pressDuration >= 11000)  // 11+ seconds
+    {
+        mode = FUNC_SW_OTA;
+        LOG_INFO_SYS(F("[SYSTEM] Function switch: OTA_UPDATE (>11s) detected\n"));
+    }
+    else if (pressDuration >= 8000 && pressDuration < 11000)  // 8-11 seconds
     {
         mode = FUNC_SW_FACTORY_RESET;
         LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (8-11s) detected\n"));
@@ -219,7 +228,7 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     }
     else
     {
-        // Less than 2 seconds or more than 11 seconds - no action
+        // Less than 2 seconds - no action
         mode = FUNC_SW_RUN;
         LOG_INFO_SYS("[SYSTEM] Function switch: No action (press duration: " + String(pressDuration) + "ms)\n");
     }

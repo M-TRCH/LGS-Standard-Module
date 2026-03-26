@@ -5,6 +5,7 @@
 #include "led.h"
 #include "eeprom_utils.h"
 #include "modbus_utils.h"
+#include "ota.h"
 
 // Helper: apply LED color from Modbus registers with brightness scaling
 static void setLedFromRegisters(int i, float brightness) {
@@ -33,6 +34,17 @@ void setup()
     // Initialize Modbus server with ID from EEPROM, default ID (247) or special ID (246) for SET_ID mode
     modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER-1 : eepromConfig.identifier);    
     eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
+#endif
+
+    // OTA mode via function switch: enter before loop starts
+#ifdef OTA_H
+    if (functionMode == FUNC_SW_OTA)
+    {
+        otaSavePersistentConfig(eepromConfig.identifier, eepromConfig.baudRate);
+        otaReceiveFirmware(Serial3);
+        // If OTA failed, reset the MCU
+        NVIC_SystemReset();
+    }
 #endif
 }
 
@@ -158,6 +170,7 @@ void loop()
         {
             LOG_INFO_MODBUS(F("[MODBUS] Saving configuration to EEPROM\n"));
             modbus2eepromMapping();
+            otaSavePersistentConfig(eepromConfig.identifier, eepromConfig.baudRate);
             NVIC_SystemReset();         // Perform software reset
         }
 
@@ -187,6 +200,19 @@ void loop()
         {
             LOG_INFO_MODBUS(F("[MODBUS] Software reset requested\n"));
             NVIC_SystemReset();         // Perform software reset
+        }
+
+        // OTA firmware update (Addr.505)
+        if (RTUServer.coilRead(MB_COIL_OTA_UPDATE))
+        {
+            RTUServer.coilWrite(MB_COIL_OTA_UPDATE, 0);
+            LOG_INFO_MODBUS(F("[MODBUS] OTA update requested via Modbus\n"));
+            otaSavePersistentConfig(eepromConfig.identifier, eepromConfig.baudRate);
+            RTUServer.end();              // Stop Modbus server, frees RS485
+            Serial3.begin(MODBUS_BAUD);   // Re-init Serial3 for direct OTA use
+            otaReceiveFirmware(Serial3);
+            // If OTA failed, reset
+            NVIC_SystemReset();
         }
         
         // Configuration group:

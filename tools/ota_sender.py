@@ -127,6 +127,17 @@ def main():
 
     t_start = time.time()
 
+    # ── Step 0: Modbus RTU broadcast — enter OTA mode ──
+    print("[0/3] MODBUS — broadcast write coil 505 = ON (enter OTA mode)...")
+    #  Slave=0x00(broadcast), Func=0x05(WriteSingleCoil), Addr=0x01F9(505), Value=0xFF00(ON)
+    modbus_pdu = bytes([0x00, 0x05, 0x01, 0xF9, 0xFF, 0x00])
+    modbus_crc = crc16(modbus_pdu)
+    modbus_frame = modbus_pdu + struct.pack('<H', modbus_crc)
+    ser.write(modbus_frame)
+    print(f"  Waiting 3.0s for device to enter OTA mode...")
+    time.sleep(3.0)
+    print("  Done")
+
     # ── Step 1: START ──
     print("[1/3] START — sending firmware size...")
     frame = build_frame(CMD_START, struct.pack('<I', fw_size))

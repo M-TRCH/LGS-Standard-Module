@@ -273,6 +273,56 @@ void loop()
         }
 
         // Control group:
+        // FW Version Demo (Addr.1000) - Turn on all LEDs with version-encoded colors
+        if (RTUServer.coilRead(MB_COIL_FW_VERSION_DEMO))
+        {
+            RTUServer.coilWrite(MB_COIL_FW_VERSION_DEMO, 0);
+            LOG_INFO_MODBUS(F("[MODBUS] FW Version Demo triggered\n"));
+
+            // Digit-to-color mapping (all visible, unique per digit)
+            static const uint8_t digit_colors[][3] = {
+                {255, 255, 255},  // 0: White
+                {255, 0,   0},    // 1: Red
+                {0,   255, 0},    // 2: Green
+                {0,   0,   255},  // 3: Blue
+                {255, 255, 0},    // 4: Yellow
+                {0,   255, 255},  // 5: Cyan
+                {255, 0,   255},  // 6: Magenta
+                {255, 128, 0},    // 7: Orange
+                {255, 105, 180},  // 8: Pink
+                {128, 0,   255},  // 9: Purple
+            };
+
+            // Extract 5 digits from firmware version (ddmmy, padded with leading zeros)
+            uint16_t fw = DEFAULT_FW_VERSION;
+            uint8_t digits[5];
+            for (int d = 4; d >= 0; d--) {
+                digits[d] = fw % 10;
+                fw /= 10;
+            }
+
+            // LEDs 1-5: show version digits as colors, LEDs 6-8: dim white
+            for (int i = 0; i < LED_NUM; i++) {
+                if (i < 5) {
+                    leds[i]->setPixelColor(0, leds[i]->Color(
+                        digit_colors[digits[i]][0],
+                        digit_colors[digits[i]][1],
+                        digit_colors[digits[i]][2]));
+                } else {
+                    leds[i]->setPixelColor(0, leds[i]->Color(50, 50, 50));
+                }
+                leds[i]->show();
+
+                // Update state tracking
+                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 1);
+                if (!last_led_state[i]) {
+                    led_counter[i]++;
+                    led_timer[i] = millis();
+                    last_led_state[i] = true;
+                }
+            }
+        }
+
         // Latch trigger (Addr.1020)
         if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER)) 
         {

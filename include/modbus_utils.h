@@ -101,6 +101,7 @@
 #define MB_REG_DISPLAY_ON_TIME      291     // Display On Time (read-only)
 
 // Control groups:
+#define MB_COIL_FW_VERSION_DEMO             1000    // FW Version Demo - turn on all LEDs with version-encoded colors (write)
 #define MB_COIL_LED_1_ENABLE        1001    // LED Enable Control Start Address (read/write)
 #define MB_COIL_LED_2_ENABLE        1002
 #define MB_COIL_LED_3_ENABLE        1003

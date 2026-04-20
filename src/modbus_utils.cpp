@@ -23,6 +23,9 @@ void modbusInit(int id)
     RTUServer.configureHoldingRegisters(0x00, HOLDING_REGISTER_NUM);
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
 
+    // Set a default response delay to improve compatibility with slow RS485 hubs (auto-direction switching)
+    RTUServer.setResponseDelay(5);
+
     LOG_INFO_MODBUS("[MODBUS] Modbus RTU server started with ID: " + String(id) + "\n");
 }
 

@@ -44,6 +44,16 @@ int ModbusRTUServerClass::begin(RS485Class& rs485, int id, unsigned long baudrat
   return begin(id, baudrate, config);
 }
 
+void ModbusRTUServerClass::setResponseDelay(unsigned long delayMs)
+{
+  _responseDelayMs = delayMs;
+}
+
+unsigned long ModbusRTUServerClass::getResponseDelay() const
+{
+  return _responseDelayMs;
+}
+
 int ModbusRTUServerClass::poll()
 {
   uint8_t request[MODBUS_RTU_MAX_ADU_LENGTH];
@@ -51,6 +61,10 @@ int ModbusRTUServerClass::poll()
   int requestLength = modbus_receive(_mb, request);
 
   if (requestLength > 0) {
+    // Insert response delay to allow slow RS485 hub auto-direction circuits to switch
+    if (_responseDelayMs > 0) {
+      delay(_responseDelayMs);
+    }
     modbus_reply(_mb, request, requestLength, &_mbMapping);
     return 1;
   }

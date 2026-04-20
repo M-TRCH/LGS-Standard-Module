@@ -19,7 +19,7 @@ import colorsys
 # ─── Connection Mode ─────────────────────────────────────────────────────────
 #   "TCP"  = Modbus TCP via gateway
 #   "RTU"  = Modbus RTU via USB-to-RS485 adapter
-CONNECTION_MODE = "RTU"
+CONNECTION_MODE = "TCP"
 
 # ─── TCP settings ────────────────────────────────────────────────────────────
 SERVER_IP   = "192.168.6.133"
@@ -266,7 +266,6 @@ def run_phase2(client, csv_file, cycle, sc, row, col, uid, led):
 
     return ok_all, t_sum
 
-
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
     tee, log_path = setup_log_file()
@@ -279,8 +278,8 @@ def main():
     print(f"  Connection : {connection_label()}")
     print(f"  Grid       : {ROWS} rows x {COLS} cols = {ROWS * COLS} units")
     print(f"  Unit IDs   : 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78")
-    print(f"  Pass 1     : WriteRGB -> LED+LatchON(1021-1028) -> ReadLatch(40)")
-    print(f"  Pass 2     : ReadLatch(40) -> LEDoff(1001-1008)")
+    print(f"  Part 1     : WriteRGB -> LED+LatchON(1021-1028) -> ReadLatch(40)")
+    print(f"  Part 2     : ReadLatch(40) -> LEDoff")
     print(f"  Delays     : Action {DELAY_ACTION*1000:.0f}ms | Sub-cycle {DELAY_SUBCYCLE*1000:.0f}ms"
           f" | Seam {DELAY_SEAM*1000:.0f}ms")
     print(f"  Colors     : {len(COLOR_PRESETS)} presets")
@@ -305,16 +304,16 @@ def main():
 
     print(f"{'='*90}")
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-          f"  |  {ROWS*COLS} units x 2 passes")
+          f"  |  {ROWS*COLS} units x 2 parts")
     print(f"{'='*90}")
     log_csv(csv_file, 1, 0, '', '', '', '', 'CYCLE_START', 'INFO')
 
-    # ── Pass 1: Write RGB + LED+Latch ON + Read Latch ────────────────
-    unit_plan = []  # store (row, col, uid, led) for pass 2
+    # ── Part 1: Write RGB + LED+Latch ON + Read Latch ────────────────
+    unit_plan = []  # store (row, col, uid, led) for part 2
 
-    print(f"\n  Pass 1  WriteRGB -> LED+LatchON -> ReadLatch")
+    print(f"\n  Part 1  WriteRGB -> LED+LatchON -> ReadLatch")
     print(f"  {'='*84}")
-    log_csv(csv_file, 1, 0, '', '', '', '', 'PASS_1_START', 'INFO')
+    log_csv(csv_file, 1, 0, '', '', '', '', 'PART_1_START', 'INFO')
 
     sc = 0
     for row in range(1, ROWS + 1):
@@ -361,14 +360,14 @@ def main():
                   f"(wait {DELAY_SEAM*1000:.0f}ms)")
             time.sleep(DELAY_SEAM)
 
-    # Seam: pass 1 row 7 -> pass 2 row 1  (ID 78 -> 11)
+    # Seam: part 1 row 7 -> part 2 row 1  (ID 78 -> 11)
     print(f"\n  >>> Seam: ID 78 -> 11  (wait {DELAY_SEAM*1000:.0f}ms)")
     time.sleep(DELAY_SEAM)
 
-    # ── Pass 2: Read Latch + LED OFF ─────────────────────────────────
-    print(f"\n  Pass 2  ReadLatch -> LEDoff(1001-1008)")
+    # ── Part 2: Read Latch + LED OFF ─────────────────────────────────
+    print(f"\n  Part 2  ReadLatch -> LEDoff(1001-1008)")
     print(f"  {'='*84}")
-    log_csv(csv_file, 1, 0, '', '', '', '', 'PASS_2_START', 'INFO')
+    log_csv(csv_file, 1, 0, '', '', '', '', 'PART_2_START', 'INFO')
 
     sc2 = 0
     for row in range(1, ROWS + 1):

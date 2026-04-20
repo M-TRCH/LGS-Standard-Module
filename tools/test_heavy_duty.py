@@ -7,7 +7,8 @@ One cycle = traverse all 56 units in two phases:
 Seam = row boundary (e.g. ID 18 -> 21, ID 58 -> 61)
 """
 
-from pymodbus.client import ModbusTcpClient
+from pymodbus.client import ModbusTcpClient, ModbusSerialClient
+import sys
 import time
 from datetime import datetime
 import os
@@ -15,19 +16,31 @@ import csv
 import random
 import colorsys
 
-# ─── Connection ──────────────────────────────────────────────────────────────
-SERVER_IP = "192.168.6.133"
+# ─── Connection Mode ─────────────────────────────────────────────────────────
+#   "TCP"  = Modbus TCP via gateway
+#   "RTU"  = Modbus RTU via USB-to-RS485 adapter
+CONNECTION_MODE = "RTU"
+
+# ─── TCP settings ────────────────────────────────────────────────────────────
+SERVER_IP   = "192.168.6.133"
 SERVER_PORT = 502
+
+# ─── RTU settings ────────────────────────────────────────────────────────────
+SERIAL_PORT = "COM23"        # USB-to-RS485 adapter port
+BAUD_RATE    = 9600
+PARITY       = "N"          # N=None, E=Even, O=Odd
+STOP_BITS    = 1
+BYTE_SIZE    = 8
+SERIAL_TIMEOUT = 3.0        # seconds
 
 # ─── Grid ────────────────────────────────────────────────────────────────────
 ROWS = 7        # rows 1-7
 COLS = 8        # cols 1-8  -> unit ID = row*10 + col
 
 # ─── Timing (seconds) ───────────────────────────────────────────────────────
-DELAY_ACTION    = 0.050     # 50 ms  between actions within a sub-cycle
-DELAY_SUBCYCLE  = 0.600     # 600 ms between sub-cycles
-DELAY_SEAM      = 0.800     # 800 ms at row boundary (seam)
-DELAY_CYCLE     = 3.000     # 3000 ms between cycles
+DELAY_ACTION    = 0.200     # 200 ms  between actions within a sub-cycle
+DELAY_SUBCYCLE  = 0.500     # 500 ms between sub-cycles
+DELAY_SEAM      = 0.500     # 500 ms at row/cycle boundary (seam)
 
 # ─── Modbus addresses ───────────────────────────────────────────────────────
 COIL_LED_LATCH_BASE  = 1021     # 1021-1028: LED N + Latch (ON, auto-reset)
@@ -47,7 +60,61 @@ def generate_color_presets():
 COLOR_PRESETS = generate_color_presets()
 
 
+# ─── Client factory ──────────────────────────────────────────────────────────
+def create_client():
+    """Create Modbus client based on CONNECTION_MODE."""
+    if CONNECTION_MODE == "RTU":
+        return ModbusSerialClient(
+            port=SERIAL_PORT,
+            baudrate=BAUD_RATE,
+            parity=PARITY,
+            stopbits=STOP_BITS,
+            bytesize=BYTE_SIZE,
+            timeout=SERIAL_TIMEOUT,
+        )
+    else:
+        return ModbusTcpClient(SERVER_IP, port=SERVER_PORT, timeout=3.0)
+
+
+def connection_label():
+    """Return human-readable connection string."""
+    if CONNECTION_MODE == "RTU":
+        return f"{SERIAL_PORT} @ {BAUD_RATE} {BYTE_SIZE}{PARITY}{STOP_BITS}"
+    return f"{SERVER_IP}:{SERVER_PORT}"
+
+
 # ─── CSV logger ─────────────────────────────────────────────────────────────
+class TeeLogger:
+    """Duplicate stdout to both terminal and a .log file."""
+    def __init__(self, log_path):
+        self._terminal = sys.stdout
+        self._log = open(log_path, 'a', encoding='utf-8')
+
+    def write(self, msg):
+        self._terminal.write(msg)
+        self._log.write(msg)
+        self._log.flush()
+
+    def flush(self):
+        self._terminal.flush()
+        self._log.flush()
+
+    def close(self):
+        self._log.close()
+        sys.stdout = self._terminal
+
+
+def setup_log_file():
+    """Create .log file and redirect stdout through TeeLogger."""
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    path = os.path.join(log_dir, f"heavy_duty_{ts}.log")
+    tee = TeeLogger(path)
+    sys.stdout = tee
+    return tee, path
+
+
 def setup_csv_logger():
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
@@ -200,218 +267,163 @@ def run_phase2(client, csv_file, cycle, sc, row, col, uid, led):
     return ok_all, t_sum
 
 
-# ─── Daily pause check ──────────────────────────────────────────────────────
-PAUSE_START = datetime.strptime("01:45", "%H:%M").time()
-PAUSE_END   = datetime.strptime("02:15", "%H:%M").time()
-
-
-def check_daily_pause(client, csv_file, cycle):
-    """Pause 01:45-02:15. Returns (client, csv_file) — may reconnect & new log."""
-    now = datetime.now().time()
-    if not (PAUSE_START <= now < PAUSE_END):
-        return client, csv_file
-
-    print(f"\n[PAUSE] 01:45-02:15 maintenance window — closing connection")
-    log_csv(csv_file, cycle, 0, '', '', '', '', 'PAUSE', 'INFO')
-    client.close()
-
-    while datetime.now().time() < PAUSE_END:
-        time.sleep(10)
-
-    csv_file = setup_csv_logger()
-    client = ModbusTcpClient(SERVER_IP, port=SERVER_PORT, timeout=3.0)
-    if not client.connect():
-        print("[FAIL] Reconnect failed after pause")
-        raise SystemExit(1)
-
-    print(f"[RESUME] {datetime.now().strftime('%H:%M:%S')}  New log: {csv_file}\n")
-    log_csv(csv_file, 0, 0, '', '', '', '', 'RESUME', 'OK')
-    return client, csv_file
-
-
 # ─── Main ────────────────────────────────────────────────────────────────────
 def main():
+    tee, log_path = setup_log_file()
     csv_file = setup_csv_logger()
 
     print("=" * 90)
-    print("  Modbus TCP Heavy-Duty Grid Tester")
+    print("  Modbus Heavy-Duty Grid Tester  (single cycle)")
     print("=" * 90)
-    print(f"  Server     : {SERVER_IP}:{SERVER_PORT}")
-    print(f"  Grid       : {ROWS} rows x {COLS} cols = {ROWS * COLS} units/cycle")
+    print(f"  Mode       : {CONNECTION_MODE}")
+    print(f"  Connection : {connection_label()}")
+    print(f"  Grid       : {ROWS} rows x {COLS} cols = {ROWS * COLS} units")
     print(f"  Unit IDs   : 11-18, 21-28, 31-38, 41-48, 51-58, 61-68, 71-78")
-    print(f"  Phase 1.1  : WriteRGB -> LED+LatchON(1021-1028) -> ReadLatch(40)")
-    print(f"  Phase 1.2  : ReadLatch(40) -> LEDoff(1001-1008)")
+    print(f"  Pass 1     : WriteRGB -> LED+LatchON(1021-1028) -> ReadLatch(40)")
+    print(f"  Pass 2     : ReadLatch(40) -> LEDoff(1001-1008)")
     print(f"  Delays     : Action {DELAY_ACTION*1000:.0f}ms | Sub-cycle {DELAY_SUBCYCLE*1000:.0f}ms"
-          f" | Seam {DELAY_SEAM*1000:.0f}ms | Cycle {DELAY_CYCLE*1000:.0f}ms")
+          f" | Seam {DELAY_SEAM*1000:.0f}ms")
     print(f"  Colors     : {len(COLOR_PRESETS)} presets")
-    print(f"  Log        : {csv_file}")
-    print(f"  Daily pause: 01:45-02:15\n")
+    print(f"  Log (csv)  : {csv_file}")
+    print(f"  Log (text) : {log_path}\n")
 
     # Connect
-    print(f"Connecting to {SERVER_IP}:{SERVER_PORT}...", end=' ')
-    client = ModbusTcpClient(SERVER_IP, port=SERVER_PORT, timeout=3.0)
+    print(f"Connecting to {connection_label()}...", end=' ')
+    client = create_client()
     if not client.connect():
         print("FAILED")
+        tee.close()
         return
     print("OK\n")
-    log_csv(csv_file, 0, 0, '', '', '', '', 'CONNECT', 'OK', '', '', SERVER_IP)
+    log_csv(csv_file, 0, 0, '', '', '', '', 'CONNECT', 'OK', '', '',
+            connection_label())
 
-    cycle = 0
     total_ok = 0
     total_fail = 0
     color_queue = []
-    program_start = datetime.now()
+    cycle_t0 = time.time()
 
-    try:
-        while True:
-            client, csv_file = check_daily_pause(client, csv_file, cycle)
+    print(f"{'='*90}")
+    print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+          f"  |  {ROWS*COLS} units x 2 passes")
+    print(f"{'='*90}")
+    log_csv(csv_file, 1, 0, '', '', '', '', 'CYCLE_START', 'INFO')
 
-            cycle += 1
-            cycle_t0 = time.time()
-            cycle_ok = 0
-            cycle_fail = 0
-            sc = 0  # sub-cycle counter within this cycle
+    # ── Pass 1: Write RGB + LED+Latch ON + Read Latch ────────────────
+    unit_plan = []  # store (row, col, uid, led) for pass 2
 
-            print(f"{'='*90}")
-            print(f"CYCLE #{cycle:<5d}  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                  f"  |  {ROWS*COLS} units x 2 phases")
-            print(f"{'='*90}")
-            log_csv(csv_file, cycle, 0, '', '', '', '', 'CYCLE_START', 'INFO')
+    print(f"\n  Pass 1  WriteRGB -> LED+LatchON -> ReadLatch")
+    print(f"  {'='*84}")
+    log_csv(csv_file, 1, 0, '', '', '', '', 'PASS_1_START', 'INFO')
 
-            # ── Phase 1.1: Write RGB + LED+Latch ON + Read Latch ────────
-            unit_plan = []  # store (row, col, uid, led) for phase 1.2
+    sc = 0
+    for row in range(1, ROWS + 1):
+        row_t0 = time.time()
+        row_ok = 0
 
-            print(f"\n  Phase 1.1  WriteRGB -> LED+LatchON -> ReadLatch")
-            print(f"  {'='*84}")
-            log_csv(csv_file, cycle, 0, '', '', '', '', 'PHASE_1.1_START', 'INFO')
+        print(f"\n  Row {row}  (ID {row}1 - {row}8)")
+        print(f"  {'-'*84}")
 
-            for row in range(1, ROWS + 1):
-                row_t0 = time.time()
-                row_ok = 0
+        for col in range(1, COLS + 1):
+            sc += 1
+            uid = row * 10 + col
+            led = random.randint(1, 8)
 
-                print(f"\n  Row {row}  (ID {row}1 - {row}8)")
-                print(f"  {'-'*84}")
+            # Next color from shuffled queue
+            if not color_queue:
+                q = list(range(len(COLOR_PRESETS)))
+                random.shuffle(q)
+                color_queue.extend(q)
+            rgb = COLOR_PRESETS[color_queue.pop(0)]
 
-                for col in range(1, COLS + 1):
-                    sc += 1
-                    uid = row * 10 + col
-                    led = random.randint(1, 8)
+            unit_plan.append((row, col, uid, led))
 
-                    # Next color from shuffled queue
-                    if not color_queue:
-                        q = list(range(len(COLOR_PRESETS)))
-                        random.shuffle(q)
-                        color_queue.extend(q)
-                    rgb = COLOR_PRESETS[color_queue.pop(0)]
+            print(f"  [{sc:>3d}] ID:{uid:2d} L{led}", end='  ')
 
-                    unit_plan.append((row, col, uid, led))
+            ok, _ = run_phase1(client, csv_file, 1, sc,
+                               row, col, uid, led, rgb)
+            if ok:
+                row_ok += 1
+                total_ok += 1
+            else:
+                total_fail += 1
 
-                    print(f"  [{sc:>3d}] ID:{uid:2d} L{led}", end='  ')
+            if col < COLS:
+                time.sleep(DELAY_SUBCYCLE)
 
-                    ok, _ = run_phase1(client, csv_file, cycle, sc,
-                                       row, col, uid, led, rgb)
-                    if ok:
-                        row_ok += 1
-                        cycle_ok += 1
-                        total_ok += 1
-                    else:
-                        cycle_fail += 1
-                        total_fail += 1
+        row_ms = (time.time() - row_t0) * 1000
+        print(f"  Row {row} done: {row_ok}/{COLS} OK  ({row_ms:.0f}ms)")
 
-                    if col < COLS:
-                        time.sleep(DELAY_SUBCYCLE)
+        # Seam delay between rows
+        if row < ROWS:
+            next_row = row + 1
+            print(f"  >>> Seam: ID {row}8 -> {next_row}1  "
+                  f"(wait {DELAY_SEAM*1000:.0f}ms)")
+            time.sleep(DELAY_SEAM)
 
-                row_ms = (time.time() - row_t0) * 1000
-                print(f"  Row {row} done: {row_ok}/{COLS} OK  ({row_ms:.0f}ms)")
+    # Seam: pass 1 row 7 -> pass 2 row 1  (ID 78 -> 11)
+    print(f"\n  >>> Seam: ID 78 -> 11  (wait {DELAY_SEAM*1000:.0f}ms)")
+    time.sleep(DELAY_SEAM)
 
-                # Seam delay between rows
-                if row < ROWS:
-                    next_row = row + 1
-                    print(f"  >>> Seam: ID {row}8 -> {next_row}1  "
-                          f"(wait {DELAY_SEAM*1000:.0f}ms)")
-                    time.sleep(DELAY_SEAM)
+    # ── Pass 2: Read Latch + LED OFF ─────────────────────────────────
+    print(f"\n  Pass 2  ReadLatch -> LEDoff(1001-1008)")
+    print(f"  {'='*84}")
+    log_csv(csv_file, 1, 0, '', '', '', '', 'PASS_2_START', 'INFO')
 
-            # ── Phase 1.2: Read Latch + LED OFF ─────────────────────────
-            print(f"\n  Phase 1.2  ReadLatch -> LEDoff(1001-1008)")
-            print(f"  {'='*84}")
-            log_csv(csv_file, cycle, 0, '', '', '', '', 'PHASE_1.2_START', 'INFO')
+    sc2 = 0
+    for row in range(1, ROWS + 1):
+        row_t0 = time.time()
+        row_ok = 0
 
-            sc2 = 0
-            for row in range(1, ROWS + 1):
-                row_t0 = time.time()
-                row_ok = 0
+        print(f"\n  Row {row}  (ID {row}1 - {row}8)")
+        print(f"  {'-'*84}")
 
-                print(f"\n  Row {row}  (ID {row}1 - {row}8)")
-                print(f"  {'-'*84}")
+        for col in range(1, COLS + 1):
+            sc2 += 1
+            _, _, uid, led = unit_plan[sc2 - 1]
 
-                for col in range(1, COLS + 1):
-                    sc2 += 1
-                    _, _, uid, led = unit_plan[sc2 - 1]
+            print(f"  [{sc2:>3d}] ID:{uid:2d} L{led}", end='  ')
 
-                    print(f"  [{sc2:>3d}] ID:{uid:2d} L{led}", end='  ')
+            ok, _ = run_phase2(client, csv_file, 1, sc2,
+                               row, col, uid, led)
+            if ok:
+                row_ok += 1
+                total_ok += 1
+            else:
+                total_fail += 1
 
-                    ok, _ = run_phase2(client, csv_file, cycle, sc2,
-                                       row, col, uid, led)
-                    if ok:
-                        row_ok += 1
-                        cycle_ok += 1
-                        total_ok += 1
-                    else:
-                        cycle_fail += 1
-                        total_fail += 1
+            if col < COLS:
+                time.sleep(DELAY_SUBCYCLE)
 
-                    if col < COLS:
-                        time.sleep(DELAY_SUBCYCLE)
+        row_ms = (time.time() - row_t0) * 1000
+        print(f"  Row {row} done: {row_ok}/{COLS} OK  ({row_ms:.0f}ms)")
 
-                row_ms = (time.time() - row_t0) * 1000
-                print(f"  Row {row} done: {row_ok}/{COLS} OK  ({row_ms:.0f}ms)")
+        # Seam delay between rows
+        if row < ROWS:
+            next_row = row + 1
+            print(f"  >>> Seam: ID {row}8 -> {next_row}1  "
+                  f"(wait {DELAY_SEAM*1000:.0f}ms)")
+            time.sleep(DELAY_SEAM)
 
-                # Seam delay between rows
-                if row < ROWS:
-                    next_row = row + 1
-                    print(f"  >>> Seam: ID {row}8 -> {next_row}1  "
-                          f"(wait {DELAY_SEAM*1000:.0f}ms)")
-                    time.sleep(DELAY_SEAM)
+    # ── Summary ──────────────────────────────────────────────────────
+    cycle_ms = (time.time() - cycle_t0) * 1000
+    total_sub = total_ok + total_fail
+    rate = total_ok / total_sub * 100 if total_sub > 0 else 0
+    n_actions = ROWS * COLS * 2
 
-            cycle_ms = (time.time() - cycle_t0) * 1000
-            total_sub = total_ok + total_fail
-            rate = total_ok / total_sub * 100 if total_sub > 0 else 0
-            n_phases = ROWS * COLS * 2
+    log_csv(csv_file, 1, sc, '', '', '', '', 'CYCLE_END', 'INFO',
+            f"{total_ok}/{n_actions}", f"{cycle_ms:.0f}", '')
 
-            log_csv(csv_file, cycle, sc, '', '', '', '', 'CYCLE_END', 'INFO',
-                    f"{cycle_ok}/{n_phases}", f"{cycle_ms:.0f}",
-                    f"Overall:{total_ok}/{total_sub}")
+    print(f"\n{'='*90}")
+    print(f"  DONE  |  {total_ok}/{n_actions} OK  |  "
+          f"{cycle_ms/1000:.1f}s  |  Success rate: {rate:.1f}%")
+    print(f"{'='*90}")
 
-            print(f"\n{'='*90}")
-            print(f"CYCLE #{cycle} DONE  |  {cycle_ok}/{n_phases} OK  |  "
-                  f"{cycle_ms/1000:.1f}s  |  Overall: {total_ok}/{total_sub} ({rate:.1f}%)")
-            print(f"Next cycle in {DELAY_CYCLE/1000:.1f}s...")
-            print(f"{'='*90}\n")
-            time.sleep(DELAY_CYCLE)
-
-    except KeyboardInterrupt:
-        total_sub = total_ok + total_fail
-        runtime = datetime.now() - program_start
-        rate = total_ok / total_sub * 100 if total_sub > 0 else 0
-
-        print(f"\n\n{'='*90}")
-        print(f"  STOPPED BY USER")
-        print(f"  Cycles       : {cycle}")
-        print(f"  Sub-cycles   : {total_sub}")
-        print(f"  Success      : {total_ok}")
-        print(f"  Failed       : {total_fail}")
-        print(f"  Success Rate : {rate:.1f}%")
-        print(f"  Runtime      : {runtime}")
-        print(f"{'='*90}")
-
-        log_csv(csv_file, cycle, total_sub, '', '', '', '', 'STOP', 'INFO',
-                f"{total_ok}/{total_sub}", '', f"Runtime:{runtime}")
-
-    finally:
-        client.close()
-        log_csv(csv_file, cycle, 0, '', '', '', '', 'DISCONNECT', 'OK')
+    client.close()
+    log_csv(csv_file, 1, 0, '', '', '', '', 'DISCONNECT', 'OK')
 
     print("Program terminated")
+    tee.close()
 
 
 if __name__ == "__main__":

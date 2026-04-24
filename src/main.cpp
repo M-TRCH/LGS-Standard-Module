@@ -150,7 +150,7 @@ void loop()
                     last_led_state[i] = false; // Update last known state
 
                     // Stop timer and accumulate time
-                    led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
+                    led_time_sum[i] += (millis() - led_timer[i]) / 1000.0f; // Convert ms to seconds
                     led_timer[i] = 0; // Reset timer
 
                     // Update Modbus coil to reflect LED is off

@@ -210,6 +210,8 @@ void loop()
         RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_TIME, total_time_value);        // Total LED on time in seconds (clamped to uint16 max)
     
         // Update time after last unlock
+        
+        #ifndef DISABLE_LATCH_STATUS_RESET
         if (isLatchLocked())  
         {
             lastTimeLatchLocked = millis();
@@ -219,6 +221,9 @@ void loop()
         {           
             RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, (uint16_t)((millis() - lastTimeLatchLocked) / 1000)); // in seconds
         }
+        #else
+            RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, 0); // Always report 0 since latch status reset is disabled
+        #endif
     }
 
     // Poll Modbus server for requests

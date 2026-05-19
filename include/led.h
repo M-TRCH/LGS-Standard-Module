@@ -6,7 +6,7 @@
 #include <Adafruit_NeoPixel.h>
 #include "system.h"
 
-#define LED_NUM_PER_STRIP     1     // Number of LEDs per strip
+#define LED_NUM_PER_STRIP     1     // Initial compile-time allocation size (runtime value stored in eepromConfig.ledNumPerStrip)
 #define LED_NUM               8     // Total number of LEDs
 #define DEFAULT_LED_POWER     20    // Default LED power percentage (0-100)
 #define DEFAULT_LED_PWM       (DEFAULT_LED_POWER / 100.0 * 255.0)
@@ -20,6 +20,8 @@ extern uint32_t led_timer[LED_NUM];     // Timer for each LED having been turned
 extern float led_time_sum[LED_NUM];     // Total time each LED has been on (in seconds)
 
 void ledInit();
+
+void ledSetAllPixels(int ledIndex, uint32_t color);
 
 void printLedStatus();
 

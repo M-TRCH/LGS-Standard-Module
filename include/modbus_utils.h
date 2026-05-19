@@ -34,6 +34,7 @@
 // Configuration groups:
 #define MB_REG_SET_NUM_DISPLAY      60      // Set Number of Displays (read/write)
 #define MB_REG_UNLOCK_DELAY         80      // Unlock Delay Time in seconds (read/write/flash)
+#define MB_REG_LED_NUM_PER_STRIP    81      // Number of LEDs per strip (read/write/flash)
 #define MB_REG_LED_1_BRIGHTNESS     110     // LED 1 Configuration Start Address (read/write/flash)
 #define MB_REG_LED_1_RED            111
 #define MB_REG_LED_1_GREEN          112

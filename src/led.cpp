@@ -1,4 +1,5 @@
 #include "led.h"
+#include "eeprom_utils.h"
 
 Adafruit_NeoPixel null_led;
 Adafruit_NeoPixel led1(LED_NUM_PER_STRIP, LED1_PIN, NEO_GRB + NEO_KHZ800);
@@ -37,15 +38,24 @@ uint32_t led_counter[LED_NUM] = {0};    // Counter for each LED having been turn
 uint32_t led_timer[LED_NUM] = {0};      // Timer for each LED having been turned on
 float led_time_sum[LED_NUM] = {0};      // Total time each LED has been on (in seconds)
 
+void ledSetAllPixels(int ledIndex, uint32_t color)
+{
+    for (uint16_t p = 0; p < eepromConfig.ledNumPerStrip; p++)
+    {
+        leds[ledIndex]->setPixelColor(p, color);
+    }
+    leds[ledIndex]->show();
+}
+
 void ledInit() 
 {   
     LOG_INFO_LED(F("[LED] Initializing LED strips...\n"));
     // Initialize LED strips
     for (int i = 0; i < LED_NUM; i++) 
     {
+        leds[i]->updateLength(eepromConfig.ledNumPerStrip);
         leds[i]->begin();
-        leds[i]->setPixelColor(0, leds[i]->Color(0,0,0));
-        leds[i]->show(); // Initialize all pixels to 'off'
+        ledSetAllPixels(i, leds[i]->Color(0, 0, 0)); // Initialize all pixels to 'off'
     }
     LOG_INFO_LED(F("[LED] LED initialization complete\n"));
 }

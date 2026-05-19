@@ -8,8 +8,8 @@
 #define MODBUS_OUTPUT       MODBUS_SERIAL3  // Select the physical output
 
 // Default configuration values
-#define DEFAULT_DEVICE_TYPE         10      // 10=standard, 20=narcotic
-#define DEFAULT_FW_VERSION          7055    // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)
+#define DEFAULT_DEVICE_TYPE         40      // 10=standard, 20=narcotic, 30=lite, 40=delivery
+#define DEFAULT_FW_VERSION          19055   // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)
 #define DEFAULT_HW_VERSION          430     // mnp m=major, n=minor, p=production time
 #define DEFAULT_BAUD_RATE           9600
 #define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-246, 247=not set)
@@ -18,6 +18,7 @@
 #define DEFAULT_LED_G               {0,     255,    0,      215,    255,    0,      60,     245}
 #define DEFAULT_LED_B               {0,     0,      255,    0,      255,    255,    0,      120}
 #define DEFAULT_LED_MAX_ON_TIME     {3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600} // in seconds (1 hour each)
+#define DEFAULT_LED_NUM_PER_STRIP   1       // Default number of LEDs per strip
 #define DEFAULT_UNLOCK_DELAY_TIME   0       // in milliseconds
 
 // Operate configuration

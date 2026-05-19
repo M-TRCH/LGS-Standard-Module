@@ -17,6 +17,7 @@ EepromConfig_t eepromConfig_default =
     .led_g = DEFAULT_LED_G,                         // Default green values for 8 LEDs
     .led_b = DEFAULT_LED_B,                         // Default blue values for 8 LEDs
     .maxOnTime = DEFAULT_LED_MAX_ON_TIME,           // Default max on time for 8 LEDs
+    .ledNumPerStrip = DEFAULT_LED_NUM_PER_STRIP,    // Default number of LEDs per strip
     .unlockDelayTime = DEFAULT_UNLOCK_DELAY_TIME    // Default unlock delay time
 };
 

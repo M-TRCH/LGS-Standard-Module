@@ -6,30 +6,8 @@
 #include <Stream.h>
 #include <HardwareSerial.h>
 #include <ArduinoRS485.h>
-#include <Wire.h>
-#include <SensirionI2CSts4x.h>
 #include "config.h"
-
-// Pin definitions
-#define RX_PIN          PA10 
-#define TX_PIN          PA9
-#define RX3_PIN         PA3
-#define TX3_PIN         PA2
-#define DUMMY_PIN       PA1     // (New) dummy pin for rs485
-#define SCL1_PIN        PB8     // (New) I2C1 SCL pin
-#define SDA1_PIN        PB9     // (New) I2C1 SDA pin
-#define LED_RUN_PIN     PA15    // (New) Run LED pin
-#define LED1_PIN        PB1 
-#define LED2_PIN        PB2     
-#define LED3_PIN        PA11     
-#define LED4_PIN        PA8
-#define LED5_PIN        PB0
-#define LED6_PIN        PC13
-#define LED7_PIN        PB14
-#define LED8_PIN        PB15
-#define FUNC_SW_PIN     PA0     // (New) Function switch pin
-#define MOSFET_PIN      PB4     
-#define SENSE_PIN       PA6
+#include "hw_config.h"   // Board-specific pin mapping
 
 // Communication settings
 #define DEBUG_BAUD      9600
@@ -40,10 +18,6 @@
 #define ROUTINE_BLINK_DEMO_MS       800     // LED blink interval in demo mode
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
 #define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
-
-// Latch safety settings
-#define LATCH_MAX_UNLOCK_TIME       500     // Maximum unlock time in milliseconds (safety limit)
-#define LATCH_MIN_INTERVAL          2000    // Minimum interval between unlock calls in milliseconds
 
 // Function switch modes (returned by checkFunctionSwitch)
 enum FunctionSwitchMode
@@ -69,7 +43,6 @@ extern uint32_t lastTimeLatchLocked;
 extern HardwareSerial Serial3; 
 extern RS485Class rs485;
 extern RS485Class rs4853;
-extern SensirionI2CSts4x sts4x;
 
 // Constants definitions
 // Log level definitions
@@ -135,23 +108,6 @@ extern uint8_t enabledLogCategories;
  * This function sets up the necessary pins and initializes serial communication. 
 */
 void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
-
-/* @brief Check if the latch is locked
- *
- * This function reads the state of the latch and returns true if it is locked, false otherwise.
- *
- * @return true if the latch is locked, false otherwise
- */
-bool isLatchLocked(int debounceDelay = 0);
-
-/* @brief Check if the latch is active
- *
- * This function checks if the latch has been active within the specified timeout period.
- *
- * @param activeTimeout The timeout period in milliseconds (default is 300 ms)
- * @return true if the latch is active, false otherwise
- */
-bool unlockLatch(int unlockTimeout = 300);
 
 /* @brief Check function switch state at startup
  *

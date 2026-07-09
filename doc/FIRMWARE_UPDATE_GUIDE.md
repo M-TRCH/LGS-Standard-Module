@@ -105,30 +105,26 @@
 ### 3.1 Build และ Upload ลองบอร์ดทดลองก่อน
 
 1. เปิด **VS Code** พร้อมโปรเจกต์ PlatformIO
-2. ไปที่ **PlatformIO > Run Other tasks** หรือคลิก `Build` 
-3. เลือก **Build** เพื่อ compile code
+2. ไปที่ **PlatformIO > Run Other tasks** หรือคลิก `Build`
+3. เลือก **Build** เพื่อ compile code ตามบอร์ดที่ต้องการ
    ```
-   pio run
+   pio run -e genericSTM32F103C8      # บอร์ดปัจจุบัน STM32F103
+   pio run -e genericSTM32G030C8      # บอร์ดรุ่นใหม่ STM32G030
    ```
    หรือใช้ **Upload** เพื่อ build และอัพโหลดทันที
    ```
-   pio run -t upload
+   pio run -e genericSTM32F103C8 -t upload
    ```
 
 4. รอให้ Build สำเร็จ และตรวจสอบ Console ว่าไม่มี Error
 
 ### 3.2 ตัวอย่างผลลัพธ์
 
-หลังจาก Build สำเร็จ ไฟล์ firmware จะอยู่ที่:
+หลังจาก Build สำเร็จ ไฟล์ firmware จะอยู่ที่ (ตามชื่อ environment):
 
 ```
-.pio/build/generic/firmware.bin
-```
-
-หรือในบางกรณี:
-
-```
-build/generic/firmware.bin
+.pio/build/genericSTM32F103C8/firmware.bin
+.pio/build/genericSTM32G030C8/firmware.bin
 ```
 
 ### 3.3 คัดลอกไฟล์ .bin

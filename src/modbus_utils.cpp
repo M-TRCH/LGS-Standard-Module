@@ -38,13 +38,13 @@ void modbus2eepromMapping(bool saveEEPROM)
     for (int i = 0; i < LED_NUM; i++) 
     {
         // led_brightness, led_r, led_g, led_b
-        eepromConfig.led_brightness[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10);
-        eepromConfig.led_r[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10);
-        eepromConfig.led_g[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10);
-        eepromConfig.led_b[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10);
+        eepromConfig.led_brightness[i] = RTUServer.holdingRegisterRead(mbLedCfg(i, LED_CFG_BRIGHTNESS));
+        eepromConfig.led_r[i] = RTUServer.holdingRegisterRead(mbLedCfg(i, LED_CFG_RED));
+        eepromConfig.led_g[i] = RTUServer.holdingRegisterRead(mbLedCfg(i, LED_CFG_GREEN));
+        eepromConfig.led_b[i] = RTUServer.holdingRegisterRead(mbLedCfg(i, LED_CFG_BLUE));
 
         // maximum on-time limit
-        eepromConfig.maxOnTime[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10);
+        eepromConfig.maxOnTime[i] = RTUServer.holdingRegisterRead(mbLedCfg(i, LED_CFG_MAX_ON_TIME));
     }
     
     // Unlock delay time
@@ -79,13 +79,13 @@ void eeprom2modbusMapping(bool loadEEPROM)
     for (int i = 0; i < LED_NUM; i++) 
     {
         // led_brightness, led_r, led_g, led_b
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i*10, eepromConfig.led_brightness[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_RED + i*10, eepromConfig.led_r[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_GREEN + i*10, eepromConfig.led_g[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BLUE + i*10, eepromConfig.led_b[i]);
+        RTUServer.holdingRegisterWrite(mbLedCfg(i, LED_CFG_BRIGHTNESS), eepromConfig.led_brightness[i]);
+        RTUServer.holdingRegisterWrite(mbLedCfg(i, LED_CFG_RED), eepromConfig.led_r[i]);
+        RTUServer.holdingRegisterWrite(mbLedCfg(i, LED_CFG_GREEN), eepromConfig.led_g[i]);
+        RTUServer.holdingRegisterWrite(mbLedCfg(i, LED_CFG_BLUE), eepromConfig.led_b[i]);
     
         // maximum on-time limit
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i*10, eepromConfig.maxOnTime[i]);
+        RTUServer.holdingRegisterWrite(mbLedCfg(i, LED_CFG_MAX_ON_TIME), eepromConfig.maxOnTime[i]);
     }
 
     // Unlock delay time

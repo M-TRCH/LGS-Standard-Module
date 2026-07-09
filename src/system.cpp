@@ -1,10 +1,11 @@
 
 #include "system.h"
+#include "hal/hal_latch.h"
+#include "hal/hal_sensor.h"
 
 HardwareSerial Serial3(RX3_PIN, TX3_PIN);
 RS485Class rs485(Serial, DUMMY_PIN, TX_PIN, RX_PIN);        // Initialize RS485 with Serial and Serial3
 RS485Class rs4853(Serial3, DUMMY_PIN, TX3_PIN, RX3_PIN);     
-SensirionI2CSts4x sts4x;
 
 // Global variables
 uint32_t lastTimeRoutineBlink = 0;
@@ -29,7 +30,7 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
 
     LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));   
 
-    // Initialize pins
+    // Initialize status / channel LED and user-input pins
     pinMode(LED_RUN_PIN, OUTPUT);
     pinMode(LED1_PIN, OUTPUT);
     pinMode(LED2_PIN, OUTPUT);
@@ -39,13 +40,8 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     pinMode(LED6_PIN, OUTPUT);
     pinMode(LED7_PIN, OUTPUT);
     pinMode(LED8_PIN, OUTPUT);
-    pinMode(MOSFET_PIN, OUTPUT);
-    pinMode(SENSE_PIN, INPUT_PULLUP);
     pinMode(FUNC_SW_PIN, INPUT);
-    
-    // Initialize pins to default states
     digitalWrite(LED_RUN_PIN, LOW);
-    digitalWrite(MOSFET_PIN, LOW);
 
     // Initialize Serial interfaces
     Serial.setRx(RX_PIN);
@@ -53,76 +49,14 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
     Serial.begin(DEBUG_BAUD);
     Serial3.begin(MODBUS_BAUD);
 
-    // Initialize I2C and STS4x sensor
-    Wire.setSDA(SDA1_PIN);
-    Wire.setSCL(SCL1_PIN);
-    Wire.begin(); // Initialize I2C
-    sts4x.begin(Wire, ADDR_STS4X_ALT);
+    // Initialize hardware peripherals via their HAL modules
+    latchInit();    // Electronic latch (MOSFET + sense)
+    sensorInit();   // Built-in temperature sensor (I2C)
 
     // Check function switch immediately after system init
     functionMode = checkFunctionSwitch();
 
     LOG_INFO_SYS(F("[SYSTEM] Initialization complete\n"));
-}
-
-bool isLatchLocked(int debounceDelay)
-{
-    if (digitalRead(SENSE_PIN) == LOW)
-    {
-        delay(debounceDelay); // Debounce delay
-        if (digitalRead(SENSE_PIN) == LOW)
-        {
-            return true; // Latch is locked
-        }
-    }
-    return false; // Latch is inactive
-}
-
-bool unlockLatch(int unlockTimeout)
-{
-    // Safety check: enforce maximum unlock time
-    if (unlockTimeout > LATCH_MAX_UNLOCK_TIME)
-    {
-        LOG_WARNING_SYS("[SYSTEM] Unlock timeout " + String(unlockTimeout) + "ms exceeds maximum " + String(LATCH_MAX_UNLOCK_TIME) + "ms, clamping to max\n");
-        unlockTimeout = LATCH_MAX_UNLOCK_TIME;
-    }
-
-    // Safety check: prevent frequent unlocking
-    static uint32_t lastUnlockTime = 0;
-    uint32_t timeSinceLastUnlock = millis() - lastUnlockTime;
-    
-    if (lastUnlockTime != 0 && timeSinceLastUnlock < LATCH_MIN_INTERVAL)
-    {
-        LOG_WARNING_SYS("[SYSTEM] Unlock attempt blocked - only " + String(timeSinceLastUnlock) + "ms since last unlock (min " + String(LATCH_MIN_INTERVAL) + "ms)\n");
-        return false; // Reject unlock attempt if too soon
-    }
-
-    if (digitalRead(SENSE_PIN) == LOW)
-    {
-        lastUnlockTime = millis();
-        digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
-        LOG_INFO_SYS("[SYSTEM] Latch unlocking for " + String(unlockTimeout) + "ms\n");
-             
-        uint32_t startTime = millis();
-        while (digitalRead(SENSE_PIN) == LOW)
-        {
-            if (millis() - startTime >= unlockTimeout)
-            {
-                break; // Exit if timeout reached
-            }
-        }
-        
-        uint32_t actualDuration = millis() - startTime;
-        digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
-        LOG_INFO_SYS("[SYSTEM] Latch unlocked for " + String(actualDuration) + "ms\n");
-        
-        return true; // Latch is active
-    }
-    else
-    {
-        LOG_DEBUG_SYS("[SYSTEM] Unlock attempt - latch already inactive\n");
-        return false; // Latch is inactive
-    }
 }
 
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)

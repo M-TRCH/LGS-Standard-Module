@@ -116,6 +116,14 @@ void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
  */
 void sysSetRunIndicator(bool state);
 
+/* @brief Read the runtime state of the function switch.
+ *
+ * The switch is active LOW.
+ *
+ * @return true when the switch is currently pressed
+ */
+bool sysIsFunctionSwitchPressed();
+
 /* @brief Check if the latch is locked
  *
  * This function reads the state of the latch and returns true if it is locked, false otherwise.

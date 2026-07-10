@@ -33,4 +33,10 @@ void oledClear();
  */
 void oledPrint(const String &text, uint8_t textSize = 2);
 
+/*  @brief Show a two-digit number centered using a large GFX font.
+ *
+ *  @param value Number to display. Values above 99 are wrapped by the caller.
+ */
+void oledPrintLargeNumber(uint8_t value);
+
 #endif // HW_OLED_H

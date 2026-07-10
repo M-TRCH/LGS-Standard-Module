@@ -50,6 +50,11 @@ void sysSetRunIndicator(bool state)
     digitalWrite(LED_RUN_PIN, state ? HIGH : LOW);
 }
 
+bool sysIsFunctionSwitchPressed()
+{
+    return (digitalRead(FUNC_SW_PIN) == LOW);
+}
+
 bool isLatchLocked(int debounceDelay)
 {
     if (digitalRead(SENSE_PIN) == LOW)

@@ -27,6 +27,7 @@ static void enforceLedMaxOnTime();
 static void updateLedStatistics();
 static void updateLatchStatus();
 static void updateOledStatus(const String &title, const String &value = "");
+static void updateOledCounter(uint8_t value);
 
 static bool oledReady = false;
 
@@ -79,13 +80,24 @@ static void runDemoMode()
 {
     static uint32_t lastDemoFrame = 0;
     static uint16_t rainbowPhase = 0;
+    static uint8_t oledCounter = 0;
+    static bool lastSwitchPressed = false;
+    static uint32_t lastSwitchEdge = 0;
+
+    bool switchPressed = sysIsFunctionSwitchPressed();
+    if (switchPressed && !lastSwitchPressed && (millis() - lastSwitchEdge >= 180))
+    {
+        lastSwitchEdge = millis();
+        oledCounter = (oledCounter + 1) % 100;
+    }
+    lastSwitchPressed = switchPressed;
 
     if (millis() - lastDemoFrame >= 32)
     {
         lastDemoFrame = millis();
         rainbowPhase += 1;
 
-        updateOledStatus("OLED", "RAINBOW");
+        updateOledCounter(oledCounter);
         ledShowRainbowRipple(rainbowPhase);
     }
 }
@@ -242,6 +254,16 @@ static void updateOledStatus(const String &title, const String &value)
     }
 
     oledPrint(screenText, 2);
+}
+
+static void updateOledCounter(uint8_t value)
+{
+    if (!oledReady)
+    {
+        return;
+    }
+
+    oledPrintLargeNumber(value);
 }
 
 // ---------------------------------------------------------------------------

@@ -80,10 +80,10 @@ static void runDemoMode()
     static uint32_t lastDemoFrame = 0;
     static uint16_t rainbowPhase = 0;
 
-    if (millis() - lastDemoFrame >= 80)
+    if (millis() - lastDemoFrame >= 32)
     {
         lastDemoFrame = millis();
-        rainbowPhase++;
+        rainbowPhase += 1;
 
         updateOledStatus("OLED", "RAINBOW");
         ledShowRainbowRipple(rainbowPhase);

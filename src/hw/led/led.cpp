@@ -50,9 +50,11 @@ void ledShowRainbowRipple(uint16_t phase)
 {
     for (int pixel = 0; pixel < LED_RING_PIXEL_COUNT; pixel++)
     {
-        uint16_t hue = (phase * 256U) + (pixel * (65535U / LED_RING_PIXEL_COUNT));
-        uint8_t wave = (uint8_t)((phase * 10U) + (pixel * (256U / LED_RING_PIXEL_COUNT)));
-        uint8_t brightness = (wave < 128U) ? (64U + wave) : (64U + (255U - wave));
+        uint16_t hue = (phase * 192U) + (pixel * (65535U / LED_RING_PIXEL_COUNT));
+        uint8_t wave = (uint8_t)((phase * 6U) + (pixel * 14U));
+        uint8_t triangle = (wave < 128U) ? (wave << 1) : ((255U - wave) << 1);
+        uint8_t eased = (uint8_t)(((uint16_t)triangle * (uint16_t)triangle) / 255U);
+        uint8_t brightness = 24U + (uint8_t)(((uint16_t)eased * 200U) / 255U);
 
         uint32_t color = ledRing.gamma32(ledRing.ColorHSV(hue, 255, brightness));
         ledRing.setPixelColor(pixel, color);

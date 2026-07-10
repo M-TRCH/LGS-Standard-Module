@@ -1,5 +1,6 @@
 
 #include "modbus_utils.h"
+#include "hw/serial.h"
 
 // Global variables for Modbus
 uint16_t last_global_brightness = 0;
@@ -12,11 +13,7 @@ void modbusInit(int id)
 {
     id = abs(id);
 
-    #if MODBUS_OUTPUT == MODBUS_SERIAL
-        RTUServer.begin(rs485, id, MODBUS_BAUD, SERIAL_8N1);   // Start Modbus RTU server with ID 1, baud rate 9600, and config SERIAL_8N1
-    #elif MODBUS_OUTPUT == MODBUS_SERIAL3
-        RTUServer.begin(rs4853, id, MODBUS_BAUD, SERIAL_8N1);  // Start Modbus RTU server with Serial3
-    #endif
+    RTUServer.begin(rs485, id, MODBUS_BAUD, SERIAL_8N1);
 
     RTUServer.configureCoils(0x00, COIL_NUM);
     RTUServer.configureDiscreteInputs(0x00, DISCRETE_INPUT_NUM);

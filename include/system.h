@@ -5,31 +5,11 @@
 #include <Arduino.h>
 #include <Stream.h>
 #include <HardwareSerial.h>
-#include <ArduinoRS485.h>
-#include <Wire.h>
-#include <SensirionI2CSts4x.h>
 #include "config.h"
+#include "HW_config.h"
 
-// Pin definitions
-#define RX_PIN          PA10 
-#define TX_PIN          PA9
-#define RX3_PIN         PA3
-#define TX3_PIN         PA2
-#define DUMMY_PIN       PA1     // (New) dummy pin for rs485
-#define SCL1_PIN        PB8     // (New) I2C1 SCL pin
-#define SDA1_PIN        PB9     // (New) I2C1 SDA pin
-#define LED_RUN_PIN     PA15    // (New) Run LED pin
-#define LED1_PIN        PB1 
-#define LED2_PIN        PB2     
-#define LED3_PIN        PA11     
-#define LED4_PIN        PA8
-#define LED5_PIN        PB0
-#define LED6_PIN        PC13
-#define LED7_PIN        PB14
-#define LED8_PIN        PB15
-#define FUNC_SW_PIN     PA0     // (New) Function switch pin
-#define MOSFET_PIN      PB4     
-#define SENSE_PIN       PA6
+// Hardware pin mapping is centralized in HW_config.h
+// Hardware drivers are split under include/hw and src/hw
 
 // Communication settings
 #define DEBUG_BAUD      115200
@@ -64,12 +44,6 @@ extern bool blink_demo_state;
 extern bool blink_set_id_state;
 extern FunctionSwitchMode functionMode;
 extern uint32_t lastTimeLatchLocked;
-
-// Object declarations
-extern HardwareSerial Serial3; 
-extern RS485Class rs485;
-extern RS485Class rs4853;
-extern SensirionI2CSts4x sts4x;
 
 // Constants definitions
 // Log level definitions
@@ -135,6 +109,12 @@ extern uint8_t enabledLogCategories;
  * This function sets up the necessary pins and initializes serial communication. 
 */
 void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
+
+/* @brief Control the built-in status LED.
+ *
+ * @param state true to turn on, false to turn off
+ */
+void sysSetRunIndicator(bool state);
 
 /* @brief Check if the latch is locked
  *

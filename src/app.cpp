@@ -2,7 +2,10 @@
 #include "app.h"
 #include "system.h"
 #include "eeprom_utils.h"
-#include "led.h"
+#include "hw/led.h"
+#include "hw/sensor.h"
+#include "hw/oled.h"
+#include "hw/servo.h"
 #include "modbus_utils.h"
 
 // ---------------------------------------------------------------------------
@@ -20,7 +23,6 @@ static void handleModbusRequests();
 
 // Shared runtime tasks
 static void applyLedColor(int ledIndex, float brightnessScale);
-static void readBuiltInSensor();
 static void enforceLedMaxOnTime();
 static void updateLedStatistics();
 static void updateLatchStatus();
@@ -37,7 +39,9 @@ void appInit()
     // clearEeprom(true);   // Uncomment to clear EEPROM for debugging
     eepromInit();           // Initialize EEPROM and load configuration
 
-    ledInit();              // Initialize LED strips
+    ledInit();              // Initialize LED ring
+    oledInit();             // Initialize OLED display (I2C2)
+    servoInit();            // Initialize servo outputs (PC6, PC7)
 
     // Initialize Modbus server with ID from EEPROM, or special ID (246) for SET_ID mode
     modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : eepromConfig.identifier);
@@ -87,7 +91,7 @@ static void runSetIdMode()
     {
         for (int i = 0; i < LED_NUM; i++)
         {
-            ledSetAllPixels(i, leds[i]->Color(0, 0, (blink_set_id_state ? 204 : 0))); // Blue or off (magic number)
+            ledSetAllPixels(i, ledColor(0, 0, (blink_set_id_state ? 204 : 0))); // Blue or off (magic number)
         }
     }
 }
@@ -97,7 +101,7 @@ static void runFactoryResetMode()
 {
     for (int i = 0; i < LED_NUM; i++)
     {
-        ledSetAllPixels(i, leds[i]->Color(204, 0, 0)); // Red (magic number)
+        ledSetAllPixels(i, ledColor(204, 0, 0)); // Red (magic number)
     }
     delay(5000); // (magic number)
     LOG_INFO_SYS(F("[SYSTEM] Factory reset mode engaged.\n"));
@@ -112,13 +116,17 @@ static void runNormalMode()
     // Routine blink for run LED
     if (ON_ROUTINE_BLINK_RUN())
     {
-        digitalWrite(LED_RUN_PIN, blink_run_state);
+        sysSetRunIndicator(blink_run_state);
     }
 
     // Routine sensor read
     if (ON_ROUTINE_SENSOR_READ())
     {
-        readBuiltInSensor();
+        float temperatureC = 0.0f;
+        if (sensorReadTemperature(temperatureC))
+        {
+            RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temperatureC * 100));
+        }
     }
 
     enforceLedMaxOnTime();  // Turn off LEDs that exceeded their max on-time
@@ -136,19 +144,10 @@ static void applyLedColor(int ledIndex, float brightnessScale)
 {
     // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
     float brightness = (RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + ledIndex * 10) / 100.0f) * brightnessScale;
-    ledSetAllPixels(ledIndex, leds[ledIndex]->Color(
+    ledSetAllPixels(ledIndex, ledColor(
         RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + ledIndex * 10) * brightness,
         RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + ledIndex * 10) * brightness,
         RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + ledIndex * 10) * brightness));
-}
-
-// Read the built-in temperature sensor and store it in the Modbus register.
-static void readBuiltInSensor()
-{
-    float temp;
-    sts4x.measureHighPrecision(temp);
-    RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temp * 100)); // Store as integer (e.g., 2534 for 25.34°C)
-    // LOG_DEBUG_SYS("Temperature: " + String(temp, 2) + " °C\n");
 }
 
 // Enforce the per-LED maximum on-time limits.
@@ -164,7 +163,7 @@ static void enforceLedMaxOnTime()
                 LOG_WARNING_LED("[LED] L" + String(i + 1) + " max on-time exceeded, turning off\n");
 
                 // Turn off the LED
-                ledSetAllPixels(i, leds[i]->Color(0, 0, 0));
+                ledSetAllPixels(i, ledColor(0, 0, 0));
                 last_led_state[i] = false; // Update last known state
 
                 // Stop timer and accumulate time
@@ -319,7 +318,7 @@ static void handleModbusRequests()
             }
             else    // If the LED state is OFF
             {
-                ledSetAllPixels(i, leds[i]->Color(0, 0, 0));
+                ledSetAllPixels(i, ledColor(0, 0, 0));
 
                 // Stop timer and accumulate time if it was running
                 if (led_timer[i] != 0)

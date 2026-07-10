@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ModbusRTUServer.h>
 #include "system.h"
-#include "led.h"
+#include "hw/led.h"
 #include "eeprom_utils.h"
 
 #define COIL_NUM                    5000    // Number of coils

@@ -17,24 +17,3 @@ void loop()
 {
     appRun();   // Run one iteration of the application loop
 }
-
-// ---------------------------------------------------------------------------
-// OLED test scaffolding (kept for bring-up / debugging).
-// Uncomment and add "#include <Adafruit_GFX.h>" / "#include <Adafruit_SSD1306.h>"
-// to exercise the display during development.
-// ---------------------------------------------------------------------------
-/*
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-Adafruit_SSD1306 oled(128, 64, &Wire, -1);
-
-void oled_init()
-{
-    oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    oled.setTextColor(WHITE);
-    oled.setTextSize(2);
-    oled.setRotation(0);
-    oled.clearDisplay();
-    oled.display();
-}
-*/

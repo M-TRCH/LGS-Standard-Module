@@ -26,6 +26,9 @@ static void applyLedColor(int ledIndex, float brightnessScale);
 static void enforceLedMaxOnTime();
 static void updateLedStatistics();
 static void updateLatchStatus();
+static void updateOledStatus(const String &title, const String &value = "");
+
+static bool oledReady = false;
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -40,8 +43,13 @@ void appInit()
     eepromInit();           // Initialize EEPROM and load configuration
 
     ledInit();              // Initialize LED ring
-    oledInit();             // Initialize OLED display (I2C2)
+    oledReady = oledInit(); // Initialize OLED display (I2C2)
     servoInit();            // Initialize servo outputs (PC6, PC7)
+
+    if (oledReady)
+    {
+        updateOledStatus("LGS", "BOOT");
+    }
 
     // Initialize Modbus server with ID from EEPROM, or special ID (246) for SET_ID mode
     modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : eepromConfig.identifier);
@@ -76,6 +84,8 @@ static void runDemoMode()
 {
     if (ON_ROUTINE_BLINK_DEMO())
     {
+        updateOledStatus("MODE", "DEMO");
+
         for (int i = 0; i < LED_NUM; i++)
         {
             // Turn LEDs off during the "off" blink phase, otherwise show at full config brightness
@@ -89,6 +99,8 @@ static void runSetIdMode()
 {
     if (ON_ROUTINE_BLINK_SET_ID())
     {
+        updateOledStatus("MODE", "SET ID");
+
         for (int i = 0; i < LED_NUM; i++)
         {
             ledSetAllPixels(i, ledColor(0, 0, (blink_set_id_state ? 204 : 0))); // Blue or off (magic number)
@@ -99,6 +111,8 @@ static void runSetIdMode()
 // Factory reset mode: solid red on all LEDs for 5 seconds, then reset
 static void runFactoryResetMode()
 {
+    updateOledStatus("MODE", "RESET");
+
     for (int i = 0; i < LED_NUM; i++)
     {
         ledSetAllPixels(i, ledColor(204, 0, 0)); // Red (magic number)
@@ -126,6 +140,11 @@ static void runNormalMode()
         if (sensorReadTemperature(temperatureC))
         {
             RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temperatureC * 100));
+            updateOledStatus("TEMP", String(temperatureC, 1) + " C");
+        }
+        else
+        {
+            updateOledStatus("TEMP", "ERR");
         }
     }
 
@@ -220,6 +239,22 @@ static void updateLatchStatus()
 #else
     RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, 0); // Always report 0 since latch status reset is disabled
 #endif
+}
+
+static void updateOledStatus(const String &title, const String &value)
+{
+    if (!oledReady)
+    {
+        return;
+    }
+
+    String screenText = title;
+    if (value.length() > 0)
+    {
+        screenText += "\n" + value;
+    }
+
+    oledPrint(screenText, 2);
 }
 
 // ---------------------------------------------------------------------------

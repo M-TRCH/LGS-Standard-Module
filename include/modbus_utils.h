@@ -35,12 +35,12 @@
 #define MB_REG_SET_NUM_DISPLAY      60      // Set Number of Displays (read/write)
 #define MB_REG_UNLOCK_DELAY         80      // Unlock Delay Time in seconds (read/write/flash)
 #define MB_REG_LED_NUM_PER_STRIP    81      // Number of LEDs per strip (read/write/flash)
-#define MB_REG_LED_1_BRIGHTNESS     110     // LED 1 Configuration Start Address (read/write/flash)
+#define MB_REG_LED_1_BRIGHTNESS     110     // Active LED channel: LED_1 controls the full 16-pixel ring
 #define MB_REG_LED_1_RED            111
 #define MB_REG_LED_1_GREEN          112
 #define MB_REG_LED_1_BLUE           113
 #define MB_REG_LED_1_MAX_ON_TIME    114
-#define MB_REG_LED_2_BRIGHTNESS     120     // LED 2 Configuration Start Address (read/write/flash)
+#define MB_REG_LED_2_BRIGHTNESS     120     // Backward compatibility only: firmware ignores LED_2..LED_8
 #define MB_REG_LED_2_RED            121
 #define MB_REG_LED_2_GREEN          122
 #define MB_REG_LED_2_BLUE           123
@@ -81,9 +81,9 @@
 // Status groups:
 #define MB_REG_TOTAL_LED_ON_CNT     200     // Total LED On Counter (read-only)
 #define MB_REG_TOTAL_LED_ON_TIME    201     // Total LED On Time (read-only)
-#define MB_REG_LED_1_ON_COUNTER     210     // LED 1 Status Start Address (read-only)
+#define MB_REG_LED_1_ON_COUNTER     210     // Active LED status: LED_1 reports the full 16-pixel ring
 #define MB_REG_LED_1_ON_TIME        211
-#define MB_REG_LED_2_ON_COUNTER     220     // LED 2 Status Start Address (read-only)
+#define MB_REG_LED_2_ON_COUNTER     220     // Backward compatibility only: firmware ignores LED_2..LED_8
 #define MB_REG_LED_2_ON_TIME        221
 #define MB_REG_LED_3_ON_COUNTER     230     // LED 3 Status Start Address (read-only)
 #define MB_REG_LED_3_ON_TIME        231
@@ -101,14 +101,14 @@
 #define MB_REG_DISPLAY_ON_TIME      291     // Display On Time (read-only)
 
 // Control groups:
-#define MB_COIL_LED_1_ENABLE        1001    // LED Enable Control Start Address (read/write)
+#define MB_COIL_LED_1_ENABLE        1001    // Active LED control: LED_1 drives the full 16-pixel ring
 #define MB_COIL_LED_2_ENABLE        1002
 #define MB_COIL_LED_3_ENABLE        1003
 #define MB_COIL_LED_4_ENABLE        1004
 #define MB_COIL_LED_5_ENABLE        1005
 #define MB_COIL_LED_6_ENABLE        1006
 #define MB_COIL_LED_7_ENABLE        1007
-#define MB_COIL_LED_8_ENABLE        1008
+#define MB_COIL_LED_8_ENABLE        1008    // Backward compatibility only together with LED_2..LED_7
 #define MB_COIL_DISPLAY_ENABLE      1010    // Display Enable Control Start Address (read/write)
 #define MB_COIL_LED_1_DISPLAY       1011
 #define MB_COIL_LED_2_DISPLAY       1012
@@ -119,14 +119,14 @@
 #define MB_COIL_LED_7_DISPLAY       1017
 #define MB_COIL_LED_8_DISPLAY       1018
 #define MB_COIL_LATCH_TRIGGER       1020    // Latch Trigger Control Start Address (read/write)
-#define MB_COIL_LED_1_LATCH         1021
+#define MB_COIL_LED_1_LATCH         1021    // Active latch-assisted LED control for the full 16-pixel ring
 #define MB_COIL_LED_2_LATCH         1022
 #define MB_COIL_LED_3_LATCH         1023    
 #define MB_COIL_LED_4_LATCH         1024
 #define MB_COIL_LED_5_LATCH         1025
 #define MB_COIL_LED_6_LATCH         1026
 #define MB_COIL_LED_7_LATCH         1027
-#define MB_COIL_LED_8_LATCH         1028
+#define MB_COIL_LED_8_LATCH         1028    // Backward compatibility only together with LED_2..LED_7
 
 // Global variables for Modbus
 extern uint16_t last_global_brightness;

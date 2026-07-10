@@ -77,15 +77,16 @@ void appRun()
 // Demo mode: cycle/blink all LEDs using their configured colors
 static void runDemoMode()
 {
-    if (ON_ROUTINE_BLINK_DEMO())
-    {
-        updateOledStatus("OLED", blink_demo_state ? "DEMO ON" : "DEMO OFF");
+    static uint32_t lastDemoFrame = 0;
+    static uint16_t rainbowPhase = 0;
 
-        for (int i = 0; i < LED_NUM; i++)
-        {
-            // Turn LEDs off during the "off" blink phase, otherwise show at full config brightness
-            applyLedColor(i, blink_demo_state ? 1.0f : 0.0f);
-        }
+    if (millis() - lastDemoFrame >= 80)
+    {
+        lastDemoFrame = millis();
+        rainbowPhase++;
+
+        updateOledStatus("OLED", "RAINBOW");
+        ledShowRainbowRipple(rainbowPhase);
     }
 }
 

@@ -24,7 +24,7 @@ float default_color[17][3] =
     {0, 0, DEFAULT_LED_PWM / 2}                             // Navy
 };
 
-bool last_led_state[LED_NUM] = {false, false, false, false, false, false, false, false};
+bool last_led_state[LED_NUM] = {false};
 uint32_t led_counter[LED_NUM] = {0};    // Counter for each LED having been turned on
 uint32_t led_timer[LED_NUM] = {0};      // Timer for each LED having been turned on
 float led_time_sum[LED_NUM] = {0};      // Total time each LED has been on (in seconds)
@@ -43,6 +43,21 @@ void ledSetAllPixels(int ledIndex, uint32_t color)
     {
         ledRing.setPixelColor(pixel, color);
     }
+    ledRing.show();
+}
+
+void ledShowRainbowRipple(uint16_t phase)
+{
+    for (int pixel = 0; pixel < LED_RING_PIXEL_COUNT; pixel++)
+    {
+        uint16_t hue = (phase * 256U) + (pixel * (65535U / LED_RING_PIXEL_COUNT));
+        uint8_t wave = (uint8_t)((phase * 10U) + (pixel * (256U / LED_RING_PIXEL_COUNT)));
+        uint8_t brightness = (wave < 128U) ? (64U + wave) : (64U + (255U - wave));
+
+        uint32_t color = ledRing.gamma32(ledRing.ColorHSV(hue, 255, brightness));
+        ledRing.setPixelColor(pixel, color);
+    }
+
     ledRing.show();
 }
 

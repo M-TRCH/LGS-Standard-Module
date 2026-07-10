@@ -8,12 +8,14 @@
 /*  @file hw/led.h
  *  @brief Addressable LED driver (WS2812B 16-pixel ring on PA8).
  *
- *  The physical ring is exposed to the application as LED_NUM logical groups so
- *  the existing Modbus register/coil layout remains unchanged.
+ *  The physical ring is exposed to Modbus as a single logical LED channel
+ *  (LED_1), so every update applies to all 16 pixels together. Legacy
+ *  LED_2..LED_8 Modbus addresses are kept in the map for backward
+ *  compatibility only and are ignored by the firmware.
  */
 
-#define LED_NUM               8     // Total logical LED groups exposed to Modbus
-#define LED_PIXELS_PER_GROUP  2     // 16-pixel ring split into 8 logical groups
+#define LED_NUM               1                   // Only LED_1 is exposed to Modbus
+#define LED_PIXELS_PER_GROUP  LED_RING_PIXEL_COUNT // LED_1 controls the full 16-pixel ring
 #define LED_RING_PIXEL_COUNT  HW_LED_RING_PIXEL_COUNT
 #define DEFAULT_LED_POWER     20    // Default LED power percentage (0-100)
 #define DEFAULT_LED_PWM       (DEFAULT_LED_POWER / 100.0 * 255.0)
@@ -31,10 +33,16 @@ uint32_t ledColor(uint8_t red, uint8_t green, uint8_t blue);
 /*  @brief Initialize the LED ring. */
 void ledInit();
 
-/*  @brief Set every pixel of a logical LED group to a color. */
+/*  @brief Set the full LED ring (LED_1) to a color. */
 void ledSetAllPixels(int ledIndex, uint32_t color);
 
-/*  @brief Log the current state of all logical LED groups. */
+/*  @brief Render a moving rainbow ripple across the full LED ring.
+ *
+ *  @param phase Animation phase, incremented by the caller over time
+ */
+void ledShowRainbowRipple(uint16_t phase);
+
+/*  @brief Log the current state of the logical LED channels. */
 void printLedStatus();
 
 #endif // HW_LED_H

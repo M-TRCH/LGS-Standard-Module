@@ -4,8 +4,22 @@
 TwoWire WireOLED(HW_I2C2_SDA_PIN, HW_I2C2_SCL_PIN);
 Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &WireOLED, -1);
 
+static bool oledProbeAddress(uint8_t address)
+{
+    WireOLED.beginTransmission(address);
+    return (WireOLED.endTransmission() == 0);
+}
+
 bool oledInit()
 {
+    WireOLED.begin();
+
+    if (!oledProbeAddress(OLED_I2C_ADDR))
+    {
+        LOG_INFO_SYS(F("[OLED] No device found on I2C2 at 0x3C, skipping init\n"));
+        return false;
+    }
+
     if (!oled.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDR))
     {
         LOG_WARNING_SYS(F("[OLED] SSD1306 init failed\n"));

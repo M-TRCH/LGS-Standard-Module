@@ -32,7 +32,7 @@
 #define SENSE_PIN       PA6
 
 // Communication settings
-#define DEBUG_BAUD      9600
+#define DEBUG_BAUD      115200
 #define MODBUS_BAUD     9600
 
 // System settings

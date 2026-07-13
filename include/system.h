@@ -31,11 +31,6 @@ enum FunctionSwitchMode
 };
 
 // Global variables
-extern uint32_t lastTimeRoutineBlink;
-extern uint32_t lastTimeRoutineSetID;
-extern uint32_t lastTimeSensorRead;
-extern bool blink_run_state;
-extern bool blink_set_id_state;
 extern FunctionSwitchMode functionMode;
 extern uint32_t lastTimeLatchLocked;
 
@@ -91,27 +86,4 @@ bool unlockLatch(int unlockTimeout = 300);
  */
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
 
-/* @brief Check if it's time for routine blink
- *
- * This function checks if the routine blink interval has elapsed.
- *
- * @return true if it's time to blink, false otherwise
- */
-bool ON_ROUTINE_BLINK_RUN();
-
-/* @brief Check if it's time for routine set ID
- *
- * This function checks if the routine set ID interval has elapsed.
- *
- * @return true if it's time to set ID, false otherwise
- */
-bool ON_ROUTINE_BLINK_SET_ID();
-
-/* @brief Check if it's time for routine sensor read
- *
- * This function checks if the routine sensor read interval has elapsed.
- *
- * @return true if it's time to read the sensor, false otherwise
- */
-bool ON_ROUTINE_SENSOR_READ();
 #endif

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "app.h"
 #include "system.h"
+#include "util/periodic_timer.h"
 #include "eeprom_utils.h"
 #include "hw/led.h"
 #include "hw/sensor.h"
@@ -104,11 +105,15 @@ static void runDemoMode()
 // Set ID mode: blink all LEDs in blue for identification
 static void runSetIdMode()
 {
-    if (ON_ROUTINE_BLINK_SET_ID())
+    static PeriodicTimer blinkTimer{ROUTINE_BLINK_SET_ID_MS};
+    static bool ledOn = false;
+
+    if (blinkTimer.due(millis()))
     {
+        ledOn = !ledOn;
         for (int i = 0; i < LED_NUM; i++)
         {
-            ledSetAllPixels(i, ledColor(0, 0, (blink_set_id_state ? 204 : 0))); // Blue or off (magic number)
+            ledSetAllPixels(i, ledColor(0, 0, (ledOn ? 204 : 0))); // Blue or off (magic number)
         }
     }
 }
@@ -129,14 +134,19 @@ static void runFactoryResetMode()
 // Normal operation: run LED heartbeat, sensor read, on-time limits and statistics
 static void runNormalMode()
 {
+    static PeriodicTimer blinkTimer{ROUTINE_BLINK_RUN_MS};
+    static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS};
+    static bool runLedOn = false;
+
     // Routine blink for run LED
-    if (ON_ROUTINE_BLINK_RUN())
+    if (blinkTimer.due(millis()))
     {
-        sysSetRunIndicator(blink_run_state);
+        runLedOn = !runLedOn;
+        sysSetRunIndicator(runLedOn);
     }
 
     // Routine sensor read
-    if (ON_ROUTINE_SENSOR_READ())
+    if (sensorTimer.due(millis()))
     {
         float temperatureC = 0.0f;
         if (sensorReadTemperature(temperatureC))

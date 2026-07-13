@@ -10,11 +10,7 @@ static SensirionI2CSts4x stsBoard;  // STS40-AD1B-R3, board temperature
 
 void tempSensorInit()
 {
-    // Internal devices live on I2C1 (default Wire instance)
-    Wire.setSDA(HW_I2C1_SDA_PIN);
-    Wire.setSCL(HW_I2C1_SCL_PIN);
-    Wire.begin();
-
+    // I2C1 (default Wire instance) is brought up by boardI2C1Init().
     stsRoom.begin(Wire, ADDR_STS4X);        // 0x46
     stsBoard.begin(Wire, ADDR_STS4X_ALT);   // 0x44
 }

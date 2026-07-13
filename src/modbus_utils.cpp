@@ -22,66 +22,45 @@ void modbusInit(int id)
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
 }
 
-void modbus2eepromMapping(bool saveEEPROM) 
+void modbus2eepromMapping(bool saveEEPROM)
 {
-    // Write Modbus values to EEPROM
+    Settings &s = settingsEdit();
+
     // Device group:
-    eepromConfig.baudRate = RTUServer.holdingRegisterRead(MB_REG_BAUD_RATE);
-    eepromConfig.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
+    s.baudRate   = RTUServer.holdingRegisterRead(MB_REG_BAUD_RATE);
+    s.identifier = RTUServer.holdingRegisterRead(MB_REG_IDENTIFIER);
 
     // Configuration group:
-    // LED Configuration
-    for (int i = 0; i < LED_NUM; i++) 
-    {
-        // led_brightness, led_r, led_g, led_b
-        eepromConfig.led_brightness[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + i*10);
-        eepromConfig.led_r[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + i*10);
-        eepromConfig.led_g[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + i*10);
-        eepromConfig.led_b[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + i*10);
-
-        // maximum on-time limit
-        eepromConfig.maxOnTime[i] = RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i*10);
-    }
-    
-    // Unlock delay time
-    eepromConfig.unlockDelayTime = RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY);
+    s.ledBrightness = RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS);
+    s.ledR          = RTUServer.holdingRegisterRead(MB_REG_LED_1_RED);
+    s.ledG          = RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN);
+    s.ledB          = RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE);
+    s.ledMaxOnTimeS = RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME);
+    s.unlockDelayMs = RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY);
 
     if (saveEEPROM)
     {
-        saveEepromConfig(); // Save to EEPROM if changed
-    } 
+        settingsSave(); // Persist to the AT24 if changed
+    }
 }
 
-void eeprom2modbusMapping(bool loadEEPROM) 
+void eeprom2modbusMapping()
 {
-    if (loadEEPROM) 
-    {
-        loadEepromConfig(); // Load configuration from EEPROM
-    }
+    const Settings &s = settings();
 
-    // Update Modbus registers
     // Device group: identity registers come from compile-time constants so
     // they always reflect the running build (never stale EEPROM copies).
     RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, DEVICE_TYPE);
     RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, FW_VERSION);
     RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, HW_VERSION);
-    RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
-    RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
+    RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, s.baudRate);
+    RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, s.identifier);
 
     // Configuration group:
-    // LED Configuration
-    for (int i = 0; i < LED_NUM; i++) 
-    {
-        // led_brightness, led_r, led_g, led_b
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i*10, eepromConfig.led_brightness[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_RED + i*10, eepromConfig.led_r[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_GREEN + i*10, eepromConfig.led_g[i]);
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_BLUE + i*10, eepromConfig.led_b[i]);
-    
-        // maximum on-time limit
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i*10, eepromConfig.maxOnTime[i]);
-    }
-
-    // Unlock delay time
-    RTUServer.holdingRegisterWrite(MB_REG_UNLOCK_DELAY, eepromConfig.unlockDelayTime);
+    RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS, s.ledBrightness);
+    RTUServer.holdingRegisterWrite(MB_REG_LED_1_RED, s.ledR);
+    RTUServer.holdingRegisterWrite(MB_REG_LED_1_GREEN, s.ledG);
+    RTUServer.holdingRegisterWrite(MB_REG_LED_1_BLUE, s.ledB);
+    RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME, s.ledMaxOnTimeS);
+    RTUServer.holdingRegisterWrite(MB_REG_UNLOCK_DELAY, s.unlockDelayMs);
 }

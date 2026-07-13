@@ -1,4 +1,12 @@
 #include "drivers/board_io.h"
+#include <Wire.h>
+
+void boardI2C1Init()
+{
+    Wire.setSDA(HW_I2C1_SDA_PIN);
+    Wire.setSCL(HW_I2C1_SCL_PIN);
+    Wire.begin();
+}
 
 void boardIoInit()
 {

@@ -5,7 +5,7 @@
 #include <ModbusRTUServer.h>
 #include "config.h"
 #include "drivers/led_ring.h"
-#include "eeprom_utils.h"
+#include "svc/settings.h"
 #include "svc/modbus_map.h"
 
 // Modbus data model sizes (configured at server init)
@@ -26,10 +26,10 @@ extern ModbusRTUServerClass RTUServer;
 // Modbus Initialization
 void modbusInit(int id=DEFAULT_IDENTIFIER);
 
-// Modbus to EEPROM Mapping
+// Persist the R/W(F) registers into the settings service (AT24 EEPROM)
 void modbus2eepromMapping(bool saveEEPROM=true);
 
-// EEPROM to Modbus Mapping
-void eeprom2modbusMapping(bool loadEEPROM=false);
+// Publish the persisted settings into the Modbus registers
+void eeprom2modbusMapping();
 
 #endif

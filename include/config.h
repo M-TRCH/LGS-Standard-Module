@@ -9,17 +9,13 @@
  */
 
 // --- Factory defaults (loaded on factory reset / first boot) ---
-#define DEFAULT_DEVICE_TYPE         40      // legacy EEPROM field (identity now in version.h)
-#define DEFAULT_FW_VERSION          19055   // legacy EEPROM field (identity now in version.h)
-#define DEFAULT_HW_VERSION          430     // legacy EEPROM field (identity now in version.h)
 #define DEFAULT_BAUD_RATE           9600
 #define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-245, 246=SET_ID, 247=not set)
-#define DEFAULT_LED_BRIGHTNESS      {80, 80, 80, 80, 80, 80, 80, 80}
-#define DEFAULT_LED_R               {255,   0,      0,      255,    0,      255,    255,    255}
-#define DEFAULT_LED_G               {0,     255,    0,      215,    255,    0,      60,     245}
-#define DEFAULT_LED_B               {0,     0,      255,    0,      255,    255,    0,      120}
-#define DEFAULT_LED_MAX_ON_TIME     {3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600} // seconds
-#define DEFAULT_LED_NUM_PER_STRIP   1       // legacy EEPROM field (deprecated)
+#define DEFAULT_LED_BRIGHTNESS      80      // percent
+#define DEFAULT_LED_R               255
+#define DEFAULT_LED_G               0
+#define DEFAULT_LED_B               0
+#define DEFAULT_LED_MAX_ON_TIME     3600    // seconds
 #define DEFAULT_UNLOCK_DELAY_TIME   0       // milliseconds
 
 // --- Routine intervals ---
@@ -38,6 +34,10 @@
 #define LATCH_PULSE_MS              300     // requested unlock pulse width
 #define LATCH_MAX_UNLOCK_TIME       500     // hard clamp on pulse width (ms) — solenoid protection
 #define LATCH_MIN_INTERVAL          2000    // minimum time between unlocks (ms), from pulse start
+#define UNLOCK_DELAY_MAX_MS         8000    // clamp for the unlock-delay register (control table range)
+
+// --- Fault indication ---
+#define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
 // --- Operate configuration ---
 #define DISABLE_LATCH_STATUS_RESET  // Comment out to enable latch status reset on power cycle

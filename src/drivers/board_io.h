@@ -15,6 +15,10 @@
  *         (RUN LED off, latch MOSFET off). */
 void boardIoInit();
 
+/*  @brief Bring up the shared internal I2C1 bus (AT24 EEPROM + STS40
+ *         sensors). Call once, before any I2C1 device is used. */
+void boardI2C1Init();
+
 /*  @brief Drive the RUN status LED. */
 void boardSetRunLed(bool on);
 

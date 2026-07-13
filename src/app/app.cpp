@@ -6,7 +6,7 @@
 #include "app/latch_control.h"
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
-#include "eeprom_utils.h"
+#include "svc/settings.h"
 #include "drivers/led_ring.h"
 #include "drivers/temp_sensor.h"
 #include "drivers/oled.h"
@@ -41,23 +41,23 @@ static bool oledReady = false;
 
 void appInit()
 {
-    // Bring up the RS485 link, discrete I/O and I2C1 sensors, then classify
-    // the boot-time function switch hold (blocking by design, pre-Modbus).
+    // Bring up the RS485 link and discrete I/O, load the persisted settings
+    // from the AT24 EEPROM (I2C1 bus must be up first), then classify the
+    // boot-time function switch hold (blocking by design, pre-Modbus).
     rs485PortBegin(DEFAULT_BAUD_RATE);
     boardIoInit();
+    boardI2C1Init();
+    settingsInit();
     tempSensorInit();
     functionMode = checkFunctionSwitch();
-
-    // clearEeprom(true);   // Uncomment to clear EEPROM for debugging
-    eepromInit();           // Initialize EEPROM and load configuration
 
     ledInit();              // Initialize LED ring
     oledReady = oledInit(); // Initialize OLED display (I2C2)
     servoInit();            // Initialize servo outputs (PC6, PC7)
 
-    // Initialize Modbus server with ID from EEPROM, or special ID (246) for SET_ID mode
-    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : eepromConfig.identifier);
-    eeprom2modbusMapping(); // Map EEPROM config to Modbus registers
+    // Initialize Modbus server with the stored ID, or special ID (246) for SET_ID mode
+    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : settings().identifier);
+    eeprom2modbusMapping(); // Publish settings into the Modbus registers
 }
 
 void appRun()
@@ -134,15 +134,15 @@ static void runFactoryResetMode()
         ledSetAllPixels(i, ledColor(FACTORY_RESET_RED, 0, 0)); // Red
     }
     delay(FACTORY_RESET_HOLD_MS);
-    eepromConfig.isFirstBoot = true;    // Set the flag
-    saveEepromConfig();                 // Save to EEPROM if changed
+    settingsFactoryReset(false);        // Restore defaults (including ID)
     NVIC_SystemReset();                 // Perform software reset
 }
 
 // Normal operation: run LED heartbeat, sensor read, on-time limits and statistics
 static void runNormalMode()
 {
-    static PeriodicTimer blinkTimer{ROUTINE_BLINK_RUN_MS};
+    // Fast heartbeat signals a storage fault (AT24 absent -> nothing persists)
+    static PeriodicTimer blinkTimer{settingsStorageOk() ? ROUTINE_BLINK_RUN_MS : STORAGE_FAULT_BLINK_MS};
     static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS / 2};
     static bool runLedOn = false;
     static bool readBoardNext = false;
@@ -297,16 +297,14 @@ static void handleModbusRequests()
         // Address 501: Factory reset except ID
         if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID))
         {
-            eepromConfig.isFirstBootExceptID = true;    // Set the flag
-            saveEepromConfig();                         // Save to EEPROM if changed
-            NVIC_SystemReset();                         // Perform software reset
+            settingsFactoryReset(true);     // Restore defaults, keep the ID
+            NVIC_SystemReset();             // Perform software reset
         }
         // Address 502: Factory reset all data
         if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA))
         {
-            eepromConfig.isFirstBoot = true;        // Set the flag
-            saveEepromConfig();                     // Save to EEPROM if changed
-            NVIC_SystemReset();                     // Perform software reset
+            settingsFactoryReset(false);    // Restore defaults (including ID)
+            NVIC_SystemReset();             // Perform software reset
         }
     }
 

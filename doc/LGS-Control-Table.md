@@ -22,7 +22,7 @@
 
 ¹ firmware ปัจจุบันมีชนิดเพิ่ม: 30:LITE, 40:DELIVERY
 ² R5.0 รายงานค่า 500; ค่าเวอร์ชันบน R5.0 เป็น compile-time constant (ไม่ค้างใน EEPROM อีกต่อไป)
-³ R5.0 ใช้ค่า baud จริงตอนบูต (whitelist: 9600/19200/38400/57600/115200, ค่าไม่ถูกต้อง fallback 9600; โหมด SET_ID/FACTORY RESET บังคับ 9600 เป็นช่องทางกู้คืน) — บอร์ดก่อนหน้า persist ค่าแต่ไม่มีผล
+³ R5.0 ใช้ค่า baud จริงตอนบูต (whitelist: 9600/19200/38400/57600 — ค่า 115200 เกินช่วง register 16-bit; ค่าไม่ถูกต้อง fallback 9600; โหมด SET_ID/FACTORY RESET บังคับ 9600 เป็นช่องทางกู้คืน) — บอร์ดก่อนหน้า persist ค่าแต่ไม่มีผล
 
 ## Operation (Coils, 1 bit)
 

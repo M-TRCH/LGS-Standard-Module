@@ -6,6 +6,8 @@
 #include "app/latch_control.h"
 #include "app/led_control.h"
 #include "app/ops.h"
+#include "app/display_control.h"
+#include "app/servo_control.h"
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
 #include "drivers/led_ring.h"
@@ -36,10 +38,9 @@ static bool oledReady = false;
 
 void appInit()
 {
-    // Bring up the RS485 link and discrete I/O, load the persisted settings
-    // from the AT24 EEPROM (I2C1 bus must be up first), then classify the
-    // boot-time function switch hold (blocking by design, pre-Modbus).
-    rs485PortBegin(DEFAULT_BAUD_RATE);
+    // Bring up the discrete I/O, load the persisted settings from the AT24
+    // EEPROM (I2C1 bus must be up first), then classify the boot-time
+    // function switch hold (blocking by design, pre-Modbus).
     boardIoInit();
     boardI2C1Init();
     settingsInit();
@@ -50,10 +51,20 @@ void appInit()
     oledReady = oledInit(); // Initialize OLED display (I2C2)
     servoInit();            // Initialize servo outputs (PC6, PC7)
 
+    // Resolve the bus baud rate: the stored value through the whitelist
+    // (invalid -> 9600), and SET_ID / FACTORY_RESET modes always force the
+    // default so the function switch remains a recovery path.
+    uint32_t baud = settingsBaudAllowed(settings().baudRate) ? settings().baudRate : DEFAULT_BAUD_RATE;
+    if (functionMode == FUNC_SW_SET_ID || functionMode == FUNC_SW_FACTORY_RESET)
+    {
+        baud = DEFAULT_BAUD_RATE;
+    }
+    rs485PortBegin(baud);
+
     // Start the Modbus server with the stored ID, or special ID (246) for
     // SET_ID mode, then publish the settings into the registers.
     modbusServerInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : settings().identifier,
-                     DEFAULT_BAUD_RATE);
+                     baud);
     mbSettingsToRegisters();
 
     // App modules register their Modbus reactions, then the shadows are
@@ -61,6 +72,8 @@ void appInit()
     opsInit();
     latchControlInit();
     ledControlInit();
+    displayControlInit();
+    servoControlInit();
     mbWatchSeedShadows();
 }
 

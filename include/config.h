@@ -39,7 +39,4 @@
 // --- Fault indication ---
 #define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
-// --- Operate configuration ---
-#define DISABLE_LATCH_STATUS_RESET  // Comment out to enable latch status reset on power cycle
-
 #endif // CONFIG_H

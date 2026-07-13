@@ -71,16 +71,23 @@ void onLedLatchCommand(uint16_t addr, uint16_t value)
     (void)addr;
     (void)value;
 
+    if (latchBusyWith(MB_COIL_LED_1_LATCH))
+    {
+        return; // request in flight: coil stays set until the pulse resolves
+    }
+
     applyConfiguredColor();
     markChannelOn();
 
-    // Trigger the latch unlock (blocking implementation for now)
-    delay(mbRegRead(MB_REG_UNLOCK_DELAY));
-    unlockLatch(LATCH_PULSE_MS);
-
-    // Reset the latch coil and sync the enable coil
-    mbCoilWrite(MB_COIL_LED_1_LATCH, false);
-    mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
+    // Hand the unlock to the latch state machine; on completion it clears
+    // this coil and syncs the enable coil. When busy (another request or
+    // cooldown) the LED still turns on — same as the original reject path —
+    // but the coils resolve immediately so the command is not retried.
+    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LED_1_LATCH, true))
+    {
+        mbCoilWrite(MB_COIL_LED_1_LATCH, false);
+        mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
+    }
 }
 
 // Global brightness (190): fan out to the LED brightness register.

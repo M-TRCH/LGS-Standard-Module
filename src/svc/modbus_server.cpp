@@ -136,9 +136,23 @@ uint16_t mbRegRead(uint16_t addr)
     return RTUServer.holdingRegisterRead(addr);
 }
 
+// Firmware-initiated writes also update any matching CHANGE shadow, so only
+// bus-side writes fire handlers (matching the original last_* bookkeeping).
+static void watchSyncShadow(MbWatchKind kind, uint16_t addr, uint16_t value)
+{
+    for (uint8_t i = 0; i < watchCount; i++)
+    {
+        if (watchRows[i].kind == kind && watchRows[i].addr == addr)
+        {
+            watchRows[i].shadow = value;
+        }
+    }
+}
+
 void mbRegWrite(uint16_t addr, uint16_t value)
 {
     RTUServer.holdingRegisterWrite(addr, value);
+    watchSyncShadow(MB_WATCH_REG_CHANGE, addr, value);
 }
 
 bool mbCoilRead(uint16_t addr)
@@ -149,6 +163,7 @@ bool mbCoilRead(uint16_t addr)
 void mbCoilWrite(uint16_t addr, bool value)
 {
     RTUServer.coilWrite(addr, value ? 1 : 0);
+    watchSyncShadow(MB_WATCH_COIL_CHANGE, addr, value ? 1 : 0);
 }
 
 void mbSettingsToRegisters()

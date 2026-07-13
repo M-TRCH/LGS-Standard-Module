@@ -1,11 +1,6 @@
 #include "drivers/led_ring.h"
 
-Adafruit_NeoPixel ledRing(LED_RING_PIXEL_COUNT, HW_LED_RING_PIN, NEO_GRB + NEO_KHZ800);
-
-bool last_led_state[LED_NUM] = {false};
-uint32_t led_counter[LED_NUM] = {0};    // Counter for each LED having been turned on
-uint32_t led_timer[LED_NUM] = {0};      // Timer for each LED having been turned on
-float led_time_sum[LED_NUM] = {0};      // Total time each LED has been on (in seconds)
+static Adafruit_NeoPixel ledRing(LED_RING_PIXEL_COUNT, HW_LED_RING_PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t ledColor(uint8_t red, uint8_t green, uint8_t blue)
 {

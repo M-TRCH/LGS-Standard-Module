@@ -4,14 +4,17 @@
 #include "util/periodic_timer.h"
 #include "app/modes.h"
 #include "app/latch_control.h"
+#include "app/led_control.h"
+#include "app/ops.h"
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
-#include "svc/settings.h"
 #include "drivers/led_ring.h"
 #include "drivers/temp_sensor.h"
 #include "drivers/oled.h"
 #include "drivers/servo_out.h"
-#include "modbus_utils.h"
+#include "svc/settings.h"
+#include "svc/modbus_map.h"
+#include "svc/modbus_server.h"
 
 // ---------------------------------------------------------------------------
 // Internal helpers (module-private)
@@ -23,14 +26,6 @@ static void runSetIdMode();
 static void runFactoryResetMode();
 static void runNormalMode();
 
-// Modbus request processing
-static void handleModbusRequests();
-
-// Shared runtime tasks
-static void applyLedColor(int ledIndex, float brightnessScale);
-static void enforceLedMaxOnTime();
-static void updateLedStatistics();
-static void updateLatchStatus();
 static void updateOledCounter(uint8_t value);
 
 static bool oledReady = false;
@@ -55,14 +50,31 @@ void appInit()
     oledReady = oledInit(); // Initialize OLED display (I2C2)
     servoInit();            // Initialize servo outputs (PC6, PC7)
 
-    // Initialize Modbus server with the stored ID, or special ID (246) for SET_ID mode
-    modbusInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : settings().identifier);
-    eeprom2modbusMapping(); // Publish settings into the Modbus registers
+    // Start the Modbus server with the stored ID, or special ID (246) for
+    // SET_ID mode, then publish the settings into the registers.
+    modbusServerInit(functionMode == FUNC_SW_SET_ID ? DEFAULT_IDENTIFIER - 1 : settings().identifier,
+                     DEFAULT_BAUD_RATE);
+    mbSettingsToRegisters();
+
+    // App modules register their Modbus reactions, then the shadows are
+    // seeded from the just-published values so boot never fires a handler.
+    opsInit();
+    latchControlInit();
+    ledControlInit();
+    mbWatchSeedShadows();
 }
 
 void appRun()
 {
-    // Dispatch based on the mode selected via the function switch at startup
+    uint32_t now = millis();
+
+    // Fixed tick pipeline. Safety-relevant ticks run unconditionally BEFORE
+    // mode logic, so no mode can starve latch tracking or the LED
+    // max-on-time enforcement.
+    modbusServerTick();     // poll the bus + dispatch registered handlers
+    latchControlTick(now);  // lock-state tracking + reg 40
+    ledControlTick(now);    // max-on-time enforcement + statistics
+
     switch (functionMode)
     {
         case FUNC_SW_DEMO:          runDemoMode();          break;
@@ -71,19 +83,13 @@ void appRun()
         case FUNC_SW_RUN:           runNormalMode();        break;
         default:                                            break;
     }
-
-    // Service pending Modbus requests
-    if (RTUServer.poll())
-    {
-        handleModbusRequests();
-    }
 }
 
 // ---------------------------------------------------------------------------
 // Operating-mode handlers
 // ---------------------------------------------------------------------------
 
-// Demo mode: cycle/blink all LEDs using their configured colors
+// Demo mode: rainbow ripple + OLED counter stepped by the function switch
 static void runDemoMode()
 {
     static uint32_t lastDemoFrame = 0;
@@ -134,11 +140,11 @@ static void runFactoryResetMode()
         ledSetAllPixels(i, ledColor(FACTORY_RESET_RED, 0, 0)); // Red
     }
     delay(FACTORY_RESET_HOLD_MS);
-    settingsFactoryReset(false);        // Restore defaults (including ID)
-    NVIC_SystemReset();                 // Perform software reset
+    settingsFactoryReset(false);    // Restore defaults (including ID)
+    opsSystemReset();               // Perform software reset
 }
 
-// Normal operation: run LED heartbeat, sensor read, on-time limits and statistics
+// Normal operation: RUN LED heartbeat and temperature publishing
 static void runNormalMode()
 {
     // Fast heartbeat signals a storage fault (AT24 absent -> nothing persists)
@@ -163,109 +169,23 @@ static void runNormalMode()
         {
             if (tempReadBoard(temperatureC))
             {
-                RTUServer.holdingRegisterWrite(MB_REG_BOARD_TEMP, (uint16_t)(temperatureC * 100));
+                mbRegWrite(MB_REG_BOARD_TEMP, (uint16_t)(temperatureC * 100));
             }
         }
         else
         {
             if (tempReadRoom(temperatureC))
             {
-                RTUServer.holdingRegisterWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
+                mbRegWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
             }
         }
         readBoardNext = !readBoardNext;
     }
-
-    enforceLedMaxOnTime();  // Turn off LEDs that exceeded their max on-time
-    updateLedStatistics();  // Publish LED counters/timers to Modbus registers
-    updateLatchStatus();    // Publish time-after-unlock to Modbus registers
 }
 
 // ---------------------------------------------------------------------------
-// Runtime tasks
+// OLED helpers
 // ---------------------------------------------------------------------------
-
-// Apply an LED strip's configured RGB color (from Modbus registers), scaled by
-// its configured brightness and an additional runtime scale factor.
-static void applyLedColor(int ledIndex, float brightnessScale)
-{
-    // i*10 to jump to next LED's registers (E.g., 110, 120, 130...)
-    float brightness = (RTUServer.holdingRegisterRead(MB_REG_LED_1_BRIGHTNESS + ledIndex * 10) / 100.0f) * brightnessScale;
-    ledSetAllPixels(ledIndex, ledColor(
-        RTUServer.holdingRegisterRead(MB_REG_LED_1_RED + ledIndex * 10) * brightness,
-        RTUServer.holdingRegisterRead(MB_REG_LED_1_GREEN + ledIndex * 10) * brightness,
-        RTUServer.holdingRegisterRead(MB_REG_LED_1_BLUE + ledIndex * 10) * brightness));
-}
-
-// Enforce the per-LED maximum on-time limits.
-static void enforceLedMaxOnTime()
-{
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        // Check if LED is ON and has exceeded max on-time limit
-        if (led_timer[i] != 0 && RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i * 10) > 0)
-        {
-            if (millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i * 10) * 1000) // Convert seconds to ms
-            {
-                // Turn off the LED
-                ledSetAllPixels(i, ledColor(0, 0, 0));
-                last_led_state[i] = false; // Update last known state
-
-                // Stop timer and accumulate time
-                led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-                led_timer[i] = 0; // Reset timer
-
-                // Update Modbus coil to reflect LED is off
-                RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 0);
-            }
-        }
-    }
-}
-
-// Publish per-LED and total LED statistics to Modbus registers.
-static void updateLedStatistics()
-{
-    uint32_t total_led_counter = 0;
-    uint32_t total_led_time = 0;
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        // Update individual LED statistics (clamped to uint16 max)
-        uint16_t counter_value = (led_counter[i] > 65535) ? 65535 : led_counter[i];
-        uint16_t time_value = ((uint32_t)led_time_sum[i] > 65535) ? 65535 : (uint32_t)led_time_sum[i];
-
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_COUNTER + i * 10, counter_value); // On-count
-        RTUServer.holdingRegisterWrite(MB_REG_LED_1_ON_TIME + i * 10, time_value);        // Total on-time in seconds
-
-        // Accumulate totals
-        total_led_counter += led_counter[i];
-        total_led_time += (uint32_t)led_time_sum[i];
-    }
-
-    // Update total LED statistics (clamped to uint16 max)
-    uint16_t total_counter_value = (total_led_counter > 65535) ? 65535 : total_led_counter;
-    uint16_t total_time_value = (total_led_time > 65535) ? 65535 : total_led_time;
-
-    RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_CNT, total_counter_value);   // Total LED on count
-    RTUServer.holdingRegisterWrite(MB_REG_TOTAL_LED_ON_TIME, total_time_value);     // Total LED on time in seconds
-}
-
-// Update the "time after unlock" register based on latch state.
-static void updateLatchStatus()
-{
-#ifndef DISABLE_LATCH_STATUS_RESET
-    if (isLatchLocked())
-    {
-        lastTimeLatchLocked = millis();
-        RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, 0);
-    }
-    else
-    {
-        RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, (uint16_t)((millis() - lastTimeLatchLocked) / 1000)); // in seconds
-    }
-#else
-    RTUServer.holdingRegisterWrite(MB_REG_TIME_AFTER_UNLOCK, 0); // Always report 0 since latch status reset is disabled
-#endif
-}
 
 static void updateOledCounter(uint8_t value)
 {
@@ -275,130 +195,4 @@ static void updateOledCounter(uint8_t value)
     }
 
     oledPrintLargeNumber(value);
-}
-
-// ---------------------------------------------------------------------------
-// Modbus request processing
-// ---------------------------------------------------------------------------
-
-static void handleModbusRequests()
-{
-    // Operation group:
-    // Write data to EEPROM (Addr.503)
-    if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM))
-    {
-        modbus2eepromMapping();
-        NVIC_SystemReset();         // Perform software reset
-    }
-
-    // Apply factory reset (Addr.500)
-    if (RTUServer.coilRead(MB_COIL_FACTORY_RESET))
-    {
-        // Address 501: Factory reset except ID
-        if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID))
-        {
-            settingsFactoryReset(true);     // Restore defaults, keep the ID
-            NVIC_SystemReset();             // Perform software reset
-        }
-        // Address 502: Factory reset all data
-        if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA))
-        {
-            settingsFactoryReset(false);    // Restore defaults (including ID)
-            NVIC_SystemReset();             // Perform software reset
-        }
-    }
-
-    // Software reset (Addr.504)
-    if (RTUServer.coilRead(MB_COIL_SOFTWARE_RESET))
-    {
-        NVIC_SystemReset();         // Perform software reset
-    }
-
-    // Configuration group:
-    // Global Brightness (Addr.190) - Set all LED brightness at once
-    uint16_t global_brightness = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_BRIGHTNESS);
-    if (global_brightness != last_global_brightness && global_brightness <= 100)
-    {
-        last_global_brightness = global_brightness;
-        for (int i = 0; i < LED_NUM; i++)
-        {
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i * 10, global_brightness);
-        }
-    }
-
-    // Global Max On Time (Addr.194) - Set all LED max on-time at once
-    uint16_t global_max_on_time = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_MAX_ON_TIME);
-    if (global_max_on_time != last_global_max_on_time)
-    {
-        last_global_max_on_time = global_max_on_time;
-        for (int i = 0; i < LED_NUM; i++)
-        {
-            RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i * 10, global_max_on_time);
-        }
-    }
-
-    // Control group:
-    // Latch trigger (Addr.1020)
-    if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER))
-    {
-        delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Configured pre-unlock delay (ms)
-        unlockLatch(LATCH_PULSE_MS);  // Safety limits enforced in function
-        RTUServer.coilWrite(MB_COIL_LATCH_TRIGGER, 0); // Reset the coil
-    }
-
-    // Apply LED state changes (Addr.1001-1008)
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        int led_state = RTUServer.coilRead(MB_COIL_LED_1_ENABLE + i);
-        if (led_state != last_led_state[i]) // Check if the LED state has changed
-        {
-            last_led_state[i] = led_state;
-
-            if (led_state) // If the LED state is ON
-            {
-                applyLedColor(i, 1.0f);
-
-                led_counter[i]++;           // Increment counter for how many times this LED has been turned on
-                led_timer[i] = millis();    // Start timer for how long this LED has been on
-            }
-            else    // If the LED state is OFF
-            {
-                ledSetAllPixels(i, ledColor(0, 0, 0));
-
-                // Stop timer and accumulate time if it was running
-                if (led_timer[i] != 0)
-                {
-                    led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
-                    led_timer[i] = 0; // Reset timer
-                }
-            }
-        }
-    }
-
-    // Apply LED state changes with latch trigger (Addr.1021-1028)
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        int led_latch_state = RTUServer.coilRead(MB_COIL_LED_1_LATCH + i);
-        if (led_latch_state) // Check if the LED latch coil is triggered
-        {
-            // Turn ON the LED (same as LED enable)
-            applyLedColor(i, 1.0f);
-
-            // Update LED state tracking
-            if (!last_led_state[i])
-            {
-                led_counter[i]++;
-                led_timer[i] = millis();
-                last_led_state[i] = true;
-            }
-
-            // Trigger the latch unlock
-            delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
-            unlockLatch(LATCH_PULSE_MS);  // Safety limits enforced in function
-
-            // Reset the latch coil and sync with enable coil
-            RTUServer.coilWrite(MB_COIL_LED_1_LATCH + i, 0);
-            RTUServer.coilWrite(MB_COIL_LED_1_ENABLE + i, 1);
-        }
-    }
 }

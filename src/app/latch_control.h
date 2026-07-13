@@ -5,16 +5,19 @@
 #include "config.h"
 
 /*  @file app/latch_control.h
- *  @brief Electronic latch policy: unlock pulse and lock-state tracking.
+ *  @brief Electronic latch policy: unlock pulse, lock-state tracking and
+ *         the latch Modbus surface (trigger coil 1020, reg 40).
  *
  *  NOTE: currently still the original BLOCKING implementation (moved
  *  verbatim from system.cpp). The non-blocking pulse state machine
  *  replaces it in a later, separately verified step.
  */
 
-// Timestamp of the last time the latch was seen locked (used by the
-// time-after-unlock Modbus register).
-extern uint32_t lastTimeLatchLocked;
+/*  @brief Register the Modbus handler for the latch trigger coil. */
+void latchControlInit();
+
+/*  @brief Track lock state and publish the time-after-unlock register. */
+void latchControlTick(uint32_t now);
 
 /*  @brief Check if the latch is locked.
  *  @param debounceDelay Optional blocking debounce in milliseconds

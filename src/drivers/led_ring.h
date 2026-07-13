@@ -16,12 +16,6 @@
 #define LED_RING_PIXEL_COUNT  HW_LED_RING_PIXEL_COUNT
 #define LED_PIXELS_PER_GROUP  LED_RING_PIXEL_COUNT // LED_1 controls the full 16-pixel ring
 
-extern Adafruit_NeoPixel ledRing;
-extern bool last_led_state[LED_NUM];    // Array to hold last known state (on/off) for each LED
-extern uint32_t led_counter[LED_NUM];   // Counter for each LED having been turned on
-extern uint32_t led_timer[LED_NUM];     // Timer for each LED having been turned on
-extern float led_time_sum[LED_NUM];     // Total time each LED has been on (in seconds)
-
 /*  @brief Pack an RGB triplet into the ring's native color format. */
 uint32_t ledColor(uint8_t red, uint8_t green, uint8_t blue);
 

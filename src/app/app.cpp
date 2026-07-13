@@ -132,16 +132,28 @@ static void runSetIdMode()
     }
 }
 
-// Factory reset mode: solid red on all LEDs for 5 seconds, then reset
+// Factory reset mode: solid red on all LEDs for 5 seconds, then reset.
+// Non-blocking: Modbus keeps being served during the warning window.
 static void runFactoryResetMode()
 {
-    for (int i = 0; i < LED_NUM; i++)
+    static bool armed = false;
+    static uint32_t armedAtMs = 0;
+
+    if (!armed)
     {
-        ledSetAllPixels(i, ledColor(FACTORY_RESET_RED, 0, 0)); // Red
+        armed = true;
+        armedAtMs = millis();
+        for (int i = 0; i < LED_NUM; i++)
+        {
+            ledSetAllPixels(i, ledColor(FACTORY_RESET_RED, 0, 0)); // Red
+        }
     }
-    delay(FACTORY_RESET_HOLD_MS);
-    settingsFactoryReset(false);    // Restore defaults (including ID)
-    opsSystemReset();               // Perform software reset
+
+    if (millis() - armedAtMs >= FACTORY_RESET_HOLD_MS)
+    {
+        settingsFactoryReset(false);    // Restore defaults (including ID)
+        opsSystemReset();               // Perform software reset
+    }
 }
 
 // Normal operation: RUN LED heartbeat and temperature publishing

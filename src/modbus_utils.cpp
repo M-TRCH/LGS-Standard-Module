@@ -1,6 +1,7 @@
 
 #include "modbus_utils.h"
 #include "hw/serial.h"
+#include "version.h"
 
 // Global variables for Modbus
 uint16_t last_global_brightness = 0;
@@ -61,11 +62,12 @@ void eeprom2modbusMapping(bool loadEEPROM)
         loadEepromConfig(); // Load configuration from EEPROM
     }
 
-    // Update Modbus registers with EEPROM 
-    // Device group:
-    RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, eepromConfig.deviceType);
-    RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, eepromConfig.fwVersion);
-    RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, eepromConfig.hwVersion);
+    // Update Modbus registers
+    // Device group: identity registers come from compile-time constants so
+    // they always reflect the running build (never stale EEPROM copies).
+    RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, DEVICE_TYPE);
+    RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, FW_VERSION);
+    RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, HW_VERSION);
     RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, eepromConfig.baudRate);
     RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, eepromConfig.identifier);
 

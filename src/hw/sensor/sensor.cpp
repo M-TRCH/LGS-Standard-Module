@@ -5,8 +5,8 @@ SensirionI2CSts4x sts4x;
 void sensorInit()
 {
     // Internal devices live on I2C1 (default Wire instance)
-    Wire.setSDA(SDA1_PIN);
-    Wire.setSCL(SCL1_PIN);
+    Wire.setSDA(HW_I2C1_SDA_PIN);
+    Wire.setSCL(HW_I2C1_SCL_PIN);
     Wire.begin();
     sts4x.begin(Wire, ADDR_STS4X_ALT);
 }

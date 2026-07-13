@@ -3,27 +3,6 @@
 
 Adafruit_NeoPixel ledRing(LED_RING_PIXEL_COUNT, HW_LED_RING_PIN, NEO_GRB + NEO_KHZ800);
 
-float default_color[17][3] =
-{
-    {0, 0, 0},                                              // Off
-    {DEFAULT_LED_PWM, 0, 0},                                // Red
-    {0, DEFAULT_LED_PWM, 0},                                // Green
-    {0, 0, DEFAULT_LED_PWM},                                // Blue
-    {DEFAULT_LED_PWM, DEFAULT_LED_PWM, 0},                  // Yellow
-    {0, DEFAULT_LED_PWM, DEFAULT_LED_PWM},                  // Cyan
-    {DEFAULT_LED_PWM, 0, DEFAULT_LED_PWM},                  // Magenta
-    {DEFAULT_LED_PWM, DEFAULT_LED_PWM / 2, 0},              // Orange
-    {DEFAULT_LED_PWM, DEFAULT_LED_PWM, DEFAULT_LED_PWM},    // White
-    {DEFAULT_LED_PWM / 2, 0, DEFAULT_LED_PWM},              // Violet
-    {0, DEFAULT_LED_PWM / 2, DEFAULT_LED_PWM},              // Azure
-    {DEFAULT_LED_PWM / 2, DEFAULT_LED_PWM, 0},              // Chartreuse
-    {DEFAULT_LED_PWM, 0, DEFAULT_LED_PWM / 2},              // Rose
-    {0, DEFAULT_LED_PWM, DEFAULT_LED_PWM / 2},              // Spring Green
-    {DEFAULT_LED_PWM / 2, 0, 0},                            // Maroon
-    {0, DEFAULT_LED_PWM / 2, 0},                            // Dark Green
-    {0, 0, DEFAULT_LED_PWM / 2}                             // Navy
-};
-
 bool last_led_state[LED_NUM] = {false};
 uint32_t led_counter[LED_NUM] = {0};    // Counter for each LED having been turned on
 uint32_t led_timer[LED_NUM] = {0};      // Timer for each LED having been turned on

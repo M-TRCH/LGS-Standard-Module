@@ -14,7 +14,6 @@
 
 // System settings
 #define ROUTINE_BLINK_RUN_MS        1200    // LED blink interval in normal operation
-#define ROUTINE_BLINK_DEMO_MS       800     // LED blink interval in demo mode
 #define ROUTINE_BLINK_SET_ID_MS     800     // LED blink interval in set ID mode
 #define ROUTINE_SENSOR_READ_MS      1000    // Sensor read interval
 
@@ -33,11 +32,9 @@ enum FunctionSwitchMode
 
 // Global variables
 extern uint32_t lastTimeRoutineBlink;
-extern uint32_t lastTimeRoutineDemo;
 extern uint32_t lastTimeRoutineSetID;
 extern uint32_t lastTimeSensorRead;
 extern bool blink_run_state;
-extern bool blink_demo_state;
 extern bool blink_set_id_state;
 extern FunctionSwitchMode functionMode;
 extern uint32_t lastTimeLatchLocked;
@@ -81,7 +78,7 @@ bool unlockLatch(int unlockTimeout = 300);
 
 /* @brief Check function switch state at startup
  *
- * This function checks if the function switch (FUNC_SW_PIN) is pressed during startup.
+ * This function checks if the function switch (HW_FUNCTION_SWITCH_PIN) is pressed during startup.
  * It determines the press duration and returns the corresponding mode.
  * The switch is active LOW (pressed = LOW).
  *
@@ -101,14 +98,6 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
  * @return true if it's time to blink, false otherwise
  */
 bool ON_ROUTINE_BLINK_RUN();
-
-/* @brief Check if it's time for routine demo blink
- *
- * This function checks if the routine demo blink interval has elapsed.
- *
- * @return true if it's time to blink, false otherwise
- */
-bool ON_ROUTINE_BLINK_DEMO();
 
 /* @brief Check if it's time for routine set ID
  *

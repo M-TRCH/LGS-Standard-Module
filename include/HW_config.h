@@ -35,16 +35,4 @@
 #define HW_SERVO1_PIN                  PC6
 #define HW_SERVO2_PIN                  PC7
 
-// Backward-compatible aliases while modules are migrated to the new names.
-#define TX3_PIN                        HW_UART_DEBUG_TX_PIN
-#define RX_PIN                         HW_UART_RS485_RX_PIN
-#define TX_PIN                         HW_UART_RS485_TX_PIN
-#define DUMMY_PIN                      HW_UART_RS485_DE_PIN
-#define SCL1_PIN                       HW_I2C1_SCL_PIN
-#define SDA1_PIN                       HW_I2C1_SDA_PIN
-#define LED_RUN_PIN                    HW_LED_BUILTIN_PIN
-#define FUNC_SW_PIN                    HW_FUNCTION_SWITCH_PIN
-#define MOSFET_PIN                     HW_LATCH_TRIGGER_PIN
-#define SENSE_PIN                      HW_LATCH_CHECK_PIN
-
 #endif

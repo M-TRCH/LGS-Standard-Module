@@ -1,14 +1,12 @@
-#include "system.h"
+﻿#include "system.h"
 #include "hw/serial.h"
 #include "hw/sensor.h"
 
 // Global variables
 uint32_t lastTimeRoutineBlink = 0;
-uint32_t lastTimeRoutineDemo = 0;
 uint32_t lastTimeRoutineSetID = 0;
 uint32_t lastTimeSensorRead = 0;
 bool blink_run_state = false;
-bool blink_demo_state = false;
 bool blink_set_id_state = false;
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
 uint32_t lastTimeLatchLocked = 0;
@@ -18,13 +16,13 @@ void sysInit()
     serialInit();
 
     // Initialize system-level GPIO
-    pinMode(LED_RUN_PIN, OUTPUT);
-    pinMode(MOSFET_PIN, OUTPUT);
-    pinMode(SENSE_PIN, INPUT_PULLUP);
-    pinMode(FUNC_SW_PIN, INPUT);
+    pinMode(HW_LED_BUILTIN_PIN, OUTPUT);
+    pinMode(HW_LATCH_TRIGGER_PIN, OUTPUT);
+    pinMode(HW_LATCH_CHECK_PIN, INPUT_PULLUP);
+    pinMode(HW_FUNCTION_SWITCH_PIN, INPUT);
 
     sysSetRunIndicator(false);
-    digitalWrite(MOSFET_PIN, LOW);
+    digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);
 
     // Initialize the internal temperature sensor (I2C1)
     sensorInit();
@@ -35,20 +33,20 @@ void sysInit()
 
 void sysSetRunIndicator(bool state)
 {
-    digitalWrite(LED_RUN_PIN, state ? HIGH : LOW);
+    digitalWrite(HW_LED_BUILTIN_PIN, state ? HIGH : LOW);
 }
 
 bool sysIsFunctionSwitchPressed()
 {
-    return (digitalRead(FUNC_SW_PIN) == LOW);
+    return (digitalRead(HW_FUNCTION_SWITCH_PIN) == LOW);
 }
 
 bool isLatchLocked(int debounceDelay)
 {
-    if (digitalRead(SENSE_PIN) == LOW)
+    if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
     {
         delay(debounceDelay); // Debounce delay
-        if (digitalRead(SENSE_PIN) == LOW)
+        if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
         {
             return true; // Latch is locked
         }
@@ -73,13 +71,13 @@ bool unlockLatch(int unlockTimeout)
         return false; // Reject unlock attempt if too soon
     }
 
-    if (digitalRead(SENSE_PIN) == LOW)
+    if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
     {
         lastUnlockTime = millis();
-        digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
+        digitalWrite(HW_LATCH_TRIGGER_PIN, HIGH);  // Activate MOSFET to unlock latch
 
         uint32_t startTime = millis();
-        while (digitalRead(SENSE_PIN) == LOW)
+        while (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
         {
             if (millis() - startTime >= unlockTimeout)
             {
@@ -87,8 +85,7 @@ bool unlockLatch(int unlockTimeout)
             }
         }
 
-        uint32_t actualDuration = millis() - startTime;
-        digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
+        digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);  // Deactivate MOSFET after timeout
 
         return true; // Latch is active
     }
@@ -101,7 +98,7 @@ bool unlockLatch(int unlockTimeout)
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
 {
     // Check if switch is pressed at startup (active LOW)
-    if (digitalRead(FUNC_SW_PIN) == HIGH)
+    if (digitalRead(HW_FUNCTION_SWITCH_PIN) == HIGH)
     {
         return FUNC_SW_RUN;  // Switch not pressed, continue normal operation
     }
@@ -112,7 +109,7 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     uint32_t lastBlinkCycle = 0;
 
     // Wait for switch release or max time
-    while (digitalRead(FUNC_SW_PIN) == LOW && (millis() - pressStartTime) < maxWaitTime)
+    while (digitalRead(HW_FUNCTION_SWITCH_PIN) == LOW && (millis() - pressStartTime) < maxWaitTime)
     {
         pressDuration = millis() - pressStartTime;
         uint32_t currentCycle = pressDuration / 1000;  // Each cycle is 1 second
@@ -205,18 +202,6 @@ bool ON_ROUTINE_BLINK_RUN()
     {
         lastTimeRoutineBlink = currentMillis;
         blink_run_state = !blink_run_state;
-        return true;
-    }
-    return false;
-}
-
-bool ON_ROUTINE_BLINK_DEMO()
-{
-    uint32_t currentMillis = millis();
-    if (currentMillis - lastTimeRoutineDemo >= ROUTINE_BLINK_DEMO_MS)
-    {
-        lastTimeRoutineDemo = currentMillis;
-        blink_demo_state = !blink_demo_state;
         return true;
     }
     return false;

@@ -17,11 +17,8 @@
 #define LED_NUM               1                   // Only LED_1 is exposed to Modbus
 #define LED_PIXELS_PER_GROUP  LED_RING_PIXEL_COUNT // LED_1 controls the full 16-pixel ring
 #define LED_RING_PIXEL_COUNT  HW_LED_RING_PIXEL_COUNT
-#define DEFAULT_LED_POWER     20    // Default LED power percentage (0-100)
-#define DEFAULT_LED_PWM       (DEFAULT_LED_POWER / 100.0 * 255.0)
 
 extern Adafruit_NeoPixel ledRing;
-extern float default_color[17][3];      // Array to hold default RGB values for each LED
 extern bool last_led_state[LED_NUM];    // Array to hold last known state (on/off) for each LED
 extern uint32_t led_counter[LED_NUM];   // Counter for each LED having been turned on
 extern uint32_t led_timer[LED_NUM];     // Timer for each LED having been turned on

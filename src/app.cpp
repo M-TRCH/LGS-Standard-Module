@@ -26,7 +26,6 @@ static void applyLedColor(int ledIndex, float brightnessScale);
 static void enforceLedMaxOnTime();
 static void updateLedStatistics();
 static void updateLatchStatus();
-static void updateOledStatus(const String &title, const String &value = "");
 static void updateOledCounter(uint8_t value);
 
 static bool oledReady = false;
@@ -237,22 +236,6 @@ static void updateLatchStatus()
 #endif
 }
 
-static void updateOledStatus(const String &title, const String &value)
-{
-    if (!oledReady)
-    {
-        return;
-    }
-
-    String screenText = title;
-    if (value.length() > 0)
-    {
-        screenText += "\n" + value;
-    }
-
-    oledPrint(screenText, 2);
-}
-
 static void updateOledCounter(uint8_t value)
 {
     if (!oledReady)
@@ -305,7 +288,7 @@ static void handleModbusRequests()
     // Configuration group:
     // Global Brightness (Addr.190) - Set all LED brightness at once
     uint16_t global_brightness = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_BRIGHTNESS);
-    if (global_brightness != last_global_brightness && global_brightness >= 0 && global_brightness <= 100)
+    if (global_brightness != last_global_brightness && global_brightness <= 100)
     {
         last_global_brightness = global_brightness;
         for (int i = 0; i < LED_NUM; i++)
@@ -316,7 +299,7 @@ static void handleModbusRequests()
 
     // Global Max On Time (Addr.194) - Set all LED max on-time at once
     uint16_t global_max_on_time = RTUServer.holdingRegisterRead(MB_REG_GLOBAL_MAX_ON_TIME);
-    if (global_max_on_time != last_global_max_on_time && global_max_on_time >= 0 && global_max_on_time <= 65535)
+    if (global_max_on_time != last_global_max_on_time)
     {
         last_global_max_on_time = global_max_on_time;
         for (int i = 0; i < LED_NUM; i++)

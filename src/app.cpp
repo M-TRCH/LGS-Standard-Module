@@ -3,10 +3,10 @@
 #include "system.h"
 #include "util/periodic_timer.h"
 #include "eeprom_utils.h"
-#include "hw/led.h"
-#include "hw/sensor.h"
-#include "hw/oled.h"
-#include "hw/servo.h"
+#include "drivers/led_ring.h"
+#include "drivers/temp_sensor.h"
+#include "drivers/oled.h"
+#include "drivers/servo_out.h"
 #include "modbus_utils.h"
 
 // ---------------------------------------------------------------------------
@@ -135,8 +135,9 @@ static void runFactoryResetMode()
 static void runNormalMode()
 {
     static PeriodicTimer blinkTimer{ROUTINE_BLINK_RUN_MS};
-    static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS};
+    static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS / 2};
     static bool runLedOn = false;
+    static bool readBoardNext = false;
 
     // Routine blink for run LED
     if (blinkTimer.due(millis()))
@@ -145,14 +146,26 @@ static void runNormalMode()
         sysSetRunIndicator(runLedOn);
     }
 
-    // Routine sensor read
+    // Routine sensor read: alternate the two sensors so each is refreshed
+    // once per ROUTINE_SENSOR_READ_MS with only one ~10ms I2C read per tick.
     if (sensorTimer.due(millis()))
     {
         float temperatureC = 0.0f;
-        if (sensorReadTemperature(temperatureC))
+        if (readBoardNext)
         {
-            RTUServer.holdingRegisterWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
+            if (tempReadBoard(temperatureC))
+            {
+                RTUServer.holdingRegisterWrite(MB_REG_BOARD_TEMP, (uint16_t)(temperatureC * 100));
+            }
         }
+        else
+        {
+            if (tempReadRoom(temperatureC))
+            {
+                RTUServer.holdingRegisterWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
+            }
+        }
+        readBoardNext = !readBoardNext;
     }
 
     enforceLedMaxOnTime();  // Turn off LEDs that exceeded their max on-time

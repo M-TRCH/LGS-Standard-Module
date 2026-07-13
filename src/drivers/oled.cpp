@@ -1,9 +1,9 @@
-#include "hw/oled.h"
-#include "hw/oled_font_digits.h"
+#include "drivers/oled.h"
+#include "drivers/oled_font_digits.h"
 
 // Dedicated I2C2 bus for the OLED (separate from the internal I2C1 sensor bus)
-TwoWire WireOLED(HW_I2C2_SDA_PIN, HW_I2C2_SCL_PIN);
-Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &WireOLED, -1);
+static TwoWire WireOLED(HW_I2C2_SDA_PIN, HW_I2C2_SCL_PIN);
+static Adafruit_SSD1306 oled(OLED_WIDTH, OLED_HEIGHT, &WireOLED, -1);
 
 namespace {
 constexpr int DIGIT_GAP = 0;   // spacing between the two tabular digits

@@ -1,19 +1,15 @@
-#ifndef HW_SERVO_H
-#define HW_SERVO_H
+#ifndef DRIVERS_SERVO_OUT_H
+#define DRIVERS_SERVO_OUT_H
 
 #include <Arduino.h>
-#include <Servo.h>
-#include "system.h"
 
-/*  @file hw/servo.h
+/*  @file drivers/servo_out.h
  *  @brief Servo driver for the two board servo outputs (PC6, PC7).
  */
 
 #define SERVO_COUNT     2
 #define SERVO_MIN_ANGLE 0
 #define SERVO_MAX_ANGLE 180
-
-extern Servo servos[SERVO_COUNT];
 
 /*  @brief Attach both servo outputs to their pins. */
 void servoInit();
@@ -33,4 +29,4 @@ void servoWriteMicroseconds(uint8_t index, uint16_t microseconds);
 /*  @brief Detach a servo output (stops sending pulses). */
 void servoDetach(uint8_t index);
 
-#endif // HW_SERVO_H
+#endif // DRIVERS_SERVO_OUT_H

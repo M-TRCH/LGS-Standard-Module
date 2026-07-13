@@ -1,6 +1,6 @@
 ﻿#include "system.h"
-#include "hw/serial.h"
-#include "hw/sensor.h"
+#include "drivers/rs485_port.h"
+#include "drivers/temp_sensor.h"
 
 // Global variables
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
@@ -8,7 +8,7 @@ uint32_t lastTimeLatchLocked = 0;
 
 void sysInit()
 {
-    serialInit();
+    rs485PortBegin(MODBUS_BAUD);
 
     // Initialize system-level GPIO
     pinMode(HW_LED_BUILTIN_PIN, OUTPUT);
@@ -19,8 +19,8 @@ void sysInit()
     sysSetRunIndicator(false);
     digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);
 
-    // Initialize the internal temperature sensor (I2C1)
-    sensorInit();
+    // Initialize the internal temperature sensors (I2C1)
+    tempSensorInit();
 
     // Check function switch immediately after system init
     functionMode = checkFunctionSwitch();

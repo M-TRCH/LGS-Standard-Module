@@ -1,6 +1,8 @@
-#include "hw/servo.h"
+#include "drivers/servo_out.h"
+#include <Servo.h>
+#include "HW_config.h"
 
-Servo servos[SERVO_COUNT];
+static Servo servos[SERVO_COUNT];
 
 static const uint8_t servoPins[SERVO_COUNT] = { HW_SERVO1_PIN, HW_SERVO2_PIN };
 

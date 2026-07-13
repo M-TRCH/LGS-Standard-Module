@@ -1,6 +1,6 @@
 
 #include "modbus_utils.h"
-#include "hw/serial.h"
+#include "drivers/rs485_port.h"
 #include "version.h"
 
 // Global variables for Modbus

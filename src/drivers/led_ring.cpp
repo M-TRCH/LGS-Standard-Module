@@ -1,5 +1,4 @@
-#include "hw/led.h"
-#include "eeprom_utils.h"
+#include "drivers/led_ring.h"
 
 Adafruit_NeoPixel ledRing(LED_RING_PIXEL_COUNT, HW_LED_RING_PIN, NEO_GRB + NEO_KHZ800);
 

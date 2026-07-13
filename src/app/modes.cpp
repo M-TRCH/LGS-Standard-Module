@@ -1,99 +1,12 @@
-﻿#include "system.h"
-#include "drivers/rs485_port.h"
-#include "drivers/temp_sensor.h"
+#include "app/modes.h"
+#include "drivers/board_io.h"
 
-// Global variables
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
-uint32_t lastTimeLatchLocked = 0;
-
-void sysInit()
-{
-    rs485PortBegin(MODBUS_BAUD);
-
-    // Initialize system-level GPIO
-    pinMode(HW_LED_BUILTIN_PIN, OUTPUT);
-    pinMode(HW_LATCH_TRIGGER_PIN, OUTPUT);
-    pinMode(HW_LATCH_CHECK_PIN, INPUT_PULLUP);
-    pinMode(HW_FUNCTION_SWITCH_PIN, INPUT);
-
-    sysSetRunIndicator(false);
-    digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);
-
-    // Initialize the internal temperature sensors (I2C1)
-    tempSensorInit();
-
-    // Check function switch immediately after system init
-    functionMode = checkFunctionSwitch();
-}
-
-void sysSetRunIndicator(bool state)
-{
-    digitalWrite(HW_LED_BUILTIN_PIN, state ? HIGH : LOW);
-}
-
-bool sysIsFunctionSwitchPressed()
-{
-    return (digitalRead(HW_FUNCTION_SWITCH_PIN) == LOW);
-}
-
-bool isLatchLocked(int debounceDelay)
-{
-    if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
-    {
-        delay(debounceDelay); // Debounce delay
-        if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
-        {
-            return true; // Latch is locked
-        }
-    }
-    return false; // Latch is inactive
-}
-
-bool unlockLatch(int unlockTimeout)
-{
-    // Safety check: enforce maximum unlock time
-    if (unlockTimeout > LATCH_MAX_UNLOCK_TIME)
-    {
-        unlockTimeout = LATCH_MAX_UNLOCK_TIME;
-    }
-
-    // Safety check: prevent frequent unlocking
-    static uint32_t lastUnlockTime = 0;
-    uint32_t timeSinceLastUnlock = millis() - lastUnlockTime;
-
-    if (lastUnlockTime != 0 && timeSinceLastUnlock < LATCH_MIN_INTERVAL)
-    {
-        return false; // Reject unlock attempt if too soon
-    }
-
-    if (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
-    {
-        lastUnlockTime = millis();
-        digitalWrite(HW_LATCH_TRIGGER_PIN, HIGH);  // Activate MOSFET to unlock latch
-
-        uint32_t startTime = millis();
-        while (digitalRead(HW_LATCH_CHECK_PIN) == LOW)
-        {
-            if (millis() - startTime >= unlockTimeout)
-            {
-                break; // Exit if timeout reached
-            }
-        }
-
-        digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);  // Deactivate MOSFET after timeout
-
-        return true; // Latch is active
-    }
-    else
-    {
-        return false; // Latch is inactive
-    }
-}
 
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
 {
     // Check if switch is pressed at startup (active LOW)
-    if (digitalRead(HW_FUNCTION_SWITCH_PIN) == HIGH)
+    if (!boardFunctionSwitchPressed())
     {
         return FUNC_SW_RUN;  // Switch not pressed, continue normal operation
     }
@@ -104,7 +17,7 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     uint32_t lastBlinkCycle = 0;
 
     // Wait for switch release or max time
-    while (digitalRead(HW_FUNCTION_SWITCH_PIN) == LOW && (millis() - pressStartTime) < maxWaitTime)
+    while (boardFunctionSwitchPressed() && (millis() - pressStartTime) < maxWaitTime)
     {
         pressDuration = millis() - pressStartTime;
         uint32_t currentCycle = pressDuration / 1000;  // Each cycle is 1 second
@@ -155,13 +68,13 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
             }
         }
 
-        sysSetRunIndicator(shouldLedBeOn);
+        boardSetRunLed(shouldLedBeOn);
 
         delay(50);  // Small delay to reduce CPU usage
     }
 
     // Turn off LED after release
-    sysSetRunIndicator(false);
+    boardSetRunLed(false);
 
     // Determine which mode based on press duration
     FunctionSwitchMode mode = FUNC_SW_RUN;
@@ -189,4 +102,3 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
 
     return mode;
 }
-

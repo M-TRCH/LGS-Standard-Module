@@ -1,7 +1,11 @@
 #include <Arduino.h>
 #include "app.h"
-#include "system.h"
+#include "config.h"
 #include "util/periodic_timer.h"
+#include "app/modes.h"
+#include "app/latch_control.h"
+#include "drivers/board_io.h"
+#include "drivers/rs485_port.h"
 #include "eeprom_utils.h"
 #include "drivers/led_ring.h"
 #include "drivers/temp_sensor.h"
@@ -37,8 +41,12 @@ static bool oledReady = false;
 
 void appInit()
 {
-    // Initialize system core (pins, serial, sensor, function switch check)
-    sysInit();
+    // Bring up the RS485 link, discrete I/O and I2C1 sensors, then classify
+    // the boot-time function switch hold (blocking by design, pre-Modbus).
+    rs485PortBegin(DEFAULT_BAUD_RATE);
+    boardIoInit();
+    tempSensorInit();
+    functionMode = checkFunctionSwitch();
 
     // clearEeprom(true);   // Uncomment to clear EEPROM for debugging
     eepromInit();           // Initialize EEPROM and load configuration
@@ -84,15 +92,15 @@ static void runDemoMode()
     static bool lastSwitchPressed = false;
     static uint32_t lastSwitchEdge = 0;
 
-    bool switchPressed = sysIsFunctionSwitchPressed();
-    if (switchPressed && !lastSwitchPressed && (millis() - lastSwitchEdge >= 180))
+    bool switchPressed = boardFunctionSwitchPressed();
+    if (switchPressed && !lastSwitchPressed && (millis() - lastSwitchEdge >= DEMO_SWITCH_DEBOUNCE_MS))
     {
         lastSwitchEdge = millis();
         oledCounter = (oledCounter + 1) % 100;
     }
     lastSwitchPressed = switchPressed;
 
-    if (millis() - lastDemoFrame >= 32)
+    if (millis() - lastDemoFrame >= DEMO_FRAME_MS)
     {
         lastDemoFrame = millis();
         rainbowPhase += 1;
@@ -113,7 +121,7 @@ static void runSetIdMode()
         ledOn = !ledOn;
         for (int i = 0; i < LED_NUM; i++)
         {
-            ledSetAllPixels(i, ledColor(0, 0, (ledOn ? 204 : 0))); // Blue or off (magic number)
+            ledSetAllPixels(i, ledColor(0, 0, (ledOn ? SET_ID_BLINK_BLUE : 0))); // Blue or off
         }
     }
 }
@@ -123,9 +131,9 @@ static void runFactoryResetMode()
 {
     for (int i = 0; i < LED_NUM; i++)
     {
-        ledSetAllPixels(i, ledColor(204, 0, 0)); // Red (magic number)
+        ledSetAllPixels(i, ledColor(FACTORY_RESET_RED, 0, 0)); // Red
     }
-    delay(5000); // (magic number)
+    delay(FACTORY_RESET_HOLD_MS);
     eepromConfig.isFirstBoot = true;    // Set the flag
     saveEepromConfig();                 // Save to EEPROM if changed
     NVIC_SystemReset();                 // Perform software reset
@@ -143,7 +151,7 @@ static void runNormalMode()
     if (blinkTimer.due(millis()))
     {
         runLedOn = !runLedOn;
-        sysSetRunIndicator(runLedOn);
+        boardSetRunLed(runLedOn);
     }
 
     // Routine sensor read: alternate the two sensors so each is refreshed
@@ -335,8 +343,8 @@ static void handleModbusRequests()
     // Latch trigger (Addr.1020)
     if (RTUServer.coilRead(MB_COIL_LATCH_TRIGGER))
     {
-        delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Small delay to ensure coil state is stable
-        unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
+        delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Configured pre-unlock delay (ms)
+        unlockLatch(LATCH_PULSE_MS);  // Safety limits enforced in function
         RTUServer.coilWrite(MB_COIL_LATCH_TRIGGER, 0); // Reset the coil
     }
 
@@ -388,7 +396,7 @@ static void handleModbusRequests()
 
             // Trigger the latch unlock
             delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
-            unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
+            unlockLatch(LATCH_PULSE_MS);  // Safety limits enforced in function
 
             // Reset the latch coil and sync with enable coil
             RTUServer.coilWrite(MB_COIL_LED_1_LATCH + i, 0);

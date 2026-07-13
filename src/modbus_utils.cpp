@@ -14,7 +14,7 @@ void modbusInit(int id)
 {
     id = abs(id);
 
-    RTUServer.begin(rs485, id, MODBUS_BAUD, SERIAL_8N1);
+    RTUServer.begin(rs485, id, DEFAULT_BAUD_RATE, SERIAL_8N1);
 
     RTUServer.configureCoils(0x00, COIL_NUM);
     RTUServer.configureDiscreteInputs(0x00, DISCRETE_INPUT_NUM);

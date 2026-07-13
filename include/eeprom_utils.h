@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include "system.h"
+#include "config.h"
 
 // Example struct for all persistent config
 typedef struct 

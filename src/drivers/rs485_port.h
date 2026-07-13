@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoRS485.h>
-#include "HW_config.h"
+#include "board.h"
 
 /*  @file drivers/rs485_port.h
  *  @brief RS485 transceiver driver for the Modbus RTU link (USART1).

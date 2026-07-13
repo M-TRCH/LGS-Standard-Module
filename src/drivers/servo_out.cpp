@@ -1,6 +1,6 @@
 #include "drivers/servo_out.h"
 #include <Servo.h>
-#include "HW_config.h"
+#include "board.h"
 
 static Servo servos[SERVO_COUNT];
 

@@ -1,7 +1,7 @@
 #include "drivers/temp_sensor.h"
 #include <Wire.h>
 #include <SensirionI2CSts4x.h>
-#include "HW_config.h"
+#include "board.h"
 
 // Two STS40 variants on the internal I2C1 bus, distinguished by address:
 // CD1B -> 0x46 (library default ADDR_STS4X), AD1B -> 0x44 (ADDR_STS4X_ALT).

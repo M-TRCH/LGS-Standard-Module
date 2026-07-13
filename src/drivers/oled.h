@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "HW_config.h"
+#include "board.h"
 
 /*  @file drivers/oled.h
  *  @brief 0.96" SSD1306 OLED driver on the dedicated I2C2 bus.

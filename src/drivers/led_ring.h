@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#include "HW_config.h"
+#include "board.h"
 
 /*  @file drivers/led_ring.h
  *  @brief Addressable LED driver (WS2812B 16-pixel ring on PA8).

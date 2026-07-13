@@ -1,27 +1,45 @@
-
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// Modbus configuration
-#define MODBUS_SERIAL       0x00
-#define MODBUS_SERIAL3      0x01
-#define MODBUS_OUTPUT       MODBUS_SERIAL3  // Select the physical output
+/*  @file config.h
+ *  @brief Firmware tunables and factory defaults.
+ *
+ *  Pure constants only — no code, no project includes. Pin mapping lives
+ *  in board.h; compile-time device identity lives in version.h.
+ */
 
-// Default configuration values
-#define DEFAULT_DEVICE_TYPE         40      // 10=standard, 20=narcotic, 30=lite, 40=delivery
-#define DEFAULT_FW_VERSION          19055   // ddmmy dd=day, mm=month, y=year (e.g. 28085 = 28/08/2025)
-#define DEFAULT_HW_VERSION          430     // mnp m=major, n=minor, p=production time
+// --- Factory defaults (loaded on factory reset / first boot) ---
+#define DEFAULT_DEVICE_TYPE         40      // legacy EEPROM field (identity now in version.h)
+#define DEFAULT_FW_VERSION          19055   // legacy EEPROM field (identity now in version.h)
+#define DEFAULT_HW_VERSION          430     // legacy EEPROM field (identity now in version.h)
 #define DEFAULT_BAUD_RATE           9600
-#define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-246, 247=not set)
+#define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-245, 246=SET_ID, 247=not set)
 #define DEFAULT_LED_BRIGHTNESS      {80, 80, 80, 80, 80, 80, 80, 80}
 #define DEFAULT_LED_R               {255,   0,      0,      255,    0,      255,    255,    255}
 #define DEFAULT_LED_G               {0,     255,    0,      215,    255,    0,      60,     245}
 #define DEFAULT_LED_B               {0,     0,      255,    0,      255,    255,    0,      120}
-#define DEFAULT_LED_MAX_ON_TIME     {3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600} // in seconds (1 hour each)
-#define DEFAULT_LED_NUM_PER_STRIP   1       // Default number of LEDs per strip
-#define DEFAULT_UNLOCK_DELAY_TIME   0       // in milliseconds
+#define DEFAULT_LED_MAX_ON_TIME     {3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600} // seconds
+#define DEFAULT_LED_NUM_PER_STRIP   1       // legacy EEPROM field (deprecated)
+#define DEFAULT_UNLOCK_DELAY_TIME   0       // milliseconds
 
-// Operate configuration
+// --- Routine intervals ---
+#define ROUTINE_BLINK_RUN_MS        1200    // RUN LED heartbeat interval
+#define ROUTINE_BLINK_SET_ID_MS     800     // SET_ID mode blink interval
+#define ROUTINE_SENSOR_READ_MS      1000    // per-sensor temperature refresh interval
+#define DEMO_FRAME_MS               32      // demo rainbow animation frame time
+#define DEMO_SWITCH_DEBOUNCE_MS     180     // demo mode counter button debounce
+
+// --- Mode indication ---
+#define SET_ID_BLINK_BLUE           204     // blue level while blinking in SET_ID mode
+#define FACTORY_RESET_RED           204     // red level while in factory reset mode
+#define FACTORY_RESET_HOLD_MS       5000    // solid-red warning time before reset applies
+
+// --- Latch safety limits ---
+#define LATCH_PULSE_MS              300     // requested unlock pulse width
+#define LATCH_MAX_UNLOCK_TIME       500     // hard clamp on pulse width (ms) — solenoid protection
+#define LATCH_MIN_INTERVAL          2000    // minimum time between unlocks (ms), from pulse start
+
+// --- Operate configuration ---
 #define DISABLE_LATCH_STATUS_RESET  // Comment out to enable latch status reset on power cycle
 
-#endif
+#endif // CONFIG_H

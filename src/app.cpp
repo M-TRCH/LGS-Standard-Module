@@ -151,7 +151,7 @@ static void runNormalMode()
         float temperatureC = 0.0f;
         if (sensorReadTemperature(temperatureC))
         {
-            RTUServer.holdingRegisterWrite(MB_REG_BUILT_IN_TEMP, (uint16_t)(temperatureC * 100));
+            RTUServer.holdingRegisterWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
         }
     }
 

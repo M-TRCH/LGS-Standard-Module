@@ -46,10 +46,7 @@ void modbus2eepromMapping(bool saveEEPROM)
     // Unlock delay time
     eepromConfig.unlockDelayTime = RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY);
 
-    // Number of LEDs per strip
-    eepromConfig.ledNumPerStrip = RTUServer.holdingRegisterRead(MB_REG_LED_NUM_PER_STRIP);
-
-    if (saveEEPROM) 
+    if (saveEEPROM)
     {
         saveEepromConfig(); // Save to EEPROM if changed
     } 
@@ -87,7 +84,4 @@ void eeprom2modbusMapping(bool loadEEPROM)
 
     // Unlock delay time
     RTUServer.holdingRegisterWrite(MB_REG_UNLOCK_DELAY, eepromConfig.unlockDelayTime);
-
-    // Number of LEDs per strip
-    RTUServer.holdingRegisterWrite(MB_REG_LED_NUM_PER_STRIP, eepromConfig.ledNumPerStrip);
 }

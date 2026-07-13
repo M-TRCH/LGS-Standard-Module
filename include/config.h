@@ -39,4 +39,7 @@
 // --- Fault indication ---
 #define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
+// --- Watchdog ---
+#define WATCHDOG_TIMEOUT_MS         1000    // IWDG timeout; loop worst case is <50ms
+
 #endif // CONFIG_H

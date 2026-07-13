@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <IWatchdog.h>
 #include "app.h"
 #include "config.h"
 #include "util/periodic_timer.h"
@@ -76,10 +77,17 @@ void appInit()
     displayControlInit();
     servoControlInit();
     mbWatchSeedShadows();
+
+    // Start the independent watchdog LAST — after the (up to 15s) blocking
+    // function-switch measurement — now that the loop is guaranteed
+    // non-blocking. Cannot be stopped once started.
+    IWatchdog.begin(WATCHDOG_TIMEOUT_MS * 1000UL);
 }
 
 void appRun()
 {
+    IWatchdog.reload();
+
     uint32_t now = millis();
 
     // Fixed tick pipeline. Safety-relevant ticks run unconditionally BEFORE

@@ -1,5 +1,5 @@
 // LGS Standard Module - Firmware Entry Point
-// Reference Documentation: LGS-Control-Table-Updated-271125.pdf
+// Reference Documentation: doc/LGS-Control-Table.md (R5.0 column)
 //
 // The application logic lives in the app module (app.h / app.cpp), which
 // orchestrates the system, EEPROM, LED and Modbus modules. This file only

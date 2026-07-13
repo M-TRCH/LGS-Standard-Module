@@ -1,5 +1,19 @@
 # Hardware Version Note
 
+## R5.0 (STM32G0 - 2026)
+
+### New Features
+- เปลี่ยน MCU เป็น STM32G070CBT6 (64MHz, Flash 128KB, SRAM 36KB)
+- เพิ่ม external EEPROM AT24C32D (I2C1, Addr.0x50) สำหรับเก็บค่า configuration แทน flash ของ MCU
+- เซนเซอร์อุณหภูมิ 2 ตัวบน I2C1: STS40-CD1B-R3 (วัดอุณหภูมิห้อง, Addr.0x46) และ STS40-AD1B-R3 (วัดอุณหภูมิบอร์ด, Addr.0x44)
+- ช่องต่อ Servo 2 ช่อง (PC6, PC7) — จองไว้สำหรับอนาคต
+
+### Notes
+- ตาราง Modbus ออกแบบใหม่ได้อิสระ ไม่ผูกกับชุดคำสั่งของบอร์ดรุ่นก่อนหน้า — ดูคอลัมน์ R5.0 ใน `LGS-Control-Table.md`
+- Firmware ของบอร์ด < R5.0 (R4.x / STM32F103) อยู่ใน `assets/` และไม่ใช้ร่วมกับ R5.0
+
+---
+
 ## R4.2 (High Volume - 2025-12-22)
 
 ### Improvements
@@ -83,16 +97,18 @@
 
 ### Supported Features by Revision
 
-| Feature | R4.0 | R4.0.1 | R4.1 | R4.2 | R4.3 |
-|---------|------|--------|------|------|------|
-| 12V Input Support | ✗ | ✗ | ✓ | ✓ | ✓ |
-| 8-Color RGB LEDs | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Modbus RTU | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Latch Control | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Function Switch | ✗ | ✗ | ✓ | ✓ | ✓ |
-| RUN Status LED | ✗ | ✗ | ✓ | ✓ | ✓ |
-| Temp Sensor | ✗ | ✗ | ✓ | ✓ | ✓ |
-| Surge Protection | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Feature | R4.0 | R4.0.1 | R4.1 | R4.2 | R4.3 | R5.0 |
+|---------|------|--------|------|------|------|------|
+| 12V Input Support | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
+| 8-Color RGB LEDs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Modbus RTU | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Latch Control | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Function Switch | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
+| RUN Status LED | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
+| Temp Sensor | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ (×2: ห้อง+บอร์ด) |
+| Surge Protection | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
+| External EEPROM (AT24C32D) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Servo Outputs (reserved) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
 
 ### Current Consumption (Typical @ 12V)
 

@@ -1,6 +1,36 @@
 # Firmware Version Note
-**แพลตฟอร์ม:** STM32F103  
-**ไฟล์:** firmware_stm32f103_*.bin  
+**แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
+**ไฟล์:** firmware_stm32f103_*.bin
+
+## v3.0.0 (2026-07-13) — R5.0 เท่านั้น
+### Compatibility
+- R5.0 (STM32G070CBT6) — ใช้กับบอร์ด R4.x ไม่ได้
+
+### Architecture
+- Refactor ยกเครื่องทั้งโครงสร้าง: เลเยอร์ drivers/svc/app, ไม่มี global state ข้าม module,
+  ตาราง Modbus แบบ table-driven — ดู `ARCHITECTURE.md`
+- Runtime เป็น non-blocking ทั้งหมด: บัส Modbus ตอบสนองระหว่างปลดล็อกกลอนและหน้าต่าง factory reset
+- ย้ายที่เก็บค่า R/W(F) จาก flash บน MCU → external EEPROM AT24C32D (I2C1, 0x50)
+  พร้อม magic/version/CRC — ค่า config รอดข้ามการ flash firmware เต็มชิป
+  (import ค่าเดิมจาก MCU flash ให้อัตโนมัติครั้งแรก)
+- ลดขนาด image: 71,016 → 61,404 bytes (เตรียม headroom สำหรับ OTA ผ่าน RS485 ในอนาคต)
+
+### New Features
+- เพิ่ม Board Temperature (Addr.21) จากเซนเซอร์ STS40-AD1B; Addr.20 เป็นอุณหภูมิห้องจาก STS40-CD1B
+- Baud Rate (Addr.3) มีผลจริง: whitelist 9600/19200/38400/57600, ค่าไม่ถูกต้อง fallback 9600,
+  โหมด SET_ID/FACTORY RESET บังคับ 9600 เป็นช่องทางกู้คืน
+- Time after unlocking (Addr.40) รายงานค่าจริง (เดิมรายงาน 0 ตลอด)
+- จอง Display commands (Addr.60, coils 1010/1011) ไว้ในโค้ด (ยังไม่เรนเดอร์)
+
+### Breaking Changes (สำหรับ backend)
+- ชุดคำสั่งเหลือเฉพาะคอลัมน์ R5.0 ใน `LGS-Control-Table.md`:
+  ตัด Light 2-8 ทุกกลุ่ม (120-184, 220-281, 1002-1008, 1012-1018, 1022-1028) และ reg 81
+- Addr.1 (FW version) รายงานเวอร์ชันของ build จริง (เดิมค้างค่าใน EEPROM); Addr.2 = 500
+- Coil 1020/1021 อ่านค่า 1 ได้ระหว่าง pulse (เดิมบัสค้างจนจบ); คำขอระหว่าง cooldown ถูกเคลียร์ทันที
+- Factory reset เหลือ reboot เดียว (เดิม 2 ครั้ง)
+- Downgrade กลับ v2.x: firmware เก่าอ่านจาก MCU flash จะเห็นค่า ณ ก่อน migrate (ไม่เห็นค่าใน AT24)
+
+---
 
 ## v2.0.2 (2025-12-17)
 ### Compatibility

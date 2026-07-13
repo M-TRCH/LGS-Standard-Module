@@ -14,17 +14,32 @@ namespace {
 bool channelOn = false;         // last known on/off state
 uint32_t onCount = 0;           // times the channel has been turned on
 uint32_t onSinceMs = 0;         // millis() when it was last turned on (0 = off)
-float onTimeSumS = 0;           // accumulated on-time in seconds
+uint32_t onTimeSumMs = 0;       // accumulated on-time in milliseconds
+
+// Scale a color component register (0-255) by the brightness register
+// (0-100 percent), clamping out-of-range register values.
+uint8_t scaledComponent(uint16_t component, uint16_t brightness)
+{
+    if (component > 255)
+    {
+        component = 255;
+    }
+    return (uint8_t)((component * brightness) / 100);
+}
 
 // Apply the configured RGB color (from the Modbus registers), scaled by the
 // configured brightness.
 void applyConfiguredColor()
 {
-    float brightness = mbRegRead(MB_REG_LED_1_BRIGHTNESS) / 100.0f;
+    uint16_t brightness = mbRegRead(MB_REG_LED_1_BRIGHTNESS);
+    if (brightness > 100)
+    {
+        brightness = 100;
+    }
     ledSetAllPixels(0, ledColor(
-        mbRegRead(MB_REG_LED_1_RED) * brightness,
-        mbRegRead(MB_REG_LED_1_GREEN) * brightness,
-        mbRegRead(MB_REG_LED_1_BLUE) * brightness));
+        scaledComponent(mbRegRead(MB_REG_LED_1_RED), brightness),
+        scaledComponent(mbRegRead(MB_REG_LED_1_GREEN), brightness),
+        scaledComponent(mbRegRead(MB_REG_LED_1_BLUE), brightness)));
 }
 
 void markChannelOn()
@@ -42,7 +57,7 @@ void markChannelOff()
     channelOn = false;
     if (onSinceMs != 0)
     {
-        onTimeSumS += (millis() - onSinceMs) / 1000.0f;
+        onTimeSumMs += millis() - onSinceMs;
         onSinceMs = 0;
     }
 }
@@ -144,7 +159,7 @@ void ledControlTick(uint32_t now)
 
     // Publish statistics (clamped to uint16 range, seconds truncated)
     uint16_t countValue = clampToU16(onCount);
-    uint16_t timeValue = clampToU16((uint32_t)onTimeSumS);
+    uint16_t timeValue = clampToU16(onTimeSumMs / 1000);
 
     mbRegWrite(MB_REG_LED_1_ON_COUNTER, countValue);
     mbRegWrite(MB_REG_LED_1_ON_TIME, timeValue);

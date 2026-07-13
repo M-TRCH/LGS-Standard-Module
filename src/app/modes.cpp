@@ -1,8 +1,6 @@
 #include "app/modes.h"
 #include "drivers/board_io.h"
 
-FunctionSwitchMode functionMode = FUNC_SW_RUN;
-
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
 {
     // Check if switch is pressed at startup (active LOW)

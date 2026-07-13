@@ -44,7 +44,7 @@ void oledClear()
     oled.display();
 }
 
-void oledPrint(const String &text, uint8_t textSize)
+void oledPrint(const char *text, uint8_t textSize)
 {
     oled.clearDisplay();
     oled.setFont(nullptr);

@@ -16,9 +16,6 @@ enum FunctionSwitchMode
     FUNC_SW_FACTORY_RESET = 3   // Pressed 8-11 seconds
 };
 
-// Mode selected at boot (set once by appInit)
-extern FunctionSwitchMode functionMode;
-
 /*  @brief Measure the boot-time function switch hold and classify the mode.
  *
  *  Deliberately BLOCKING: runs once in appInit() before the Modbus server

@@ -24,10 +24,10 @@ bool oledInit();
 void oledClear();
 
 /*  @brief Show a single string, replacing the current content.
- *  @param text     Text to display
+ *  @param text     Null-terminated text to display
  *  @param textSize Font scale (default 2)
  */
-void oledPrint(const String &text, uint8_t textSize = 2);
+void oledPrint(const char *text, uint8_t textSize = 2);
 
 /*  @brief Show a two-digit number centered using a large GFX font.
  *

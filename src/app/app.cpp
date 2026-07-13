@@ -31,6 +31,7 @@ static void runNormalMode();
 static void updateOledCounter(uint8_t value);
 
 static bool oledReady = false;
+static FunctionSwitchMode functionMode = FUNC_SW_RUN; // selected once at boot
 
 // ---------------------------------------------------------------------------
 // Public API

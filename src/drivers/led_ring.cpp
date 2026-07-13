@@ -41,9 +41,4 @@ void ledInit()
     ledRing.begin();
     ledRing.clear();
     ledRing.show();
-
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        ledSetAllPixels(i, ledColor(0, 0, 0));
-    }
 }

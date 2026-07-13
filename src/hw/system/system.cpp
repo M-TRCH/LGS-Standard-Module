@@ -13,19 +13,9 @@ bool blink_set_id_state = false;
 FunctionSwitchMode functionMode = FUNC_SW_RUN;
 uint32_t lastTimeLatchLocked = 0;
 
-// Log configuration
-LogLevel globalLogLevel = LOG_INFO;
-uint8_t enabledLogCategories = LOG_CAT_ALL;
-
-void sysInit(LogLevel logLevel, uint8_t logCategories)
+void sysInit()
 {
-    globalLogLevel = logLevel;
-    enabledLogCategories = logCategories;
-
-    // Bring up the UARTs first so logging is visible immediately
     serialInit();
-
-    LOG_INFO_SYS(F("\n[SYSTEM] Initializing system...\n"));
 
     // Initialize system-level GPIO
     pinMode(LED_RUN_PIN, OUTPUT);
@@ -41,8 +31,6 @@ void sysInit(LogLevel logLevel, uint8_t logCategories)
 
     // Check function switch immediately after system init
     functionMode = checkFunctionSwitch();
-
-    LOG_INFO_SYS(F("[SYSTEM] Initialization complete\n"));
 }
 
 void sysSetRunIndicator(bool state)
@@ -73,7 +61,6 @@ bool unlockLatch(int unlockTimeout)
     // Safety check: enforce maximum unlock time
     if (unlockTimeout > LATCH_MAX_UNLOCK_TIME)
     {
-        LOG_WARNING_SYS("[SYSTEM] Unlock timeout " + String(unlockTimeout) + "ms exceeds maximum " + String(LATCH_MAX_UNLOCK_TIME) + "ms, clamping to max\n");
         unlockTimeout = LATCH_MAX_UNLOCK_TIME;
     }
 
@@ -83,7 +70,6 @@ bool unlockLatch(int unlockTimeout)
 
     if (lastUnlockTime != 0 && timeSinceLastUnlock < LATCH_MIN_INTERVAL)
     {
-        LOG_WARNING_SYS("[SYSTEM] Unlock attempt blocked - only " + String(timeSinceLastUnlock) + "ms since last unlock (min " + String(LATCH_MIN_INTERVAL) + "ms)\n");
         return false; // Reject unlock attempt if too soon
     }
 
@@ -91,7 +77,6 @@ bool unlockLatch(int unlockTimeout)
     {
         lastUnlockTime = millis();
         digitalWrite(MOSFET_PIN, HIGH);  // Activate MOSFET to unlock latch
-        LOG_INFO_SYS("[SYSTEM] Latch unlocking for " + String(unlockTimeout) + "ms\n");
 
         uint32_t startTime = millis();
         while (digitalRead(SENSE_PIN) == LOW)
@@ -104,29 +89,22 @@ bool unlockLatch(int unlockTimeout)
 
         uint32_t actualDuration = millis() - startTime;
         digitalWrite(MOSFET_PIN, LOW);  // Deactivate MOSFET after timeout
-        LOG_INFO_SYS("[SYSTEM] Latch unlocked for " + String(actualDuration) + "ms\n");
 
         return true; // Latch is active
     }
     else
     {
-        LOG_DEBUG_SYS("[SYSTEM] Unlock attempt - latch already inactive\n");
         return false; // Latch is inactive
     }
 }
 
 FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
 {
-    LOG_DEBUG_SYS(F("[SYSTEM] Checking function switch...\n"));
-
     // Check if switch is pressed at startup (active LOW)
     if (digitalRead(FUNC_SW_PIN) == HIGH)
     {
-        LOG_DEBUG_SYS(F("[SYSTEM] Function switch not pressed, continuing normal operation\n"));
         return FUNC_SW_RUN;  // Switch not pressed, continue normal operation
     }
-
-    LOG_INFO_SYS(F("[SYSTEM] Function switch detected! Waiting for release...\n"));
 
     // Switch is pressed, measure how long it's held
     uint32_t pressStartTime = millis();
@@ -143,7 +121,6 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
         if (currentCycle > lastBlinkCycle)
         {
             lastBlinkCycle = currentCycle;
-            LOG_INFO_SYS("[SYSTEM] Switch pressed: " + String(currentCycle) + " seconds...\n");
         }
 
         // Determine blink pattern based on press duration
@@ -200,23 +177,19 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     if (pressDuration >= 8000 && pressDuration < 11000)  // 8-11 seconds
     {
         mode = FUNC_SW_FACTORY_RESET;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: FACTORY_RESET (8-11s) detected\n"));
     }
     else if (pressDuration >= 5000 && pressDuration < 8000)  // 5-8 seconds
     {
         mode = FUNC_SW_SET_ID;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: SET_ID (5-8s) detected\n"));
     }
     else if (pressDuration >= 2000 && pressDuration < 5000)  // 2-5 seconds
     {
         mode = FUNC_SW_DEMO;
-        LOG_INFO_SYS(F("[SYSTEM] Function switch: DEMO (2-5s) detected\n"));
     }
     else
     {
         // Less than 2 seconds or more than 11 seconds - no action
         mode = FUNC_SW_RUN;
-        LOG_INFO_SYS("[SYSTEM] Function switch: No action (press duration: " + String(pressDuration) + "ms)\n");
     }
 
     // Wait a bit to ensure switch is fully released

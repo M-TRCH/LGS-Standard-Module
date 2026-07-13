@@ -25,22 +25,18 @@ void loadEepromConfig()
 {
     EEPROM.get(0, eepromConfig);
     eepromConfig_cache = eepromConfig; // keep a copy for change detection
-    LOG_DEBUG_EEPROM(F("[EEPROM] Configuration loaded from EEPROM\n"));
 }
 
 void clearEeprom(bool whileRunning) 
 {
-    LOG_INFO_EEPROM(F("[EEPROM] Clearing EEPROM...\n"));
     EEPROM.begin();
     for (int i = 0; i < sizeof(EepromConfig_t); i++) 
     {
         EEPROM.write(i, 0xFF);
     }
     EEPROM.end();
-    LOG_INFO_EEPROM(F("[EEPROM] EEPROM cleared successfully\n"));
     while (whileRunning)
     {
-        LOG_VERBOSE_EEPROM(F("."));
         delay(3000);
     }
 }
@@ -52,10 +48,8 @@ bool saveEepromConfig()
     {
         EEPROM.put(0, eepromConfig);
         eepromConfig_cache = eepromConfig; // update cache
-        LOG_INFO_EEPROM(F("[EEPROM] Configuration saved to EEPROM\n"));
         return true;
     }
-    LOG_DEBUG_EEPROM(F("[EEPROM] No changes detected, skipping save\n"));
     return false;
 }
 
@@ -68,7 +62,6 @@ void eepromInit()
     // write default values to EEPROM
     if (eepromConfig.isFirstBoot == true) 
     {
-        LOG_INFO_EEPROM(F("[EEPROM] First boot detected - loading defaults\n"));
         eepromConfig = eepromConfig_default;
         saveEepromConfig();                             // Save updated config to EEPROM
         NVIC_SystemReset();                             // Perform software reset
@@ -77,7 +70,6 @@ void eepromInit()
     // write default values to EEPROM except ID
     if (eepromConfig.isFirstBootExceptID == true) 
     {
-        LOG_INFO_EEPROM(F("[EEPROM] First boot (except ID) detected - loading defaults\n"));
         uint16_t saved_id = eepromConfig.identifier;    // save current ID
         eepromConfig = eepromConfig_default;
         eepromConfig.identifier = saved_id;             // restore ID

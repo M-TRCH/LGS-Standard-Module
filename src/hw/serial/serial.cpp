@@ -8,10 +8,6 @@ RS485Class rs485(SerialRS485, DUMMY_PIN, TX_PIN, RX_PIN);
 
 void serialInit()
 {
-    // Debug console: TX only (RX pin is no longer available on the board)
-    Serial.setTx(TX3_PIN);
-    Serial.begin(DEBUG_BAUD);
-
     // RS485 / Modbus UART
     SerialRS485.begin(MODBUS_BAUD);
 }

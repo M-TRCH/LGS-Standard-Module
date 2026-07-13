@@ -3,8 +3,6 @@
 #define SYSTEM_H
 
 #include <Arduino.h>
-#include <Stream.h>
-#include <HardwareSerial.h>
 #include "config.h"
 #include "HW_config.h"
 
@@ -12,7 +10,6 @@
 // Hardware drivers are split under include/hw and src/hw
 
 // Communication settings
-#define DEBUG_BAUD      115200
 #define MODBUS_BAUD     9600
 
 // System settings
@@ -45,70 +42,11 @@ extern bool blink_set_id_state;
 extern FunctionSwitchMode functionMode;
 extern uint32_t lastTimeLatchLocked;
 
-// Constants definitions
-// Log level definitions
-enum LogLevel
-{
-    LOG_NONE = 0,       // No logging
-    LOG_ERROR,          // Critical errors only
-    LOG_WARNING,        // Warnings and errors
-    LOG_INFO,           // Informational messages, warnings, and errors
-    LOG_DEBUG,          // Debug information
-    LOG_VERBOSE         // Verbose debug information
-};
-
-// Log category definitions (bit flags)
-enum LogCategory
-{
-    LOG_CAT_NONE    = 0x00,
-    LOG_CAT_SYSTEM  = 0x01,     // System initialization and general operations
-    LOG_CAT_EEPROM  = 0x02,     // EEPROM read/write operations
-    LOG_CAT_MODBUS  = 0x04,     // Modbus communication
-    LOG_CAT_LED     = 0x08,     // LED control operations
-    LOG_CAT_ALL     = 0xFF      // All categories
-};
-
-// Global log configuration
-extern LogLevel globalLogLevel;
-extern uint8_t enabledLogCategories;
-
-// Logging macros
-#define LOG(level, category, msg) \
-    do { \
-        if ((globalLogLevel >= level) && (enabledLogCategories & category)) { \
-            Serial.print(msg); \
-        } \
-    } while(0)
-
-#define LOG_ERROR_SYS(msg)      LOG(LOG_ERROR, LOG_CAT_SYSTEM, msg)
-#define LOG_WARNING_SYS(msg)    LOG(LOG_WARNING, LOG_CAT_SYSTEM, msg)
-#define LOG_INFO_SYS(msg)       LOG(LOG_INFO, LOG_CAT_SYSTEM, msg)
-#define LOG_DEBUG_SYS(msg)      LOG(LOG_DEBUG, LOG_CAT_SYSTEM, msg)
-#define LOG_VERBOSE_SYS(msg)    LOG(LOG_VERBOSE, LOG_CAT_SYSTEM, msg)
-
-#define LOG_ERROR_EEPROM(msg)   LOG(LOG_ERROR, LOG_CAT_EEPROM, msg)
-#define LOG_WARNING_EEPROM(msg) LOG(LOG_WARNING, LOG_CAT_EEPROM, msg)
-#define LOG_INFO_EEPROM(msg)    LOG(LOG_INFO, LOG_CAT_EEPROM, msg)
-#define LOG_DEBUG_EEPROM(msg)   LOG(LOG_DEBUG, LOG_CAT_EEPROM, msg)
-#define LOG_VERBOSE_EEPROM(msg) LOG(LOG_VERBOSE, LOG_CAT_EEPROM, msg)
-
-#define LOG_ERROR_MODBUS(msg)   LOG(LOG_ERROR, LOG_CAT_MODBUS, msg)
-#define LOG_WARNING_MODBUS(msg) LOG(LOG_WARNING, LOG_CAT_MODBUS, msg)
-#define LOG_INFO_MODBUS(msg)    LOG(LOG_INFO, LOG_CAT_MODBUS, msg)
-#define LOG_DEBUG_MODBUS(msg)   LOG(LOG_DEBUG, LOG_CAT_MODBUS, msg)
-#define LOG_VERBOSE_MODBUS(msg) LOG(LOG_VERBOSE, LOG_CAT_MODBUS, msg)
-
-#define LOG_ERROR_LED(msg)      LOG(LOG_ERROR, LOG_CAT_LED, msg)
-#define LOG_WARNING_LED(msg)    LOG(LOG_WARNING, LOG_CAT_LED, msg)
-#define LOG_INFO_LED(msg)       LOG(LOG_INFO, LOG_CAT_LED, msg)
-#define LOG_DEBUG_LED(msg)      LOG(LOG_DEBUG, LOG_CAT_LED, msg)
-#define LOG_VERBOSE_LED(msg)    LOG(LOG_VERBOSE, LOG_CAT_LED, msg)
-
 /* @brief Initialize the system
  *
- * This function sets up the necessary pins and initializes serial communication. 
+ * This function sets up the necessary pins and initializes the RS485 UART.
 */
-void sysInit(LogLevel logLevel = LOG_INFO, uint8_t logCategories = LOG_CAT_ALL);
+void sysInit();
 
 /* @brief Control the built-in status LED.
  *

@@ -65,7 +65,6 @@ void ledShowRainbowRipple(uint16_t phase)
 
 void ledInit()
 {
-    LOG_INFO_LED(F("[LED] Initializing LED ring...\n"));
     ledRing.begin();
     ledRing.clear();
     ledRing.show();
@@ -73,17 +72,5 @@ void ledInit()
     for (int i = 0; i < LED_NUM; i++)
     {
         ledSetAllPixels(i, ledColor(0, 0, 0));
-    }
-    LOG_INFO_LED(F("[LED] LED initialization complete\n"));
-}
-
-void printLedStatus()
-{
-    LOG_INFO_LED(F("[LED] Status Report:\n"));
-    for (int i = 0; i < LED_NUM; i++)
-    {
-        LOG_INFO_LED("  L" + String(i + 1) + ": State=" + String(last_led_state[i] ? "ON" : "OFF") +
-              ", Count=" + String(led_counter[i]) +
-              ", Time=" + String(led_time_sum[i], 2) + "s\n");
     }
 }

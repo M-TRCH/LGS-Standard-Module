@@ -11,7 +11,7 @@
 // UART RS485
 #define HW_UART_RS485_RX_PIN           PB7
 #define HW_UART_RS485_TX_PIN           PA9
-#define HW_UART_RS485_DE_PIN           PB3
+#define HW_UART_RS485_DE_PIN           PD0
 
 // I2C - internal devices
 #define HW_I2C1_SDA_PIN                PB9

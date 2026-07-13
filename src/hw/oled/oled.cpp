@@ -21,13 +21,11 @@ bool oledInit()
 
     if (!oledProbeAddress(OLED_I2C_ADDR))
     {
-        LOG_INFO_SYS(F("[OLED] No device found on I2C2 at 0x3C, skipping init\n"));
         return false;
     }
 
     if (!oled.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDR))
     {
-        LOG_WARNING_SYS(F("[OLED] SSD1306 init failed\n"));
         return false;
     }
 
@@ -37,7 +35,6 @@ bool oledInit()
     oled.clearDisplay();
     oled.display();
 
-    LOG_INFO_SYS(F("[OLED] Initialized\n"));
     return true;
 }
 

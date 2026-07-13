@@ -42,7 +42,4 @@ void ledSetAllPixels(int ledIndex, uint32_t color);
  */
 void ledShowRainbowRipple(uint16_t phase);
 
-/*  @brief Log the current state of the logical LED channels. */
-void printLedStatus();
-
 #endif // HW_LED_H

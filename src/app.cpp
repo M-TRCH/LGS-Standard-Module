@@ -38,7 +38,7 @@ static bool oledReady = false;
 void appInit()
 {
     // Initialize system core (pins, serial, sensor, function switch check)
-    sysInit(LOG_NONE);
+    sysInit();
 
     // clearEeprom(true);   // Uncomment to clear EEPROM for debugging
     eepromInit();           // Initialize EEPROM and load configuration
@@ -122,7 +122,6 @@ static void runFactoryResetMode()
         ledSetAllPixels(i, ledColor(204, 0, 0)); // Red (magic number)
     }
     delay(5000); // (magic number)
-    LOG_INFO_SYS(F("[SYSTEM] Factory reset mode engaged.\n"));
     eepromConfig.isFirstBoot = true;    // Set the flag
     saveEepromConfig();                 // Save to EEPROM if changed
     NVIC_SystemReset();                 // Perform software reset
@@ -178,8 +177,6 @@ static void enforceLedMaxOnTime()
         {
             if (millis() - led_timer[i] > RTUServer.holdingRegisterRead(MB_REG_LED_1_MAX_ON_TIME + i * 10) * 1000) // Convert seconds to ms
             {
-                LOG_WARNING_LED("[LED] L" + String(i + 1) + " max on-time exceeded, turning off\n");
-
                 // Turn off the LED
                 ledSetAllPixels(i, ledColor(0, 0, 0));
                 last_led_state[i] = false; // Update last known state
@@ -276,7 +273,6 @@ static void handleModbusRequests()
     // Write data to EEPROM (Addr.503)
     if (RTUServer.coilRead(MB_COIL_WRITE_TO_EEPROM))
     {
-        LOG_INFO_MODBUS(F("[MODBUS] Saving configuration to EEPROM\n"));
         modbus2eepromMapping();
         NVIC_SystemReset();         // Perform software reset
     }
@@ -287,7 +283,6 @@ static void handleModbusRequests()
         // Address 501: Factory reset except ID
         if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID))
         {
-            LOG_INFO_MODBUS(F("[MODBUS] Factory reset (except ID) requested\n"));
             eepromConfig.isFirstBootExceptID = true;    // Set the flag
             saveEepromConfig();                         // Save to EEPROM if changed
             NVIC_SystemReset();                         // Perform software reset
@@ -295,7 +290,6 @@ static void handleModbusRequests()
         // Address 502: Factory reset all data
         if (RTUServer.coilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA))
         {
-            LOG_INFO_MODBUS(F("[MODBUS] Factory reset (all data) requested\n"));
             eepromConfig.isFirstBoot = true;        // Set the flag
             saveEepromConfig();                     // Save to EEPROM if changed
             NVIC_SystemReset();                     // Perform software reset
@@ -305,7 +299,6 @@ static void handleModbusRequests()
     // Software reset (Addr.504)
     if (RTUServer.coilRead(MB_COIL_SOFTWARE_RESET))
     {
-        LOG_INFO_MODBUS(F("[MODBUS] Software reset requested\n"));
         NVIC_SystemReset();         // Perform software reset
     }
 
@@ -319,7 +312,6 @@ static void handleModbusRequests()
         {
             RTUServer.holdingRegisterWrite(MB_REG_LED_1_BRIGHTNESS + i * 10, global_brightness);
         }
-        LOG_INFO_MODBUS("[MODBUS] Global brightness set to " + String(global_brightness) + "% for all LEDs\n");
     }
 
     // Global Max On Time (Addr.194) - Set all LED max on-time at once
@@ -331,7 +323,6 @@ static void handleModbusRequests()
         {
             RTUServer.holdingRegisterWrite(MB_REG_LED_1_MAX_ON_TIME + i * 10, global_max_on_time);
         }
-        LOG_INFO_MODBUS("[MODBUS] Global max on-time set to " + String(global_max_on_time) + " seconds for all LEDs\n");
     }
 
     // Control group:
@@ -341,7 +332,6 @@ static void handleModbusRequests()
         delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY)); // Small delay to ensure coil state is stable
         unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
         RTUServer.coilWrite(MB_COIL_LATCH_TRIGGER, 0); // Reset the coil
-        LOG_INFO_MODBUS(F("[MODBUS] Latch unlock triggered via Modbus\n"));
     }
 
     // Apply LED state changes (Addr.1001-1008)
@@ -358,7 +348,6 @@ static void handleModbusRequests()
 
                 led_counter[i]++;           // Increment counter for how many times this LED has been turned on
                 led_timer[i] = millis();    // Start timer for how long this LED has been on
-                LOG_DEBUG_LED("[LED] L" + String(i + 1) + " turned ON\n");
             }
             else    // If the LED state is OFF
             {
@@ -370,9 +359,7 @@ static void handleModbusRequests()
                     led_time_sum[i] += (millis() - led_timer[i]) / 1000.0; // Convert ms to seconds
                     led_timer[i] = 0; // Reset timer
                 }
-                LOG_DEBUG_LED("[LED] L" + String(i + 1) + " turned OFF\n");
             }
-            // printLedStatus();
         }
     }
 
@@ -391,13 +378,11 @@ static void handleModbusRequests()
                 led_counter[i]++;
                 led_timer[i] = millis();
                 last_led_state[i] = true;
-                LOG_DEBUG_LED("[LED] L" + String(i + 1) + " turned ON via latch\n");
             }
 
             // Trigger the latch unlock
             delay(RTUServer.holdingRegisterRead(MB_REG_UNLOCK_DELAY));
             unlockLatch(300);  // Unlock for 300ms (safety limit enforced in function)
-            LOG_INFO_MODBUS("[MODBUS] Latch unlock triggered via LED" + String(i + 1) + " latch coil\n");
 
             // Reset the latch coil and sync with enable coil
             RTUServer.coilWrite(MB_COIL_LED_1_LATCH + i, 0);

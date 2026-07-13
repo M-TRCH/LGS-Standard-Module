@@ -10,7 +10,6 @@ void servoInit()
     {
         servos[i].attach(servoPins[i]);
     }
-    LOG_INFO_SYS(F("[SERVO] Initialized\n"));
 }
 
 void servoWrite(uint8_t index, uint8_t angle)

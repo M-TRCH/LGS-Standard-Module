@@ -49,16 +49,29 @@ elapsed-subtraction (`now - start >= interval`) เพื่อรอด millis(
 
 - COOLDOWN = `LATCH_MIN_INTERVAL` นับจาก**จุดเริ่ม** PULSE (ตรงกับ firmware เดิม)
 - ทุก tick: `state != PULSE` → บังคับ MOSFET LOW (invariant เชิงโครงสร้าง)
-- คำขอสำเร็จ: coil เคลียร์เมื่อ pulse จบ; คำขอถูกปฏิเสธ (busy): เคลียร์ทันที
+- **Hardware guard (TIM7)**: ตอนเข้า PULSE จะ arm one-shot timer ISR ที่บังคับ MOSFET LOW
+  เมื่อครบความกว้าง pulse — เพดาน 500ms ไม่ขึ้นกับ cadence ของ loop (poll() ของ Modbus
+  block ได้หลายร้อย ms ระหว่าง flush response ยาวหรือเจอ noise บนบัส)
+- คำขอสำเร็จ: coil เคลียร์เมื่อ pulse จบ + sync enable coil เฉพาะเมื่อ LED ยังติดอยู่จริง
+  (`ledControlChannelOn()`); คำขอถูกปฏิเสธ (busy): เคลียร์ทันที
 - ทุก reset path ต้องผ่าน `opsSystemReset()` ซึ่งบังคับ MOSFET LOW ก่อน `NVIC_SystemReset`
+- ⚠️ ใน `appRun` ต้องอ่าน `now = millis()` **หลัง** `modbusServerTick()` เสมอ — handler
+  ประทับเวลาด้วย millis() สด ถ้า now เก่ากว่าจะเกิด uint32 underflow แล้ว delay/max-on-time
+  หมดอายุทันทีใน tick เดียวกัน
 
 ## Settings (svc/settings บน AT24C32D @0x50, I2C1)
 
 Blob ที่ offset 0: `magic 'LGS5' + schemaVersion + payloadSize + payload + CRC16-CCITT`
 
-ลำดับโหลด: blob สมบูรณ์ → ใช้ / magic แปลกปลอม → import จาก MCU flash เดิม (ครั้งเดียว,
-เก็บ Modbus ID) / magic ตรงแต่ CRC พัง → defaults + กู้ identifier / AT24 ไม่ตอบ →
-defaults ใน RAM + RUN LED กะพริบถี่ (`STORAGE_FAULT_BLINK_MS`)
+ลำดับโหลด: อ่านซ้ำ 3 ครั้ง (transient I2C fault ต้องไม่ถูกมองเป็นชิปเปล่า) — อ่านไม่ได้เลย →
+defaults ใน RAM **โดยไม่เขียนทับ** + fault blink / blob สมบูรณ์ → ใช้ (ID ถูกตรวจช่วง 1–247) /
+magic แปลกปลอม → import จาก MCU flash เดิม (ครั้งเดียว, เก็บ Modbus ID, เสร็จแล้ว
+tombstone สำเนาเก่ากันการคืนชีพ) / magic ตรงแต่ CRC พัง → defaults + กู้ identifier /
+AT24 ไม่ตอบ → defaults ใน RAM + RUN LED กะพริบถี่ (`STORAGE_FAULT_BLINK_MS`)
+
+การเขียน: save ปกติแตะเฉพาะ payload+CRC (`writePayload`) — ไม่เขียน header/magic ซ้ำ
+→ ไฟดับกลาง save ได้อย่างแย่แค่ CRC พัง (เข้าเส้นกู้ identifier) ไม่มีทาง magic หาย;
+การ format ครั้งแรกเขียน payload ก่อนแล้วค่อย commit header
 
 เพิ่ม field ใหม่: เพิ่มใน `Settings` + bump `SETTINGS_SCHEMA` + เขียน migration ใน
 `settingsInit()` + เพิ่มแถว persist table (ดู cookbook ข้างล่าง)

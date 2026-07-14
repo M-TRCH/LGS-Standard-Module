@@ -25,9 +25,9 @@ enum MbWatchKind : uint8_t
 typedef void (*MbWatchHandler)(uint16_t addr, uint16_t value);
 
 /*  @brief Start the RTU server on the RS485 port.
- *  @param slaveId Modbus slave ID
+ *  @param slaveId Modbus slave ID (validated range 1-247)
  *  @param baud    UART baud rate (must match rs485PortBegin) */
-void modbusServerInit(uint8_t slaveId, uint32_t baud);
+void modbusServerInit(uint16_t slaveId, uint32_t baud);
 
 /*  @brief Poll the bus; on activity, dispatch the watch table. */
 void modbusServerTick();

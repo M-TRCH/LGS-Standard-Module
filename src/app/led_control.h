@@ -19,4 +19,9 @@ void ledControlInit();
  *         Runs unconditionally every loop, before mode logic. */
 void ledControlTick(uint32_t now);
 
+/*  @brief true while the channel is logically on (used by latch_control to
+ *         decide whether completing an LED-latch request may sync the
+ *         enable coil). */
+bool ledControlChannelOn();
+
 #endif // APP_LED_CONTROL_H

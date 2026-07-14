@@ -52,15 +52,31 @@ uint16_t crc16(const uint8_t *data, size_t len)
     return crc;
 }
 
-bool writeBlob(const Settings &s)
+constexpr uint16_t BLOB_HEADER_SIZE = offsetof(SettingsBlob, payload);
+
+// Write only the payload + CRC bytes. The header (with the magic) is never
+// touched by routine saves, so a save torn by power loss can only produce a
+// bad-CRC blob — the recovery path that salvages the identifier — and never
+// a missing magic (which would look like a blank chip).
+bool writePayload(const Settings &s)
+{
+    SettingsBlob blob;
+    blob.payload = s;
+    blob.crc = crc16((const uint8_t *)&blob.payload, sizeof(Settings));
+    return at24Write(SETTINGS_AT24_ADDR + BLOB_HEADER_SIZE,
+                     (const uint8_t *)&blob + BLOB_HEADER_SIZE,
+                     sizeof(SettingsBlob) - BLOB_HEADER_SIZE);
+}
+
+// One-time format: commit the header AFTER the payload so the magic only
+// ever appears above a valid payload.
+bool writeHeader()
 {
     SettingsBlob blob;
     blob.magic = SETTINGS_MAGIC;
     blob.schemaVersion = SETTINGS_SCHEMA;
     blob.payloadSize = sizeof(Settings);
-    blob.payload = s;
-    blob.crc = crc16((const uint8_t *)&blob.payload, sizeof(Settings));
-    return at24Write(SETTINGS_AT24_ADDR, (const uint8_t *)&blob, sizeof(blob));
+    return at24Write(SETTINGS_AT24_ADDR, (const uint8_t *)&blob, BLOB_HEADER_SIZE);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +137,15 @@ bool importLegacy(Settings &out)
     return true;
 }
 
+// Invalidate the MCU-flash copy after a successful migration, so a later
+// AT24 fault can never resurrect stale pre-migration config through the
+// importer (the identifier 0 fails importLegacy's plausibility check).
+void tombstoneLegacy()
+{
+    uint16_t invalidId = 0;
+    EEPROM.put(offsetof(LegacyEepromConfig, identifier), invalidId);
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -139,10 +164,26 @@ void settingsInit()
         return;
     }
 
+    // Retry the boot read: a transient I2C fault must never be mistaken for
+    // a blank chip — that path formats the EEPROM and would destroy a valid
+    // stored configuration.
     SettingsBlob blob;
-    bool readOk = at24Read(SETTINGS_AT24_ADDR, (uint8_t *)&blob, sizeof(blob));
+    bool readOk = false;
+    for (uint8_t attempt = 0; attempt < 3 && !readOk; attempt++)
+    {
+        readOk = at24Read(SETTINGS_AT24_ADDR, (uint8_t *)&blob, sizeof(blob));
+    }
+    if (!readOk)
+    {
+        // Chip acks but reads keep failing: run on RAM defaults WITHOUT
+        // writing anything, so the stored blob survives to the next boot.
+        // storageOk=false also signals the fault via the fast RUN blink.
+        storageOk = false;
+        persisted = active;
+        return;
+    }
 
-    if (readOk && blob.magic == SETTINGS_MAGIC)
+    if (blob.magic == SETTINGS_MAGIC)
     {
         bool intact = (blob.schemaVersion == SETTINGS_SCHEMA)
                    && (blob.payloadSize == sizeof(Settings))
@@ -150,29 +191,42 @@ void settingsInit()
         if (intact)
         {
             active = blob.payload;
+            // Never trust an out-of-range slave ID into the RTU stack (it
+            // would alias mod-256 and answer at another device's address).
+            if (active.identifier < 1 || active.identifier > 247)
+            {
+                active.identifier = DEFAULT_IDENTIFIER;
+            }
         }
         else
         {
-            // Torn write: defaults, but salvage a plausible identifier so the
-            // device does not silently drop off the bus. NEVER falls through
-            // to the legacy importer (the bytes are new-format, just damaged).
+            // Torn payload write: defaults, but salvage a plausible
+            // identifier so the device does not silently drop off the bus.
+            // NEVER falls through to the legacy importer (the bytes are
+            // new-format, just damaged).
             if (blob.payload.identifier >= 1 && blob.payload.identifier <= 246)
             {
                 active.identifier = blob.payload.identifier;
             }
-            writeBlob(active);
+            writePayload(active);
         }
     }
     else
     {
         // No valid magic: first boot on this AT24. Import a fielded config
         // from the MCU flash if one is there, otherwise start from defaults.
+        // Payload goes first, the header (magic) last; the legacy copy is
+        // tombstoned only after the new blob is fully committed.
         Settings imported;
-        if (importLegacy(imported))
+        bool didImport = importLegacy(imported);
+        if (didImport)
         {
             active = imported;
         }
-        writeBlob(active);
+        if (writePayload(active) && writeHeader() && didImport)
+        {
+            tombstoneLegacy();
+        }
     }
 
     persisted = active;
@@ -198,7 +252,7 @@ bool settingsSave()
     {
         return false; // unchanged, avoid the write cycle
     }
-    if (!writeBlob(active))
+    if (!writePayload(active))
     {
         return false;
     }

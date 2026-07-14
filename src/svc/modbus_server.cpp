@@ -95,7 +95,7 @@ void watchScan()
 // Public API
 // ---------------------------------------------------------------------------
 
-void modbusServerInit(uint8_t slaveId, uint32_t baud)
+void modbusServerInit(uint16_t slaveId, uint32_t baud)
 {
     RTUServer.begin(rs485, slaveId, baud, SERIAL_8N1);
 
@@ -184,9 +184,20 @@ void mbSettingsToRegisters()
 void mbRegistersToSettings(bool save)
 {
     Settings &s = settingsEdit();
+    uint16_t previousId = s.identifier;
+
     for (const PersistRow &row : kPersistRows)
     {
         settingsFieldAt(s, row.offset) = RTUServer.holdingRegisterRead(row.addr);
+    }
+
+    // Reject an out-of-range slave ID before it is persisted: a value >255
+    // would otherwise alias mod-256 at the next boot and answer at another
+    // device's address. Keep the previous ID and reflect it back.
+    if (s.identifier < 1 || s.identifier > 247)
+    {
+        s.identifier = previousId;
+        RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, previousId);
     }
 
     if (save)

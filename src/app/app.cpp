@@ -88,13 +88,16 @@ void appRun()
 {
     IWatchdog.reload();
 
-    uint32_t now = millis();
-
     // Fixed tick pipeline. Safety-relevant ticks run unconditionally BEFORE
     // mode logic, so no mode can starve latch tracking or the LED
     // max-on-time enforcement.
     modbusServerTick();     // poll the bus + dispatch registered handlers
-    latchControlTick(now);  // lock-state tracking + reg 40
+
+    // Sample the time AFTER the Modbus tick: handlers stamp state with a
+    // fresh millis(), so an earlier sample would make now - timestamp
+    // underflow and instantly expire delays/max-on-time in the same loop.
+    uint32_t now = millis();
+    latchControlTick(now);  // pulse FSM + lock-state tracking + reg 40
     ledControlTick(now);    // max-on-time enforcement + statistics
 
     switch (functionMode)

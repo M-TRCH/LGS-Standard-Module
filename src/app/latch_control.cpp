@@ -1,5 +1,6 @@
 #include "app/latch_control.h"
 #include "config.h"
+#include "app/led_control.h"
 #include "drivers/board_io.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
@@ -33,14 +34,17 @@ bool lastSenseSample = false;
 uint32_t lastTimeLatchLocked = 0;
 
 // Resolve the in-flight request: clear its coil and sync the enable coil
-// when the LED-latch command asked for it.
+// when the LED-latch command asked for it. The sync is skipped if the LED
+// was legitimately turned off while the request was in flight (max-on-time
+// enforcement or a bus write) — otherwise coil 1001 would read 1 with the
+// ring dark and a later write-1 would be shadow-suppressed.
 void finishRequest()
 {
     if (pendingCoil != 0)
     {
         mbCoilWrite(pendingCoil, false);
     }
-    if (pendingEnableSync)
+    if (pendingEnableSync && ledControlChannelOn())
     {
         mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
     }
@@ -120,6 +124,11 @@ void latchControlTick(uint32_t now)
                 {
                     pulseStartMs = now;
                     boardLatchMosfetSet(true);
+                    // Hardware backstop: a timer ISR forces the MOSFET low at
+                    // the clamped width even if the loop stalls inside a long
+                    // Modbus poll — the 500ms solenoid limit must not depend
+                    // on tick cadence.
+                    boardLatchGuardArm(pulseWidthMs);
                     state = LatchState::PULSE;
                 }
                 else
@@ -134,9 +143,11 @@ void latchControlTick(uint32_t now)
 
         case LatchState::PULSE:
             // End the pulse when the latch releases (sense goes high) or the
-            // clamped width expires — checked every tick.
+            // clamped width expires — checked every tick, with the armed
+            // hardware guard as the stall-proof backstop.
             if (!boardLatchSenseLow() || (now - pulseStartMs >= pulseWidthMs))
             {
+                boardLatchGuardDisarm();
                 boardLatchMosfetSet(false);
                 finishRequest();
                 state = LatchState::COOLDOWN;

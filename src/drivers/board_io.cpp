@@ -1,5 +1,37 @@
 #include "drivers/board_io.h"
 #include <Wire.h>
+#include <HardwareTimer.h>
+
+// Latch-pulse guard on TIM7 (basic timer, free on this board: the core
+// reserves TIM14 for Tone and TIM16 for Servo). Constructed lazily so the
+// HAL is guaranteed initialized first.
+static HardwareTimer& latchGuardTimer()
+{
+    static HardwareTimer timer(TIM7);
+    return timer;
+}
+
+static void latchGuardTimeout()
+{
+    // ISR context: only the idempotent pin write and stopping the timer.
+    digitalWrite(HW_LATCH_TRIGGER_PIN, LOW);
+    latchGuardTimer().pause();
+}
+
+void boardLatchGuardArm(uint32_t timeoutMs)
+{
+    HardwareTimer &timer = latchGuardTimer();
+    timer.pause();
+    timer.setOverflow(timeoutMs * 1000, MICROSEC_FORMAT);
+    timer.attachInterrupt(latchGuardTimeout);
+    timer.setCount(0);
+    timer.resume();
+}
+
+void boardLatchGuardDisarm()
+{
+    latchGuardTimer().pause();
+}
 
 void boardI2C1Init()
 {

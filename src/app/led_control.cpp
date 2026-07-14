@@ -143,6 +143,11 @@ void ledControlInit()
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_MAX_ON_TIME, onGlobalMaxOnTimeChange);
 }
 
+bool ledControlChannelOn()
+{
+    return channelOn;
+}
+
 void ledControlTick(uint32_t now)
 {
     // Enforce the max-on-time limit (0 = unlimited)

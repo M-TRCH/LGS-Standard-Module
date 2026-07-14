@@ -29,6 +29,14 @@ bool boardFunctionSwitchPressed();
 /*  @brief Drive the latch MOSFET gate. true = energize (unlock). */
 void boardLatchMosfetSet(bool on);
 
+/*  @brief Arm the hardware latch-pulse guard: a one-shot timer ISR forces
+ *         the MOSFET low after @p timeoutMs, independent of main-loop
+ *         stalls (e.g. a long Modbus poll). */
+void boardLatchGuardArm(uint32_t timeoutMs);
+
+/*  @brief Disarm the guard (pulse ended normally). Idempotent. */
+void boardLatchGuardDisarm();
+
 /*  @brief Raw latch sense input.
  *  @return true while the sense pin reads LOW (latch present/locked) */
 bool boardLatchSenseLow();

@@ -40,6 +40,10 @@
 #define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
 // --- Watchdog ---
-#define WATCHDOG_TIMEOUT_MS         1000    // IWDG timeout; loop worst case is <50ms
+// A single RTUServer.poll() can legitimately stall for hundreds of ms
+// (long response flush + libmodbus byte timeouts under bus noise), so the
+// timeout must comfortably exceed the worst chained poll, not the typical
+// loop. The latch pulse clamp does not depend on this (hardware guard).
+#define WATCHDOG_TIMEOUT_MS         4000
 
 #endif // CONFIG_H

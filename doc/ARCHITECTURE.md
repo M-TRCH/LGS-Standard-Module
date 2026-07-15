@@ -106,10 +106,21 @@ board.h + vendor lib, ฟังก์ชัน prefix ชื่อ module
 | จุดวัด | RAM | Flash |
 |---|---|---|
 | ก่อน refactor (v2.x G070 build) | 5,592 B (15.2%) | 71,016 B (54.2%) |
-| หลัง refactor + LTO (v3.0.0) | 5,484 B (14.9%) | **61,404 B (46.8%)** |
+| หลัง refactor + LTO (v3.0.0) | 5,484 B (14.9%) | 61,404 B (46.8%) |
+| + ฟีเจอร์ OLED/SET_ID/mode-indicator | 5,860 B | 64,792 B |
+| **+ flash-reduction Tier 1–2** | 5,860 B | **55,952 B (42.7%)** |
 
-- Build flags: `-flto=auto` (ดู platformio.ini) — หลังอัปเดต toolchain ให้ smoke test บนบอร์ดเสมอ
+Tier 1–2 (ทำแล้ว): `-D SSD1306_NO_SPLASH` (ตัด logo ~1.3KB) + **ตัด float ออกจาก path อุณหภูมิ**
+(ใช้ `measureHighPrecisionTicks` + integer `17500*ticks/65535-4500`, `sniprintf`) → ตัด soft-float
+ทั้งชุด (`__aeabi_d*/f*`, `_dtoa`) รวม −8,840 B จากจุดพีค
+
+Tier 3 (ค้าง, ~1.3KB): bitmap เลขใหญ่ → GFXfont (trim+pack) — ต้อง regenerate ด้วย
+`tools/gen_oled_digits.py` (ต้องมี Python+PIL; ทำในเครื่อง dev แล้ว flash ยืนยันจอ) ผลน้อย/ROI ต่ำ
+
+- Build flags: `-flto=auto` + `-D SSD1306_NO_SPLASH` (ดู platformio.ini) — หลังอัปเดต toolchain ให้ smoke test บนบอร์ดเสมอ
 - กติกา: ห้าม String/heap/float ใน runtime path; ตาราง const ใน flash; ไม่มี virtual dispatch
+  (⚠️ lib ภายนอกอาจแอบดึง float — เช่น Sensirion `measureHighPrecision(float&)` เดิมดึง soft-float 7.5KB; ใช้ variant `...Ticks` แทน)
+- แยก flash รายหมวด (LTO รวมโค้ดเราไว้ใน `main`): HAL/core ~17KB · libc ~11KB · Arduino classes ~5.5KB · Modbus/RS485 ~4KB · rodata ฟอนต์/bitmap ~5.8KB (kOledDigits 4.5KB + GFX font 1.3KB) · โค้ดเรา ~5.5KB
 - Config อยู่บน AT24 แล้ว → MCU flash ทั้ง 128KB ใช้กับโค้ดได้เต็ม
 - ผัง flash ในอนาคต (ยังไม่ลงมือ — รอ bootloader):
   `[bootloader ~8-16KB] [app slot ≤56KB] [staging slot ≤56KB]`

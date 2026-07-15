@@ -1,7 +1,46 @@
 #include "app/modes.h"
 #include "drivers/board_io.h"
+#include "drivers/oled.h"
 
-FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
+namespace {
+
+// The mode that releasing the switch NOW would select, from the hold
+// duration. Used both for the live OLED indicator and the final result, so
+// the two can never disagree. Holding past 11s (or under 2s) selects RUN.
+FunctionSwitchMode classifyMode(uint32_t pressDuration)
+{
+    if (pressDuration >= 8000 && pressDuration < 11000)
+    {
+        return FUNC_SW_FACTORY_RESET;
+    }
+    if (pressDuration >= 5000 && pressDuration < 8000)
+    {
+        return FUNC_SW_SET_ID;
+    }
+    if (pressDuration >= 2000 && pressDuration < 5000)
+    {
+        return FUNC_SW_DEMO;
+    }
+    return FUNC_SW_RUN;
+}
+
+// Show the pending mode on the OLED so the operator can release at the right
+// time without counting RUN-LED blinks.
+void renderModeSelect(FunctionSwitchMode mode)
+{
+    switch (mode)
+    {
+        case FUNC_SW_DEMO:          oledPrintCentered2("DEMO", nullptr, 3);     break;
+        case FUNC_SW_SET_ID:        oledPrintCentered2("SET ID", nullptr, 3);   break;
+        case FUNC_SW_FACTORY_RESET: oledPrintCentered2("FACTORY", "RESET", 3);  break;
+        case FUNC_SW_RUN:
+        default:                    oledPrintCentered2("RUN", nullptr, 3);      break;
+    }
+}
+
+} // namespace
+
+FunctionSwitchMode checkFunctionSwitch(bool oledReady, uint16_t maxWaitTime)
 {
     // Check if switch is pressed at startup (active LOW)
     if (!boardFunctionSwitchPressed())
@@ -13,6 +52,7 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     uint32_t pressStartTime = millis();
     uint32_t pressDuration = 0;
     uint32_t lastBlinkCycle = 0;
+    FunctionSwitchMode lastShown = (FunctionSwitchMode)0xFF; // force first OLED draw
 
     // Wait for switch release or max time
     while (boardFunctionSwitchPressed() && (millis() - pressStartTime) < maxWaitTime)
@@ -24,6 +64,14 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
         if (currentCycle > lastBlinkCycle)
         {
             lastBlinkCycle = currentCycle;
+        }
+
+        // OLED indicator: show the mode that releasing now would select
+        FunctionSwitchMode pending = classifyMode(pressDuration);
+        if (oledReady && pending != lastShown)
+        {
+            renderModeSelect(pending);
+            lastShown = pending;
         }
 
         // Determine blink pattern based on press duration
@@ -74,26 +122,8 @@ FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime)
     // Turn off LED after release
     boardSetRunLed(false);
 
-    // Determine which mode based on press duration
-    FunctionSwitchMode mode = FUNC_SW_RUN;
-
-    if (pressDuration >= 8000 && pressDuration < 11000)  // 8-11 seconds
-    {
-        mode = FUNC_SW_FACTORY_RESET;
-    }
-    else if (pressDuration >= 5000 && pressDuration < 8000)  // 5-8 seconds
-    {
-        mode = FUNC_SW_SET_ID;
-    }
-    else if (pressDuration >= 2000 && pressDuration < 5000)  // 2-5 seconds
-    {
-        mode = FUNC_SW_DEMO;
-    }
-    else
-    {
-        // Less than 2 seconds or more than 11 seconds - no action
-        mode = FUNC_SW_RUN;
-    }
+    // Final mode from the same classification the indicator used.
+    FunctionSwitchMode mode = classifyMode(pressDuration);
 
     // Wait a bit to ensure switch is fully released
     delay(100);

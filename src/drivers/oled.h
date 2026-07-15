@@ -43,4 +43,10 @@ void oledPrintLargeNumber(uint8_t value);
  */
 void oledPrintTitledNumber(const char *title, uint16_t value);
 
+/*  @brief Show one or two centered lines of text at the given size, block
+ *         centered vertically. Pass nullptr/"" for @p line2 to center a
+ *         single line.
+ */
+void oledPrintCentered2(const char *line1, const char *line2, uint8_t textSize);
+
 #endif // DRIVERS_OLED_H

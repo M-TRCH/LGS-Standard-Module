@@ -20,10 +20,13 @@ enum FunctionSwitchMode
  *
  *  Deliberately BLOCKING: runs once in appInit() before the Modbus server
  *  starts, and only blocks while a human physically holds the button.
- *  Blink feedback: 1 blink/cycle = DEMO, 2 = SET_ID, 4 = FACTORY_RESET.
+ *  Feedback while holding: the RUN LED blinks (1/cycle=DEMO, 2=SET_ID,
+ *  4=FACTORY_RESET) and, when @p oledReady, the OLED shows the mode that
+ *  releasing now would select.
  *
+ *  @param oledReady   true if the OLED initialized (show the mode indicator)
  *  @param maxWaitTime Maximum time to wait for switch release (ms)
  */
-FunctionSwitchMode checkFunctionSwitch(uint16_t maxWaitTime = 15000);
+FunctionSwitchMode checkFunctionSwitch(bool oledReady, uint16_t maxWaitTime = 15000);
 
 #endif // APP_MODES_H

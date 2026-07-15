@@ -104,3 +104,30 @@ void oledPrintTitledNumber(const char *title, uint16_t value)
 
     oled.display();
 }
+
+void oledPrintCentered2(const char *line1, const char *line2, uint8_t textSize)
+{
+    oled.clearDisplay();
+    oled.setFont(nullptr);
+    oled.setTextColor(SSD1306_WHITE);
+    oled.setTextSize(textSize);
+
+    const int16_t lineHeight = 8 * (int16_t)textSize;
+    const int16_t lineGap = 2;
+    bool twoLines = (line2 != nullptr && line2[0] != '\0');
+
+    int16_t blockHeight = twoLines ? (lineHeight * 2 + lineGap) : lineHeight;
+    int16_t top = ((int16_t)OLED_HEIGHT - blockHeight) / 2;
+    if (top < 0)
+    {
+        top = 0;
+    }
+
+    drawCentered(line1, top);
+    if (twoLines)
+    {
+        drawCentered(line2, top + lineHeight + lineGap);
+    }
+
+    oled.display();
+}

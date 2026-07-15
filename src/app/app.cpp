@@ -49,10 +49,13 @@ void appInit()
     boardI2C1Init();
     settingsInit();
     tempSensorInit();
-    functionMode = checkFunctionSwitch();
+
+    // Bring up the OLED (independent I2C2 bus) BEFORE the mode selector so it
+    // can show the pending mode while the switch is held.
+    oledReady = oledInit();
+    functionMode = checkFunctionSwitch(oledReady);
 
     ledInit();              // Initialize LED ring
-    oledReady = oledInit(); // Initialize OLED display (I2C2)
     servoInit();            // Initialize servo outputs (PC6, PC7)
 
     // Resolve the bus baud rate: the stored value through the whitelist

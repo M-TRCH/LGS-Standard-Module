@@ -26,6 +26,7 @@ uint32_t delayMs = 0;           // captured unlock delay for this request
 uint32_t pulseMinMs = 0;        // minimum ON time for this request (extends to the 500ms cap while locked)
 uint16_t pendingCoil = 0;       // coil to clear when the request resolves
 bool pendingEnableSync = false; // set the LED enable coil on completion
+bool pendingIgnoreSense = false;// skip sense checks: always pulse, fixed pulseMinMs (bench test)
 
 // Debounced lock state: two consecutive LOW samples (one per loop tick)
 bool lockedDebounced = false;
@@ -82,7 +83,8 @@ void latchControlInit()
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_TRIGGER, onLatchTriggerCommand);
 }
 
-bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableCoil)
+bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableCoil,
+                        bool ignoreSense)
 {
     if (state != LatchState::IDLE)
     {
@@ -103,6 +105,7 @@ bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableC
 
     pendingCoil = coilToClear;
     pendingEnableSync = syncEnableCoil;
+    pendingIgnoreSense = ignoreSense;
     phaseStartMs = millis();
     state = LatchState::DELAY;
     return true;
@@ -120,7 +123,9 @@ void latchControlTick(uint32_t now)
         case LatchState::DELAY:
             if (now - phaseStartMs >= delayMs)
             {
-                if (boardLatchSenseLow())
+                // Normal: only pulse if the latch reads locked. ignoreSense
+                // (bench test) always pulses regardless of the sense pin.
+                if (pendingIgnoreSense || boardLatchSenseLow())
                 {
                     pulseStartMs = now;
                     boardLatchMosfetSet(true);
@@ -149,9 +154,11 @@ void latchControlTick(uint32_t now)
             // slow latch gets more drive, but never past the 500ms hard cap.
             // Checked every tick, with the armed hardware guard as the
             // stall-proof backstop at the cap.
+            // ignoreSense (bench test): run a fixed pulse to the cap, no early
+            // exit. Normal: min pulseMinMs, extend while locked, cap at 500ms.
             uint32_t elapsed = now - pulseStartMs;
             if (elapsed >= LATCH_MAX_UNLOCK_TIME ||
-                (elapsed >= pulseMinMs && !boardLatchSenseLow()))
+                (!pendingIgnoreSense && elapsed >= pulseMinMs && !boardLatchSenseLow()))
             {
                 boardLatchGuardDisarm();
                 boardLatchMosfetSet(false);

@@ -14,7 +14,6 @@
 #include "drivers/led_ring.h"
 #include "drivers/temp_sensor.h"
 #include "drivers/oled.h"
-#include "drivers/servo_out.h"
 #include "svc/settings.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
@@ -60,7 +59,9 @@ void appInit()
     oledReady = oledInit();
     functionMode = checkFunctionSwitch(oledReady);
 
-    servoInit();            // Initialize servo outputs (PC6, PC7)
+    // servoInit() deferred: the servo outputs (PC6/PC7) are a reserved seam,
+    // not driven yet — servo_out.cpp is excluded via build_src_filter so the
+    // Servo library + its TIM16 setup are not linked. Re-add both when needed.
 
     // Resolve the bus baud rate: the stored value through the whitelist
     // (invalid -> 9600), and SET_ID / FACTORY_RESET modes always force the

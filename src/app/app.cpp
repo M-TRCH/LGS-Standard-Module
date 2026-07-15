@@ -131,6 +131,13 @@ static void runDemoMode()
     static uint8_t oledCounter = 0;
     static bool lastSwitchPressed = false;
     static uint32_t lastSwitchEdge = 0;
+    static bool inited = false;
+
+    if (!inited)
+    {
+        inited = true;
+        oledCounter = (uint8_t)(settings().identifier % 100); // start from the device ID
+    }
 
     bool switchPressed = boardFunctionSwitchPressed();
     if (switchPressed && !lastSwitchPressed && (millis() - lastSwitchEdge >= DEMO_SWITCH_DEBOUNCE_MS))

@@ -42,10 +42,15 @@ static FunctionSwitchMode functionMode = FUNC_SW_RUN; // selected once at boot
 
 void appInit()
 {
-    // Bring up the discrete I/O, load the persisted settings from the AT24
-    // EEPROM (I2C1 bus must be up first), then classify the boot-time
-    // function switch hold (blocking by design, pre-Modbus).
-    boardIoInit();
+    boardIoInit();          // discrete pins first (drives latch MOSFET LOW = safety)
+
+    // Initialize the LED ring EARLY: ledRing.begin() drives the WS2812B data
+    // pin (PA8) LOW and blanks the ring within microseconds of boot, so the
+    // line is never left floating during the (possibly long) blocking switch
+    // check below — otherwise the first pixel latches noise and stays green.
+    ledInit();
+
+    // Load the persisted settings from the AT24 EEPROM (I2C1 bus up first).
     boardI2C1Init();
     settingsInit();
     tempSensorInit();
@@ -55,7 +60,6 @@ void appInit()
     oledReady = oledInit();
     functionMode = checkFunctionSwitch(oledReady);
 
-    ledInit();              // Initialize LED ring
     servoInit();            // Initialize servo outputs (PC6, PC7)
 
     // Resolve the bus baud rate: the stored value through the whitelist
@@ -260,6 +264,19 @@ static void runFactoryResetMode()
 // Normal operation: RUN LED heartbeat and temperature publishing
 static void runNormalMode()
 {
+    // Clear the OLED once when RUN actually starts, removing whatever the
+    // mode selector left on screen (e.g. the "RUN" indicator). RUN does not
+    // otherwise drive the display.
+    static bool oledCleared = false;
+    if (!oledCleared)
+    {
+        oledCleared = true;
+        if (oledReady)
+        {
+            oledClear();
+        }
+    }
+
     // Fast heartbeat signals a storage fault (AT24 absent -> nothing persists)
     static PeriodicTimer blinkTimer{settingsStorageOk() ? ROUTINE_BLINK_RUN_MS : STORAGE_FAULT_BLINK_MS};
     static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS / 2};

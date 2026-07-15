@@ -38,7 +38,13 @@ void ledShowRainbowRipple(uint16_t phase)
 
 void ledInit()
 {
-    ledRing.begin();
+    ledRing.begin();    // drives the data pin OUTPUT LOW, defining the line
     ledRing.clear();
+
+    // Send the all-black frame twice: on STM32 the very first NeoPixel show()
+    // after boot can glitch the first pixel's bit timing (it latches green,
+    // the leading G byte). The second frame reliably resets it. Call ledInit
+    // early in appInit so the data line is not left floating during boot.
+    ledRing.show();
     ledRing.show();
 }

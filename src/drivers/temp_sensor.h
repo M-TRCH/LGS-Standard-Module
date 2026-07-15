@@ -15,16 +15,19 @@ void tempSensorInit();
 
 /*  @brief Read the room (ambient) temperature from the STS40-CD1B (0x46).
  *
- *  @param temperatureC Output temperature in degrees Celsius
+ *  Integer-only path (no float): reads raw ticks and converts to
+ *  centidegrees Celsius, so the firmware pulls in no soft-float.
+ *
+ *  @param centiC Output temperature in hundredths of a degree Celsius
  *  @return true when a value was read successfully
  */
-bool tempReadRoom(float &temperatureC);
+bool tempReadRoomCenti(int16_t &centiC);
 
 /*  @brief Read the board temperature from the STS40-AD1B (0x44).
  *
- *  @param temperatureC Output temperature in degrees Celsius
+ *  @param centiC Output temperature in hundredths of a degree Celsius
  *  @return true when a value was read successfully
  */
-bool tempReadBoard(float &temperatureC);
+bool tempReadBoardCenti(int16_t &centiC);
 
 #endif // DRIVERS_TEMP_SENSOR_H

@@ -301,19 +301,19 @@ static void runNormalMode()
     // once per ROUTINE_SENSOR_READ_MS with only one ~10ms I2C read per tick.
     if (sensorTimer.due(millis()))
     {
-        float temperatureC = 0.0f;
+        int16_t centiC = 0; // degrees C x100, integer (no float)
         if (readBoardNext)
         {
-            if (tempReadBoard(temperatureC))
+            if (tempReadBoardCenti(centiC))
             {
-                mbRegWrite(MB_REG_BOARD_TEMP, (uint16_t)(temperatureC * 100));
+                mbRegWrite(MB_REG_BOARD_TEMP, (uint16_t)centiC);
             }
         }
         else
         {
-            if (tempReadRoom(temperatureC))
+            if (tempReadRoomCenti(centiC))
             {
-                mbRegWrite(MB_REG_ROOM_TEMP, (uint16_t)(temperatureC * 100));
+                mbRegWrite(MB_REG_ROOM_TEMP, (uint16_t)centiC);
             }
         }
         readBoardNext = !readBoardNext;

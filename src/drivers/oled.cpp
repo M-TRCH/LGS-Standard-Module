@@ -90,7 +90,9 @@ void drawCentered(const char *text, int16_t y)
 void oledPrintTitledNumber(const char *title, uint16_t value)
 {
     char buf[6];
-    snprintf(buf, sizeof(buf), "%u", value);
+    // sniprintf = integer-only variant: avoids linking the float-capable
+    // vfprintf path (dtoa + double soft-float) that plain snprintf drags in.
+    sniprintf(buf, sizeof(buf), "%u", value);
 
     oled.clearDisplay();
     oled.setFont(nullptr);

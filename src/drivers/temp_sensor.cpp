@@ -15,12 +15,28 @@ void tempSensorInit()
     stsBoard.begin(Wire, ADDR_STS4X_ALT);   // 0x44
 }
 
-bool tempReadRoom(float &temperatureC)
+namespace {
+// STS4x datasheet: degC = (175 * ticks / 65535) - 45. In centidegrees and
+// pure integer math: (17500 * ticks / 65535) - 4500. 17500 * 65535 fits in
+// uint32 (~1.15e9), so no overflow and no float is pulled in.
+bool readCenti(SensirionI2CSts4x &sensor, int16_t &centiC)
 {
-    return (stsRoom.measureHighPrecision(temperatureC) == 0);
+    uint16_t ticks = 0;
+    if (sensor.measureHighPrecisionTicks(ticks) != 0)
+    {
+        return false;
+    }
+    centiC = (int16_t)((uint32_t)17500 * ticks / 65535) - 4500;
+    return true;
+}
+} // namespace
+
+bool tempReadRoomCenti(int16_t &centiC)
+{
+    return readCenti(stsRoom, centiC);
 }
 
-bool tempReadBoard(float &temperatureC)
+bool tempReadBoardCenti(int16_t &centiC)
 {
-    return (stsBoard.measureHighPrecision(temperatureC) == 0);
+    return readCenti(stsBoard, centiC);
 }

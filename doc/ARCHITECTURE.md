@@ -109,7 +109,8 @@ board.h + vendor lib, ฟังก์ชัน prefix ชื่อ module
 | หลัง refactor + LTO (v3.0.0) | 5,484 B (14.9%) | 61,404 B (46.8%) |
 | + ฟีเจอร์ OLED/SET_ID/mode-indicator | 5,860 B | 64,792 B |
 | + flash-reduction Tier 1–2 | 5,860 B | 55,952 B (42.7%) |
-| **+ Tier 3 (bitmap → GFXfont)** | 5,860 B | **54,928 B (41.9%)** |
+| + Tier 3 (bitmap → GFXfont) | 5,860 B | 54,928 B (41.9%) |
+| **+ Tier 4 (defer Servo)** | **5,568 B** | **54,444 B (41.5%)** |
 
 Tier 1–2: `-D SSD1306_NO_SPLASH` (ตัด logo ~1.3KB) + **ตัด float ออกจาก path อุณหภูมิ**
 (ใช้ `measureHighPrecisionTicks` + integer `17500*ticks/65535-4500`, `sniprintf`) → ตัด soft-float

@@ -30,6 +30,12 @@
 #define FACTORY_RESET_RED           204     // red level while in factory reset mode
 #define FACTORY_RESET_HOLD_MS       5000    // solid-red warning time before reset applies
 
+// --- SET_ID mode (manual ID assignment via the function switch) ---
+#define SETID_SAVE_HOLD_MS          2000    // hold the switch this long to save & reboot
+#define SETID_TAP_MIN_MS            30      // minimum press to count as a tap (debounce)
+#define SETID_ID_MIN                1       // lowest ID settable by button (0 = broadcast, excluded)
+#define SETID_ID_MAX                99      // highest ID settable by button (2-digit range)
+
 // --- Latch safety limits ---
 #define LATCH_PULSE_MS              300     // requested unlock pulse width
 #define LATCH_MAX_UNLOCK_TIME       500     // hard clamp on pulse width (ms) — solenoid protection

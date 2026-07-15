@@ -30,6 +30,8 @@ static void runFactoryResetMode();
 static void runNormalMode();
 
 static void updateOledCounter(uint8_t value);
+static void updateOledSetId(uint16_t id);
+static void updateOledFactoryCountdown(uint16_t secs);
 
 static bool oledReady = false;
 static FunctionSwitchMode functionMode = FUNC_SW_RUN; // selected once at boot
@@ -141,13 +143,37 @@ static void runDemoMode()
     }
 }
 
-// Set ID mode: blink all LEDs in blue for identification
+// Set ID mode: blink blue for identification, show the ID on the OLED, and
+// let the operator assign it with the function switch (tap = +1, hold = save).
+// The device still enumerates at the special Modbus ID 246 so a master can
+// discover and assign it too — the button is an additional path, not a
+// replacement.
 static void runSetIdMode()
 {
     static PeriodicTimer blinkTimer{ROUTINE_BLINK_SET_ID_MS};
     static bool ledOn = false;
+    static bool inited = false;
+    static uint16_t selectedId = SETID_ID_MIN;
+    static bool lastPressed = false;
+    static uint32_t pressStart = 0;
+    static bool saveTriggered = false;
 
-    if (blinkTimer.due(millis()))
+    uint32_t now = millis();
+
+    if (!inited)
+    {
+        inited = true;
+        selectedId = settings().identifier;
+        if (selectedId < SETID_ID_MIN || selectedId > SETID_ID_MAX)
+        {
+            selectedId = SETID_ID_MIN; // fresh device (247) or a Modbus-set ID > 99
+        }
+        lastPressed = boardFunctionSwitchPressed(); // don't count the mode-select hold as a tap
+        updateOledSetId(selectedId);
+    }
+
+    // Blue identification blink (unchanged)
+    if (blinkTimer.due(now))
     {
         ledOn = !ledOn;
         for (int i = 0; i < LED_NUM; i++)
@@ -155,6 +181,43 @@ static void runSetIdMode()
             ledSetAllPixels(i, ledColor(0, 0, (ledOn ? SET_ID_BLINK_BLUE : 0))); // Blue or off
         }
     }
+
+    // Single-button interaction: tap = +1 (wrap), hold = save & reboot.
+    bool pressed = boardFunctionSwitchPressed();
+
+    if (pressed && !lastPressed)
+    {
+        pressStart = now;
+        saveTriggered = false;
+    }
+
+    if (pressed && !saveTriggered && (now - pressStart >= SETID_SAVE_HOLD_MS))
+    {
+        saveTriggered = true; // fire once
+        if (oledReady)
+        {
+            oledPrint("SAVED", 3);
+        }
+        settingsEdit().identifier = selectedId;
+        settingsSave();
+        opsSystemReset(); // reboots into RUN at the new ID (forces MOSFET low first)
+    }
+
+    if (!pressed && lastPressed)
+    {
+        uint32_t duration = now - pressStart;
+        if (!saveTriggered && duration >= SETID_TAP_MIN_MS && duration < SETID_SAVE_HOLD_MS)
+        {
+            selectedId++;
+            if (selectedId > SETID_ID_MAX)
+            {
+                selectedId = SETID_ID_MIN;
+            }
+            updateOledSetId(selectedId);
+        }
+    }
+
+    lastPressed = pressed;
 }
 
 // Factory reset mode: solid red on all LEDs for 5 seconds, then reset.
@@ -163,6 +226,7 @@ static void runFactoryResetMode()
 {
     static bool armed = false;
     static uint32_t armedAtMs = 0;
+    static uint16_t lastShownSecs = 0xFFFF;
 
     if (!armed)
     {
@@ -174,10 +238,19 @@ static void runFactoryResetMode()
         }
     }
 
-    if (millis() - armedAtMs >= FACTORY_RESET_HOLD_MS)
+    uint32_t elapsed = millis() - armedAtMs;
+    if (elapsed >= FACTORY_RESET_HOLD_MS)
     {
         settingsFactoryReset(false);    // Restore defaults (including ID)
         opsSystemReset();               // Perform software reset
+    }
+
+    // Countdown (ceil of remaining seconds), rendered only when it changes.
+    uint16_t secsLeft = (uint16_t)((FACTORY_RESET_HOLD_MS - elapsed + 999) / 1000);
+    if (secsLeft != lastShownSecs)
+    {
+        lastShownSecs = secsLeft;
+        updateOledFactoryCountdown(secsLeft);
     }
 }
 
@@ -232,4 +305,24 @@ static void updateOledCounter(uint8_t value)
     }
 
     oledPrintLargeNumber(value);
+}
+
+static void updateOledSetId(uint16_t id)
+{
+    if (!oledReady)
+    {
+        return;
+    }
+
+    oledPrintTitledNumber("SET ID", id);
+}
+
+static void updateOledFactoryCountdown(uint16_t secs)
+{
+    if (!oledReady)
+    {
+        return;
+    }
+
+    oledPrintTitledNumber("FACTORY RESET", secs);
 }

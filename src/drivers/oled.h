@@ -29,10 +29,18 @@ void oledClear();
  */
 void oledPrint(const char *text, uint8_t textSize = 2);
 
-/*  @brief Show a two-digit number centered using a large GFX font.
+/*  @brief Show a two-digit number centered using a large bitmap font.
  *
  *  @param value Number to display. Values above 99 are wrapped by the caller.
  */
 void oledPrintLargeNumber(uint8_t value);
+
+/*  @brief Show a small centered title with a large centered number below it,
+ *         using the standard GFX font (no bitmap digits).
+ *
+ *  @param title Caption drawn at the top (kept short)
+ *  @param value Number drawn large in the lower area
+ */
+void oledPrintTitledNumber(const char *title, uint16_t value);
 
 #endif // DRIVERS_OLED_H

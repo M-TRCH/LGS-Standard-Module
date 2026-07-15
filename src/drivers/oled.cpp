@@ -68,3 +68,39 @@ void oledPrintLargeNumber(uint8_t value)
     oled.drawBitmap(originX + OLED_DIGIT_WIDTH + DIGIT_GAP, 0, kOledDigits[rightDigit], OLED_DIGIT_WIDTH, OLED_DIGIT_HEIGHT, SSD1306_WHITE);
     oled.display();
 }
+
+namespace {
+// Draw a null-terminated string horizontally centered at the given top y,
+// using whatever text size is currently set.
+void drawCentered(const char *text, int16_t y)
+{
+    int16_t bx, by;
+    uint16_t bw, bh;
+    oled.getTextBounds(text, 0, 0, &bx, &by, &bw, &bh);
+    int16_t x = ((int16_t)OLED_WIDTH - (int16_t)bw) / 2;
+    if (x < 0)
+    {
+        x = 0;
+    }
+    oled.setCursor(x, y);
+    oled.print(text);
+}
+} // namespace
+
+void oledPrintTitledNumber(const char *title, uint16_t value)
+{
+    char buf[6];
+    snprintf(buf, sizeof(buf), "%u", value);
+
+    oled.clearDisplay();
+    oled.setFont(nullptr);
+    oled.setTextColor(SSD1306_WHITE);
+
+    oled.setTextSize(1);
+    drawCentered(title, 4);      // small caption near the top (8px tall)
+
+    oled.setTextSize(4);
+    drawCentered(buf, 26);       // large value below (32px tall, fits 0-63)
+
+    oled.display();
+}

@@ -145,6 +145,11 @@ static void runDemoMode()
     {
         lastSwitchEdge = millis();
         oledCounter = (oledCounter + 1) % 100;
+
+        // Latch bench test: each press commands an unlock. The FSM only pulses
+        // if the latch still reads locked, and is safety-limited (min 300ms,
+        // extend while locked, 500ms cap, 2s cooldown between pulses).
+        latchRequestUnlock(LATCH_PULSE_MS, 0, false);
     }
     lastSwitchPressed = switchPressed;
 

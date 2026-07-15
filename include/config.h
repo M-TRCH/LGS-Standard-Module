@@ -37,8 +37,8 @@
 #define SETID_ID_MAX                99      // highest ID settable by button (2-digit range)
 
 // --- Latch safety limits ---
-#define LATCH_PULSE_MS              300     // requested unlock pulse width
-#define LATCH_MAX_UNLOCK_TIME       500     // hard clamp on pulse width (ms) — solenoid protection
+#define LATCH_PULSE_MS              300     // minimum unlock pulse (ms); extends while still locked
+#define LATCH_MAX_UNLOCK_TIME       500     // hard cap on pulse width (ms) — solenoid spec max
 #define LATCH_MIN_INTERVAL          2000    // minimum time between unlocks (ms), from pulse start
 #define UNLOCK_DELAY_MAX_MS         8000    // clamp for the unlock-delay register (control table range)
 

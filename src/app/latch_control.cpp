@@ -23,7 +23,7 @@ LatchState state = LatchState::IDLE;
 uint32_t phaseStartMs = 0;      // DELAY phase reference
 uint32_t pulseStartMs = 0;      // PULSE start; also the COOLDOWN reference
 uint32_t delayMs = 0;           // captured unlock delay for this request
-uint32_t pulseWidthMs = 0;      // clamped pulse width for this request
+uint32_t pulseMinMs = 0;        // minimum ON time for this request (extends to the 500ms cap while locked)
 uint16_t pendingCoil = 0;       // coil to clear when the request resolves
 bool pendingEnableSync = false; // set the LED enable coil on completion
 
@@ -95,10 +95,10 @@ bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableC
         delayMs = UNLOCK_DELAY_MAX_MS;
     }
 
-    pulseWidthMs = pulseMs;
-    if (pulseWidthMs > LATCH_MAX_UNLOCK_TIME)
+    pulseMinMs = pulseMs;
+    if (pulseMinMs > LATCH_MAX_UNLOCK_TIME)
     {
-        pulseWidthMs = LATCH_MAX_UNLOCK_TIME;
+        pulseMinMs = LATCH_MAX_UNLOCK_TIME; // the minimum can never exceed the hard cap
     }
 
     pendingCoil = coilToClear;
@@ -125,10 +125,11 @@ void latchControlTick(uint32_t now)
                     pulseStartMs = now;
                     boardLatchMosfetSet(true);
                     // Hardware backstop: a timer ISR forces the MOSFET low at
-                    // the clamped width even if the loop stalls inside a long
-                    // Modbus poll — the 500ms solenoid limit must not depend
-                    // on tick cadence.
-                    boardLatchGuardArm(pulseWidthMs);
+                    // the hard cap even if the loop stalls inside a long Modbus
+                    // poll — the 500ms solenoid limit must not depend on tick
+                    // cadence. Armed at the cap (not the minimum) because the
+                    // pulse may legitimately extend to 500ms while still locked.
+                    boardLatchGuardArm(LATCH_MAX_UNLOCK_TIME);
                     state = LatchState::PULSE;
                 }
                 else
@@ -142,10 +143,15 @@ void latchControlTick(uint32_t now)
             break;
 
         case LatchState::PULSE:
-            // End the pulse when the latch releases (sense goes high) or the
-            // clamped width expires — checked every tick, with the armed
-            // hardware guard as the stall-proof backstop.
-            if (!boardLatchSenseLow() || (now - pulseStartMs >= pulseWidthMs))
+        {
+            // Energize for at least pulseMinMs (300ms) regardless of sense;
+            // after that keep energizing while the latch is still locked so a
+            // slow latch gets more drive, but never past the 500ms hard cap.
+            // Checked every tick, with the armed hardware guard as the
+            // stall-proof backstop at the cap.
+            uint32_t elapsed = now - pulseStartMs;
+            if (elapsed >= LATCH_MAX_UNLOCK_TIME ||
+                (elapsed >= pulseMinMs && !boardLatchSenseLow()))
             {
                 boardLatchGuardDisarm();
                 boardLatchMosfetSet(false);
@@ -153,6 +159,7 @@ void latchControlTick(uint32_t now)
                 state = LatchState::COOLDOWN;
             }
             break;
+        }
 
         case LatchState::COOLDOWN:
             if (now - pulseStartMs >= LATCH_MIN_INTERVAL)

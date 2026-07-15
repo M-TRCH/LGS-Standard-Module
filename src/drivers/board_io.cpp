@@ -44,7 +44,7 @@ void boardIoInit()
 {
     pinMode(HW_LED_BUILTIN_PIN, OUTPUT);
     pinMode(HW_LATCH_TRIGGER_PIN, OUTPUT);
-    pinMode(HW_LATCH_CHECK_PIN, INPUT_PULLUP);
+    pinMode(HW_LATCH_CHECK_PIN, INPUT);   // active-low sense; board provides the pull externally
     pinMode(HW_FUNCTION_SWITCH_PIN, INPUT);
 
     boardSetRunLed(false);

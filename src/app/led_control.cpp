@@ -6,15 +6,22 @@
 #include "svc/modbus_server.h"
 
 // ---------------------------------------------------------------------------
-// Channel state (single logical channel driving the full ring)
+// Preset engine: one physical ring, eight color presets (radio semantics)
 // ---------------------------------------------------------------------------
+//
+// Coils 1001-1008 select which preset drives the ring. Exactly one preset is
+// active at a time: activating a new one switches the ring color immediately
+// and clears the outgoing preset's coils (radio behavior), so reading the
+// coils always shows the single active preset. Firmware coil writes go
+// through mbCoilWrite, which syncs the CHANGE shadows — radio-clears never
+// re-fire handlers.
 
 namespace {
 
-bool channelOn = false;         // last known on/off state
-uint32_t onCount = 0;           // times the channel has been turned on
-uint32_t onSinceMs = 0;         // millis() when it was last turned on (0 = off)
-uint32_t onTimeSumMs = 0;       // accumulated on-time in milliseconds
+uint8_t activePreset = 0;                       // 0 = off, 1-8 = active preset
+uint32_t onSinceMs = 0;                         // millis() when the ring turned on (0 = off)
+uint32_t onCount[MB_LED_PRESET_COUNT] = {};     // per-preset on transitions
+uint32_t onTimeSumMs[MB_LED_PRESET_COUNT] = {}; // per-preset accumulated on-time (ms)
 
 // Scale a color component register (0-255) by the brightness register
 // (0-100 percent), clamping out-of-range register values.
@@ -27,85 +34,108 @@ uint8_t scaledComponent(uint16_t component, uint16_t brightness)
     return (uint8_t)((component * brightness) / 100);
 }
 
-// Apply the configured RGB color (from the Modbus registers), scaled by the
-// configured brightness.
-void applyConfiguredColor()
+// Apply preset n's configured RGB (from its Modbus register block), scaled
+// by its brightness.
+void applyPresetColor(uint8_t n)
 {
-    uint16_t brightness = mbRegRead(MB_REG_LED_1_BRIGHTNESS);
+    uint16_t base = mbRegLedBase(n);
+    uint16_t brightness = mbRegRead(base + 0);
     if (brightness > 100)
     {
         brightness = 100;
     }
     ledSetAllPixels(0, ledColor(
-        scaledComponent(mbRegRead(MB_REG_LED_1_RED), brightness),
-        scaledComponent(mbRegRead(MB_REG_LED_1_GREEN), brightness),
-        scaledComponent(mbRegRead(MB_REG_LED_1_BLUE), brightness)));
+        scaledComponent(mbRegRead(base + 1), brightness),
+        scaledComponent(mbRegRead(base + 2), brightness),
+        scaledComponent(mbRegRead(base + 3), brightness)));
 }
 
-void markChannelOn()
+// Close the active preset's on-interval and clear its state-coil mirrors
+// (enable + display-combo). Does not touch the pixels or the display state.
+void closeActivePreset()
 {
-    if (!channelOn)
+    if (activePreset == 0)
     {
-        channelOn = true;
-        onCount++;
-        onSinceMs = millis();
+        return;
     }
-}
-
-void markChannelOff()
-{
-    channelOn = false;
     if (onSinceMs != 0)
     {
-        onTimeSumMs += millis() - onSinceMs;
+        onTimeSumMs[activePreset - 1] += millis() - onSinceMs;
         onSinceMs = 0;
     }
+    mbCoilWrite(mbCoilLedEnable(activePreset), false);
+    mbCoilWrite(mbCoilLedDisplay(activePreset), false);
+    activePreset = 0;
+}
+
+// Radio activation: switch the ring to preset n (closing whichever preset
+// was active). Callers mirror the enable coil themselves — the bus-write
+// path already has it set, while the latch combos sync it only when the
+// pulse completes (legacy 1021 nuance).
+void activatePreset(uint8_t n)
+{
+    if (activePreset == n)
+    {
+        applyPresetColor(n); // refresh (e.g. re-command with updated colors)
+        return;
+    }
+    closeActivePreset();
+    applyPresetColor(n);
+    activePreset = n;
+    onCount[n - 1]++;
+    onSinceMs = millis();
+}
+
+// Ring off (from the active preset's coil, max-on-time, or a combo-off).
+void deactivate()
+{
+    ledSetAllPixels(0, ledColor(0, 0, 0));
+    closeActivePreset();
 }
 
 // --- Modbus handlers ---
 
-// Enable coil (1001): change-triggered on/off
+// Enable coils (1001-1008): change-triggered preset select / off
 void onLedEnableChange(uint16_t addr, uint16_t value)
 {
-    (void)addr;
+    uint8_t n = (uint8_t)(addr - 1000);
     if (value)
     {
-        applyConfiguredColor();
-        markChannelOn();
+        activatePreset(n);
     }
-    else
+    else if (activePreset == n)
     {
-        ledSetAllPixels(0, ledColor(0, 0, 0));
-        markChannelOff();
+        deactivate();
     }
+    // write-0 to an inactive preset's coil: nothing to do
 }
 
-// LED-latch coil (1021): turn the LED on and pulse the latch in one command
+// LED-latch coils (1021-1028): preset n on + safety latch pulse in one command
 void onLedLatchCommand(uint16_t addr, uint16_t value)
 {
-    (void)addr;
     (void)value;
 
-    if (latchBusyWith(MB_COIL_LED_1_LATCH))
+    if (latchBusyWith(addr))
     {
         return; // request in flight: coil stays set until the pulse resolves
     }
 
-    applyConfiguredColor();
-    markChannelOn();
+    uint8_t n = (uint8_t)(addr - 1020);
+    activatePreset(n);
 
     // Hand the unlock to the latch state machine; on completion it clears
-    // this coil and syncs the enable coil. When busy (another request or
-    // cooldown) the LED still turns on — same as the original reject path —
-    // but the coils resolve immediately so the command is not retried.
-    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LED_1_LATCH, MB_COIL_LED_1_ENABLE))
+    // this coil and syncs the preset's enable coil. When busy (another
+    // request or cooldown) the LED still turns on — same as the original
+    // reject path — but the coils resolve immediately so the command is
+    // not retried.
+    if (!latchRequestUnlock(LATCH_PULSE_MS, addr, mbCoilLedEnable(n)))
     {
-        mbCoilWrite(MB_COIL_LED_1_LATCH, false);
-        mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
+        mbCoilWrite(addr, false);
+        mbCoilWrite(mbCoilLedEnable(n), true);
     }
 }
 
-// Global brightness (190): fan out to the LED brightness register.
+// Global brightness (190): fan out to every preset's brightness register.
 // Persist-style semantics: no re-apply to already-lit pixels (the value
 // takes effect at the next enable edge), matching the original firmware.
 void onGlobalBrightnessChange(uint16_t addr, uint16_t value)
@@ -113,15 +143,21 @@ void onGlobalBrightnessChange(uint16_t addr, uint16_t value)
     (void)addr;
     if (value <= 100)
     {
-        mbRegWrite(MB_REG_LED_1_BRIGHTNESS, value);
+        for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+        {
+            mbRegWrite(mbRegLedBase(n) + 0, value);
+        }
     }
 }
 
-// Global max on-time (194): fan out to the LED max-on-time register.
+// Global max on-time (194): fan out to every preset's max-on-time register.
 void onGlobalMaxOnTimeChange(uint16_t addr, uint16_t value)
 {
     (void)addr;
-    mbRegWrite(MB_REG_LED_1_MAX_ON_TIME, value);
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        mbRegWrite(mbRegLedBase(n) + 4, value);
+    }
 }
 
 uint16_t clampToU16(uint32_t value)
@@ -137,45 +173,48 @@ uint16_t clampToU16(uint32_t value)
 
 void ledControlInit()
 {
-    mbRegisterHandler(MB_WATCH_COIL_CHANGE, MB_COIL_LED_1_ENABLE, onLedEnableChange);
-    mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LED_1_LATCH, onLedLatchCommand);
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        mbRegisterHandler(MB_WATCH_COIL_CHANGE, mbCoilLedEnable(n), onLedEnableChange);
+        mbRegisterHandler(MB_WATCH_COIL_COMMAND, mbCoilLedLatch(n), onLedLatchCommand);
+    }
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_BRIGHTNESS, onGlobalBrightnessChange);
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_MAX_ON_TIME, onGlobalMaxOnTimeChange);
 }
 
 bool ledControlChannelOn()
 {
-    return channelOn;
+    return activePreset != 0;
 }
 
 uint16_t ledControlActiveEnableCoil()
 {
-    // Single-preset shim (preset engine lands next): active = preset 1.
-    return channelOn ? MB_COIL_LED_1_ENABLE : 0;
+    return (activePreset != 0) ? mbCoilLedEnable(activePreset) : 0;
 }
 
 void ledControlTick(uint32_t now)
 {
-    // Enforce the max-on-time limit (0 = unlimited)
-    uint16_t maxOnTimeS = mbRegRead(MB_REG_LED_1_MAX_ON_TIME);
-    if (onSinceMs != 0 && maxOnTimeS > 0)
+    // Enforce the ACTIVE preset's max-on-time limit (0 = unlimited)
+    if (activePreset != 0 && onSinceMs != 0)
     {
-        if (now - onSinceMs > (uint32_t)maxOnTimeS * 1000)
+        uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(activePreset) + 4);
+        if (maxOnTimeS > 0 && now - onSinceMs > (uint32_t)maxOnTimeS * 1000)
         {
-            ledSetAllPixels(0, ledColor(0, 0, 0));
-            markChannelOff();
-            mbCoilWrite(MB_COIL_LED_1_ENABLE, false); // reflect the forced off-state
+            deactivate(); // ring off + coil mirrors cleared (display state untouched)
         }
     }
 
     // Publish statistics (clamped to uint16 range, seconds truncated)
-    uint16_t countValue = clampToU16(onCount);
-    uint16_t timeValue = clampToU16(onTimeSumMs / 1000);
-
-    mbRegWrite(MB_REG_LED_1_ON_COUNTER, countValue);
-    mbRegWrite(MB_REG_LED_1_ON_TIME, timeValue);
-
-    // Totals equal the single channel's numbers on this board
-    mbRegWrite(MB_REG_TOTAL_LED_ON_CNT, countValue);
-    mbRegWrite(MB_REG_TOTAL_LED_ON_TIME, timeValue);
+    uint32_t totalCount = 0;
+    uint32_t totalTimeS = 0;
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        uint32_t timeS = onTimeSumMs[n - 1] / 1000;
+        mbRegWrite(mbRegLedOnCounter(n), clampToU16(onCount[n - 1]));
+        mbRegWrite(mbRegLedOnTime(n), clampToU16(timeS));
+        totalCount += onCount[n - 1];
+        totalTimeS += timeS;
+    }
+    mbRegWrite(MB_REG_TOTAL_LED_ON_CNT, clampToU16(totalCount));
+    mbRegWrite(MB_REG_TOTAL_LED_ON_TIME, clampToU16(totalTimeS));
 }

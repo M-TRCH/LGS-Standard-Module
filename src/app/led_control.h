@@ -4,15 +4,16 @@
 #include <Arduino.h>
 
 /*  @file app/led_control.h
- *  @brief LED channel policy: Modbus enable/latch coils, configured color
- *         application, max-on-time enforcement and usage statistics.
+ *  @brief LED preset policy: eight color presets on the single ring with
+ *         radio switching, Modbus enable/latch coil families, per-preset
+ *         config application, max-on-time enforcement and statistics.
  *
- *  Owns all LED runtime state (on/off, counters, on-time accumulators).
- *  The pixel-level work is delegated to drivers/led_ring.
+ *  Owns all LED runtime state (active preset, counters, on-time
+ *  accumulators). The pixel-level work is delegated to drivers/led_ring.
  */
 
-/*  @brief Register the Modbus handlers (enable coil, LED-latch coil,
- *         global brightness / max-on-time fan-outs). */
+/*  @brief Register the Modbus handlers (enable coils 1001-1008, LED-latch
+ *         coils 1021-1028, global brightness / max-on-time fan-outs). */
 void ledControlInit();
 
 /*  @brief Enforce max-on-time and publish statistics registers.

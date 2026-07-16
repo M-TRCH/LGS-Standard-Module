@@ -1,6 +1,7 @@
 #include "app/led_control.h"
 #include "config.h"
 #include "app/latch_control.h"
+#include "app/display_control.h"
 #include "drivers/led_ring.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
@@ -135,6 +136,50 @@ void onLedLatchCommand(uint16_t addr, uint16_t value)
     }
 }
 
+// Light+display coils (1011-1018): state coils — preset n + display in one
+// write. Mirrors the preset's enable coil immediately (state semantics) and
+// drives the display module.
+void onLedDisplayChange(uint16_t addr, uint16_t value)
+{
+    uint8_t n = (uint8_t)(addr - 1010);
+    if (value)
+    {
+        activatePreset(n);
+        mbCoilWrite(mbCoilLedEnable(n), true);
+        displayControlSetEnabled(true);
+    }
+    else if (activePreset == n)
+    {
+        deactivate();
+        displayControlSetEnabled(false);
+    }
+    // write-0 to an inactive preset's combo: nothing to do
+}
+
+// Light+latch+display coils (1031-1038, R5.0-new): one command lights the
+// preset, shows the display number, and fires a safety latch pulse. Display
+// feedback happens at accept (the pulse resolves asynchronously); the enable
+// coil syncs after the pulse like the plain latch combos.
+void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
+{
+    (void)value;
+
+    if (latchBusyWith(addr))
+    {
+        return; // request in flight: coil stays set until the pulse resolves
+    }
+
+    uint8_t n = (uint8_t)(addr - 1030);
+    activatePreset(n);
+    displayControlSetEnabled(true);
+
+    if (!latchRequestUnlock(LATCH_PULSE_MS, addr, mbCoilLedEnable(n)))
+    {
+        mbCoilWrite(addr, false);
+        mbCoilWrite(mbCoilLedEnable(n), true);
+    }
+}
+
 // Global brightness (190): fan out to every preset's brightness register.
 // Persist-style semantics: no re-apply to already-lit pixels (the value
 // takes effect at the next enable edge), matching the original firmware.
@@ -176,7 +221,9 @@ void ledControlInit()
     for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
     {
         mbRegisterHandler(MB_WATCH_COIL_CHANGE, mbCoilLedEnable(n), onLedEnableChange);
+        mbRegisterHandler(MB_WATCH_COIL_CHANGE, mbCoilLedDisplay(n), onLedDisplayChange);
         mbRegisterHandler(MB_WATCH_COIL_COMMAND, mbCoilLedLatch(n), onLedLatchCommand);
+        mbRegisterHandler(MB_WATCH_COIL_COMMAND, mbCoilLedLatchDisplay(n), onLedLatchDisplayCommand);
     }
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_BRIGHTNESS, onGlobalBrightnessChange);
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_MAX_ON_TIME, onGlobalMaxOnTimeChange);

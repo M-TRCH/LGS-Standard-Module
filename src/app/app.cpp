@@ -81,10 +81,12 @@ void appInit()
 
     // App modules register their Modbus reactions, then the shadows are
     // seeded from the just-published values so boot never fires a handler.
+    // display_control owns the RUN screen (clears the boot mode indicator
+    // and renders the reg-60 number) only when RUN runs with an OLED.
     opsInit();
     latchControlInit();
     ledControlInit();
-    displayControlInit();
+    displayControlInit(functionMode == FUNC_SW_RUN && oledReady);
     servoControlInit();
     mbWatchSeedShadows();
 
@@ -275,22 +277,11 @@ static void runFactoryResetMode()
     }
 }
 
-// Normal operation: RUN LED heartbeat and temperature publishing
+// Normal operation: RUN LED heartbeat and temperature publishing.
+// The OLED in RUN belongs to display_control (cleared at init, driven by
+// reg 60 + coil 1010) — this mode never touches it.
 static void runNormalMode()
 {
-    // Clear the OLED once when RUN actually starts, removing whatever the
-    // mode selector left on screen (e.g. the "RUN" indicator). RUN does not
-    // otherwise drive the display.
-    static bool oledCleared = false;
-    if (!oledCleared)
-    {
-        oledCleared = true;
-        if (oledReady)
-        {
-            oledClear();
-        }
-    }
-
     // Fast heartbeat signals a storage fault (AT24 absent -> nothing persists)
     static PeriodicTimer blinkTimer{settingsStorageOk() ? ROUTINE_BLINK_RUN_MS : STORAGE_FAULT_BLINK_MS};
     static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS / 2};

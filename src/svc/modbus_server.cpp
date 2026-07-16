@@ -52,11 +52,12 @@ uint16_t* presetFields(Settings &s, uint8_t presetIdx)   // presetIdx = 0..7
 }
 
 // --- Watch table: bus writes -> app handlers ---
-// Sized for the full preset surface: ops 3 + latch 2 + enables 8 + latch
-// combos 8 + display combos 8 + triple combos 8 + reg 60/coil 1010 2 +
-// globals 2 = 41 rows, plus headroom. mbRegisterHandler drops registrations
-// SILENTLY when this is full — bump it BEFORE adding handler families.
-constexpr uint8_t MB_MAX_WATCH_ROWS = 48;
+// Sized for the full preset surface (41 rows: ops 3 + latch 2 + enables 8 +
+// latch combos 8 + display combos 8 + triple combos 8 + reg 60/coil 1010 2 +
+// globals 2) plus the OTA family (coils 505-508 + commit reg = 5) and
+// headroom. mbRegisterHandler drops registrations SILENTLY when this is
+// full — bump it BEFORE adding handler families.
+constexpr uint8_t MB_MAX_WATCH_ROWS = 56;
 
 struct WatchRow
 {

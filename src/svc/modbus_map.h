@@ -54,12 +54,37 @@ constexpr uint16_t mbRegLedOnTime(uint16_t n)      { return 201 + 10 * n; }  // 
 constexpr uint16_t MB_REG_LED_1_ON_COUNTER  = 210;
 constexpr uint16_t MB_REG_LED_1_ON_TIME     = 211;  // seconds
 
+// --- OTA group (holding registers 282-399; see doc + include/flash_layout.h) ---
+// Transfer runs over Modbus broadcast FC16 (slave id 0): the master streams
+// 128-byte chunks into the data window; the commit register is a REG_CHANGE
+// watch whose value the master increments on EVERY transmission (including
+// retransmits) so the handler always fires.
+constexpr uint16_t MB_REG_OTA_STATE          = 282; // RO: lo=state (0 idle/1 rx/2 verified/3 failed), hi=error
+constexpr uint16_t MB_REG_OTA_CHUNKS_RX      = 283; // RO: chunks received so far
+constexpr uint16_t MB_REG_OTA_SIZE_HI        = 284; // W: image size u32 (hi/lo)
+constexpr uint16_t MB_REG_OTA_SIZE_LO        = 285;
+constexpr uint16_t MB_REG_OTA_CRC_HI         = 286; // W: image CRC32 (hi/lo)
+constexpr uint16_t MB_REG_OTA_CRC_LO         = 287;
+constexpr uint16_t MB_REG_OTA_TOTAL_CHUNKS   = 288; // W: must equal ceil(size/128)
+constexpr uint16_t MB_REG_OTA_CHUNK_INDEX    = 290; // W: chunk number 0..N-1
+constexpr uint16_t MB_REG_OTA_CHUNK_LEN      = 291; // W: payload bytes 1..128
+constexpr uint16_t MB_REG_OTA_CHUNK_CRC      = 292; // W: CRC16 of the payload bytes
+constexpr uint16_t MB_REG_OTA_DATA_FIRST     = 293; // W: payload window, 64 regs
+constexpr uint16_t MB_REG_OTA_DATA_LAST      = 356; //    (2 bytes/reg, big-endian)
+constexpr uint16_t MB_REG_OTA_COMMIT         = 357; // W: tx-counter commit (fires the handler)
+constexpr uint16_t MB_REG_OTA_BITMAP_FIRST   = 360; // RO: received bitmap, 30 regs = 480 bits
+constexpr uint16_t MB_REG_OTA_BITMAP_LAST    = 389;
+
 // --- Operation group (coils) ---
 constexpr uint16_t MB_COIL_FACTORY_RESET                 = 500;
 constexpr uint16_t MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID = 501;
 constexpr uint16_t MB_COIL_APPLY_FACTORY_RESET_ALL_DATA  = 502;
 constexpr uint16_t MB_COIL_WRITE_TO_EEPROM               = 503;
 constexpr uint16_t MB_COIL_SOFTWARE_RESET                = 504;
+constexpr uint16_t MB_COIL_OTA_ENTER                     = 505; // legacy OTA address kept
+constexpr uint16_t MB_COIL_OTA_FINALIZE                  = 506; // verify staged image CRC32
+constexpr uint16_t MB_COIL_OTA_APPLY                     = 507; // commit header + reset into bootloader
+constexpr uint16_t MB_COIL_OTA_ABORT                     = 508;
 
 // --- Control group (coils) ---
 // Preset coil families (n = 1..8, all on the single physical ring):
@@ -97,7 +122,13 @@ static_assert(MB_REG_TOTAL_LED_ON_CNT == 200,    "wire contract");
 static_assert(MB_REG_LED_1_ON_COUNTER == 210,    "wire contract");
 static_assert(mbRegLedOnCounter(8) == 280,       "wire contract");
 static_assert(mbRegLedOnTime(8) == 281,          "wire contract");
+static_assert(MB_REG_OTA_STATE == 282,           "wire contract");
+static_assert(MB_REG_OTA_DATA_LAST - MB_REG_OTA_DATA_FIRST + 1 == 64, "128-byte chunk window");
+static_assert(MB_REG_OTA_COMMIT == 357,          "wire contract");
+static_assert(MB_REG_OTA_BITMAP_LAST == 389,     "wire contract");
 static_assert(MB_COIL_WRITE_TO_EEPROM == 503,    "wire contract");
+static_assert(MB_COIL_OTA_ENTER == 505,          "wire contract (legacy OTA coil)");
+static_assert(MB_COIL_OTA_ABORT == 508,          "wire contract");
 static_assert(MB_COIL_LED_1_ENABLE == 1001,      "wire contract");
 static_assert(mbCoilLedEnable(8) == 1008,        "wire contract");
 static_assert(mbCoilLedDisplay(1) == 1011,       "wire contract");

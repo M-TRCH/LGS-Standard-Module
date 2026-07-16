@@ -11,9 +11,10 @@
 
 namespace {
 
-// R5.0 map: coils end at MB_COIL_LED_1_LATCH (1021), registers at 211 plus
-// documented reserve. Addresses outside the model raise Modbus exceptions.
-constexpr uint16_t COIL_NUM             = 1030;
+// R5.0 map: coils end at the latch+display combos (1031-1038), registers at
+// the per-preset stats (281) plus documented reserve. Addresses outside the
+// model raise Modbus exceptions.
+constexpr uint16_t COIL_NUM             = 1040;
 constexpr uint16_t DISCRETE_INPUT_NUM   = 1;
 constexpr uint16_t HOLDING_REGISTER_NUM = 400;
 constexpr uint16_t INPUT_REGISTER_NUM   = 1;
@@ -45,7 +46,11 @@ uint16_t& settingsFieldAt(Settings &s, uint8_t offset)
 }
 
 // --- Watch table: bus writes -> app handlers ---
-constexpr uint8_t MB_MAX_WATCH_ROWS = 16;
+// Sized for the full preset surface: ops 3 + latch 2 + enables 8 + latch
+// combos 8 + display combos 8 + triple combos 8 + reg 60/coil 1010 2 +
+// globals 2 = 41 rows, plus headroom. mbRegisterHandler drops registrations
+// SILENTLY when this is full — bump it BEFORE adding handler families.
+constexpr uint8_t MB_MAX_WATCH_ROWS = 48;
 
 struct WatchRow
 {

@@ -33,16 +33,22 @@ const PersistRow kPersistRows[] =
     { MB_REG_BAUD_RATE,         offsetof(Settings, baudRate) },
     { MB_REG_IDENTIFIER,        offsetof(Settings, identifier) },
     { MB_REG_UNLOCK_DELAY,      offsetof(Settings, unlockDelayMs) },
-    { MB_REG_LED_1_BRIGHTNESS,  offsetof(Settings, ledBrightness) },
-    { MB_REG_LED_1_RED,         offsetof(Settings, ledR) },
-    { MB_REG_LED_1_GREEN,       offsetof(Settings, ledG) },
-    { MB_REG_LED_1_BLUE,        offsetof(Settings, ledB) },
-    { MB_REG_LED_1_MAX_ON_TIME, offsetof(Settings, ledMaxOnTimeS) },
 };
 
 uint16_t& settingsFieldAt(Settings &s, uint8_t offset)
 {
     return *(uint16_t *)((uint8_t *)&s + offset);
+}
+
+// The 8 LED presets are handled by computed loops instead of 40 table rows:
+// preset n's five fields {brightness,r,g,b,maxOnTimeS} map in order onto
+// regs mbRegLedBase(n)+0..+4. The layout equivalence is asserted here.
+static_assert(sizeof(LedPreset) == 5 * sizeof(uint16_t), "LedPreset is the 5-reg wire block");
+constexpr uint8_t LED_PRESET_FIELDS = 5;
+
+uint16_t* presetFields(Settings &s, uint8_t presetIdx)   // presetIdx = 0..7
+{
+    return (uint16_t *)&s.presets[presetIdx];
 }
 
 // --- Watch table: bus writes -> app handlers ---
@@ -184,6 +190,14 @@ void mbSettingsToRegisters()
     {
         RTUServer.holdingRegisterWrite(row.addr, settingsFieldAt(const_cast<Settings &>(s), row.offset));
     }
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        const uint16_t *fields = presetFields(const_cast<Settings &>(s), (uint8_t)(n - 1));
+        for (uint8_t k = 0; k < LED_PRESET_FIELDS; k++)
+        {
+            RTUServer.holdingRegisterWrite(mbRegLedBase(n) + k, fields[k]);
+        }
+    }
 }
 
 void mbRegistersToSettings(bool save)
@@ -194,6 +208,14 @@ void mbRegistersToSettings(bool save)
     for (const PersistRow &row : kPersistRows)
     {
         settingsFieldAt(s, row.offset) = RTUServer.holdingRegisterRead(row.addr);
+    }
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        uint16_t *fields = presetFields(s, (uint8_t)(n - 1));
+        for (uint8_t k = 0; k < LED_PRESET_FIELDS; k++)
+        {
+            fields[k] = RTUServer.holdingRegisterRead(mbRegLedBase(n) + k);
+        }
     }
 
     // Reject an out-of-range slave ID before it is persisted: a value >255

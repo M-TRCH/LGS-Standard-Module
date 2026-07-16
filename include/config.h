@@ -11,12 +11,24 @@
 // --- Factory defaults (loaded on factory reset / first boot) ---
 #define DEFAULT_BAUD_RATE           9600
 #define DEFAULT_IDENTIFIER          247     // Default Modbus ID (1-245, 246=SET_ID, 247=not set)
-#define DEFAULT_LED_BRIGHTNESS      80      // percent
-#define DEFAULT_LED_R               255
-#define DEFAULT_LED_G               0
-#define DEFAULT_LED_B               0
-#define DEFAULT_LED_MAX_ON_TIME     3600    // seconds
+#define DEFAULT_LED_BRIGHTNESS      80      // percent (every preset)
+#define DEFAULT_LED_MAX_ON_TIME     3600    // seconds (every preset)
 #define DEFAULT_UNLOCK_DELAY_TIME   0       // milliseconds
+
+// Factory palette for the 8 LED color presets ({brightness, R, G, B, maxOn}
+// per preset) — the legacy per-light defaults, so an R5.0 board dropped into
+// an R4.x site shows the colors that site expects.
+#define DEFAULT_LED_PRESETS                                                  \
+    {                                                                        \
+        { DEFAULT_LED_BRIGHTNESS, 255,   0,   0, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS,   0, 255,   0, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS,   0,   0, 255, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS, 255, 215,   0, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS,   0, 255, 255, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS, 255,   0, 255, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS, 255,  60,   0, DEFAULT_LED_MAX_ON_TIME },  \
+        { DEFAULT_LED_BRIGHTNESS, 255, 245, 120, DEFAULT_LED_MAX_ON_TIME },  \
+    }
 
 // --- Routine intervals ---
 #define ROUTINE_BLINK_RUN_MS        1200    // RUN LED heartbeat interval

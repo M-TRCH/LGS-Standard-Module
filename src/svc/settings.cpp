@@ -10,8 +10,22 @@
 namespace {
 
 constexpr uint32_t SETTINGS_MAGIC   = 0x4C475335; // 'LGS5'
-constexpr uint16_t SETTINGS_SCHEMA  = 1;
+constexpr uint16_t SETTINGS_SCHEMA  = 2;          // v2 = 8 LED presets
 constexpr uint16_t SETTINGS_AT24_ADDR = 0;        // blob lives at offset 0
+
+// Schema v1 payload (single LED channel) — kept only for the one-time
+// v1 -> v2 migration in settingsInit.
+struct SettingsV1
+{
+    uint16_t identifier;
+    uint16_t baudRate;
+    uint16_t unlockDelayMs;
+    uint16_t ledBrightness;
+    uint16_t ledR;
+    uint16_t ledG;
+    uint16_t ledB;
+    uint16_t ledMaxOnTimeS;
+};
 
 struct SettingsBlob
 {
@@ -27,11 +41,7 @@ const Settings kDefaults =
     .identifier    = DEFAULT_IDENTIFIER,
     .baudRate      = DEFAULT_BAUD_RATE,
     .unlockDelayMs = DEFAULT_UNLOCK_DELAY_TIME,
-    .ledBrightness = DEFAULT_LED_BRIGHTNESS,
-    .ledR          = DEFAULT_LED_R,
-    .ledG          = DEFAULT_LED_G,
-    .ledB          = DEFAULT_LED_B,
-    .ledMaxOnTimeS = DEFAULT_LED_MAX_ON_TIME,
+    .presets       = DEFAULT_LED_PRESETS,
 };
 
 Settings active;        // the live configuration
@@ -129,11 +139,17 @@ bool importLegacy(Settings &out)
     out.identifier    = legacy.identifier;
     out.baudRate      = settingsBaudAllowed(legacy.baudRate) ? legacy.baudRate : DEFAULT_BAUD_RATE;
     out.unlockDelayMs = clampU16(legacy.unlockDelayTime, UNLOCK_DELAY_MAX_MS);
-    out.ledBrightness = legacy.led_brightness[0];
-    out.ledR          = clampU16(legacy.led_r[0], 255);
-    out.ledG          = clampU16(legacy.led_g[0], 255);
-    out.ledB          = clampU16(legacy.led_b[0], 255);
-    out.ledMaxOnTimeS = legacy.maxOnTime[0];
+    // The legacy layout stores all 8 lights; carry every one over as a color
+    // preset (index 0's plausibility was already vetted above, the rest are
+    // clamped into range).
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        out.presets[i].brightness = clampU16(legacy.led_brightness[i], 100);
+        out.presets[i].r          = clampU16(legacy.led_r[i], 255);
+        out.presets[i].g          = clampU16(legacy.led_g[i], 255);
+        out.presets[i].b          = clampU16(legacy.led_b[i], 255);
+        out.presets[i].maxOnTimeS = legacy.maxOnTime[i];
+    }
     return true;
 }
 
@@ -188,6 +204,43 @@ void settingsInit()
         bool intact = (blob.schemaVersion == SETTINGS_SCHEMA)
                    && (blob.payloadSize == sizeof(Settings))
                    && (blob.crc == crc16((const uint8_t *)&blob.payload, sizeof(Settings)));
+
+        // One-time v1 -> v2 migration: the v1 payload+CRC live inside what a
+        // v2-sized read parsed as payload bytes, so re-slice the raw buffer.
+        // Payload is committed before the (v2) header, so a migration torn by
+        // power loss leaves a v1 header over v2 bytes -> the v1 CRC fails ->
+        // the torn path below still salvages the identifier.
+        bool migratedV1 = false;
+        if (!intact && blob.schemaVersion == 1 && blob.payloadSize == sizeof(SettingsV1))
+        {
+            const uint8_t *raw = (const uint8_t *)&blob;
+            SettingsV1 v1;
+            uint16_t crcV1;
+            memcpy(&v1, raw + BLOB_HEADER_SIZE, sizeof(v1));
+            memcpy(&crcV1, raw + BLOB_HEADER_SIZE + sizeof(v1), sizeof(crcV1));
+            if (crcV1 == crc16((const uint8_t *)&v1, sizeof(v1)))
+            {
+                active = kDefaults;
+                if (v1.identifier >= 1 && v1.identifier <= 247)
+                {
+                    active.identifier = v1.identifier;
+                }
+                active.baudRate      = settingsBaudAllowed(v1.baudRate) ? v1.baudRate : DEFAULT_BAUD_RATE;
+                active.unlockDelayMs = clampU16(v1.unlockDelayMs, UNLOCK_DELAY_MAX_MS);
+                active.presets[0].brightness = clampU16(v1.ledBrightness, 100);
+                active.presets[0].r          = clampU16(v1.ledR, 255);
+                active.presets[0].g          = clampU16(v1.ledG, 255);
+                active.presets[0].b          = clampU16(v1.ledB, 255);
+                active.presets[0].maxOnTimeS = v1.ledMaxOnTimeS;
+                // presets 2-8 keep the default palette
+                if (writePayload(active))
+                {
+                    writeHeader(); // header last: schema/size flip to v2 only above a full payload
+                }
+                migratedV1 = true;
+            }
+        }
+
         if (intact)
         {
             active = blob.payload;
@@ -197,6 +250,10 @@ void settingsInit()
             {
                 active.identifier = DEFAULT_IDENTIFIER;
             }
+        }
+        else if (migratedV1)
+        {
+            // active already holds the migrated configuration
         }
         else
         {

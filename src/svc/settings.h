@@ -17,17 +17,26 @@
  *       (settingsStorageOk() returns false)
  */
 
-// Values persisted for the R/W(F) Modbus registers.
+// One LED color preset (regs 100+10n .. 104+10n). All fields uint16_t —
+// the Modbus persist plumbing addresses them as a flat uint16 array.
+struct LedPreset
+{
+    uint16_t brightness;        // 0-100
+    uint16_t r;                 // 0-255
+    uint16_t g;                 // 0-255
+    uint16_t b;                 // 0-255
+    uint16_t maxOnTimeS;        // seconds, 0 = unlimited
+};
+
+// Values persisted for the R/W(F) Modbus registers (schema v2).
+// identifier MUST stay the first field: the torn-blob recovery salvages it
+// by offset 0, across schema versions.
 struct Settings
 {
     uint16_t identifier;        // Modbus slave ID (reg 4)
     uint16_t baudRate;          // bps (reg 3), whitelist enforced at apply time
     uint16_t unlockDelayMs;     // pre-unlock delay (reg 80), 0-8000 ms
-    uint16_t ledBrightness;     // LED_1 brightness 0-100 (reg 110)
-    uint16_t ledR;              // LED_1 red 0-255 (reg 111)
-    uint16_t ledG;              // LED_1 green 0-255 (reg 112)
-    uint16_t ledB;              // LED_1 blue 0-255 (reg 113)
-    uint16_t ledMaxOnTimeS;     // LED_1 max on-time in seconds (reg 114), 0 = unlimited
+    LedPreset presets[8];       // color presets 1-8 (one physical ring)
 };
 
 /*  @brief Load configuration from the AT24 (with legacy import / recovery). */

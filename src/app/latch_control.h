@@ -5,8 +5,8 @@
 
 /*  @file app/latch_control.h
  *  @brief Electronic latch policy: non-blocking unlock pulse state machine,
- *         lock-state tracking and the latch Modbus surface (coil 1020,
- *         reg 40).
+ *         lock-state tracking and the latch Modbus surface (coil 1019 force
+ *         trigger, coil 1020 safety trigger, reg 40).
  *
  *  Pulse state machine: IDLE -> DELAY -> PULSE -> COOLDOWN -> IDLE.
  *  Safety limits survive structurally:
@@ -17,7 +17,9 @@
  *      transition can never leave the gate energized
  */
 
-/*  @brief Register the Modbus handler for the latch trigger coil. */
+/*  @brief Register the Modbus handlers for the latch trigger coils:
+ *         1020 = safety trigger (sense-aware), 1019 = force trigger
+ *         (ignore sense, fixed full-width pulse). */
 void latchControlInit();
 
 /*  @brief Advance the pulse state machine, enforce the MOSFET-low invariant,

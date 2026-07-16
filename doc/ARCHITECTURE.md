@@ -47,13 +47,14 @@ elapsed-subtraction (`now - start >= interval`) เพื่อรอด millis(
 
 `IDLE → DELAY(reg80, clamp 0-8000ms) → PULSE → COOLDOWN → IDLE`
 
-- **PULSE width (Modbus coil 1020/1021, sense-aware)**: จ่ายไฟ**อย่างน้อย** `LATCH_PULSE_MS` (300ms)
+- **Safety Trigger (Modbus coil 1020/1021, sense-aware)**: จ่ายไฟ**อย่างน้อย** `LATCH_PULSE_MS` (300ms)
   ไม่ว่า sense เป็นอะไร; หลังครบ 300ms ถ้า sense ยัง**ล็อก** (LOW) จ่ายต่อจนกลอนเปิด (sense HIGH)
   หรือชนเพดาน `LATCH_MAX_UNLOCK_TIME` (500ms) — จบ = `elapsed ≥ 500 || (elapsed ≥ 300 && sense เปิด)`;
   เข้า PULSE เฉพาะเมื่อ sense ล็อกตอนเริ่ม (START guard)
-- **DEMO bench test (`ignoreSense`)**: กดปุ่มยิง pulse **500ms คงที่ ไม่เช็ค sense เลย** (ยิงเสมอ
-  แม้ไม่มีกลอน) เพื่อทดสอบการขับ solenoid — ยังจำกัดที่เพดาน 500ms + cooldown 2s; ใช้ flag
-  `latchRequestUnlock(..., ignoreSense=true)`
+- **Force Trigger (Modbus coil 1019 + DEMO bench test, `ignoreSense`)**: ยิง pulse **500ms คงที่
+  ไม่เช็ค sense เลย** (ยิงเสมอแม้ไม่มีกลอน/sense ไม่อ่านว่าล็อก) — ยังจำกัดที่เพดาน 500ms +
+  cooldown 2s + delay reg 80 เหมือน Safety; ใช้ flag `latchRequestUnlock(..., ignoreSense=true)`
+  (DEMO = กดปุ่ม Function, Modbus = coil 1019)
 - COOLDOWN = `LATCH_MIN_INTERVAL` นับจาก**จุดเริ่ม** PULSE (ตรงกับ firmware เดิม)
 - ทุก tick: `state != PULSE` → บังคับ MOSFET LOW (invariant เชิงโครงสร้าง)
 - **Hardware guard (TIM7)**: ตอนเข้า PULSE จะ arm one-shot timer ISR ที่บังคับ MOSFET LOW

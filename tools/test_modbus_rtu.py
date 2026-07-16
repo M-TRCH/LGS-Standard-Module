@@ -13,7 +13,8 @@ Phases (run in order):
   2. READ      - read every holding register (FC03) + coil state (FC01), decoded
   3. WRITE     - write-verify-restore the safe writable registers + state coils
   4. LED       - set a colour and toggle the ring (coil 1001), then restore
-  5. LATCH     - fire the unlock coil 1020 / 1021 (PHYSICAL solenoid; gated)
+  5. LATCH     - fire the unlock coils: 1020 safety (sense-aware), 1019 force
+                 (ignore sense, fixed 500 ms), 1021 LED+latch (PHYSICAL; gated)
   6. SUMMARY   - per-phase OK/FAIL/ERR counts; exit 0 only if no FAIL
 
 Safety: the destructive coils (500/501/502 factory reset, 503 persist+reboot,
@@ -127,7 +128,8 @@ COILS = [
     (1001, "LED 1 Enable",                False),
     (1010, "Display Enable (stub)",       False),
     (1011, "LED 1 + Display (stub)",      False),
-    (1020, "Latch Trigger",               False),  # gated separately (physical)
+    (1019, "Latch Force Trigger",         False),  # gated separately (physical)
+    (1020, "Latch Trigger (Safety)",      False),  # gated separately (physical)
     (1021, "LED 1 + Latch",               False),  # gated separately (physical)
 ]
 
@@ -449,7 +451,8 @@ def _fire_latch(client, unit, coil, name, loop, writer, stats):
         time.sleep(0.02)
     t40_after = _read_reg_val(client, 40, unit)
     if cleared_ms is not None:
-        hint = "pulsed (sense locked)" if cleared_ms > 150 else "accepted; no pulse (sense not locked / no latch wired)"
+        hint = ("pulsed" if cleared_ms > 150
+                else "accepted; no pulse (sense-aware guard: latch not locked)")
         print(f"  coil {coil} ({name}) fired; self-cleared in {cleared_ms:.0f} ms - {hint}")
         print(f"       reg40 before={t40_before}  after={t40_after}")
         log_row(writer, loop, "LATCH", 1, coil, name, "fire", 0,
@@ -462,12 +465,18 @@ def _fire_latch(client, unit, coil, name, loop, writer, stats):
         stats.add("FAIL")
 
 
-def phase_latch(client, unit, loop, writer, stats, fires, test_1021):
-    banner("PHASE 5 - LATCH ACTUATION (coil 1020 / 1021, PHYSICAL solenoid)")
+def phase_latch(client, unit, loop, writer, stats, fires, test_1021, test_force=True):
+    banner("PHASE 5 - LATCH ACTUATION (coil 1019 / 1020 / 1021, PHYSICAL solenoid)")
     for n in range(fires):
-        print(f"  --- fire {n + 1}/{fires} : coil 1020 (Latch Trigger) ---")
-        _fire_latch(client, unit, 1020, "Latch Trigger", loop, writer, stats)
-        if n < fires - 1 or test_1021:
+        print(f"  --- fire {n + 1}/{fires} : coil 1020 (Safety Trigger, sense-aware) ---")
+        _fire_latch(client, unit, 1020, "Safety Trigger", loop, writer, stats)
+        if n < fires - 1 or test_1021 or test_force:
+            print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
+            time.sleep(LATCH_COOLDOWN_S)
+    if test_force:
+        print("  --- coil 1019 (Force Trigger, ignore sense, fixed 500 ms) ---")
+        _fire_latch(client, unit, 1019, "Force Trigger", loop, writer, stats)
+        if test_1021:
             print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
             time.sleep(LATCH_COOLDOWN_S)
     if test_1021:
@@ -493,6 +502,8 @@ def main():
     ap.add_argument("--loops", type=int, default=1, help="repeat the whole sweep this many times")
     ap.add_argument("--latch-fires", type=int, default=1, help="number of coil-1020 pulses per loop")
     ap.add_argument("--test-1021", action="store_true", help="also fire coil 1021 (LED + latch)")
+    ap.add_argument("--no-force", action="store_true",
+                    help="skip coil 1019 (force trigger, ignore-sense fixed 500 ms)")
     ap.add_argument("--no-latch", action="store_true", help="skip the physical latch phase entirely")
     ap.add_argument("--no-led", action="store_true", help="skip the visible LED phase")
     ap.add_argument("-y", "--yes", action="store_true", help="skip the latch confirmation prompt")
@@ -529,7 +540,8 @@ def main():
     # Confirm the physical latch phase before doing anything.
     do_latch = not args.no_latch
     if do_latch and not args.yes:
-        total = args.latch_fires * args.loops + (args.loops if args.test_1021 else 0)
+        total = (args.latch_fires + (0 if args.no_force else 1)
+                 + (1 if args.test_1021 else 0)) * args.loops
         try:
             ans = input(f"\n  Phase 5 will FIRE THE SOLENOID ~{total} time(s). Continue? [y/N] ")
         except EOFError:
@@ -553,10 +565,12 @@ def main():
             if not args.no_led:
                 phase_led(client, unit, loop, writer, stats)
             if do_latch:
-                phase_latch(client, unit, loop, writer, stats, args.latch_fires, args.test_1021)
+                phase_latch(client, unit, loop, writer, stats, args.latch_fires,
+                            args.test_1021, test_force=not args.no_force)
     except KeyboardInterrupt:
         print("\n  interrupted - driving latch/LED off before exit...")
         try:
+            write_coil(client, 1019, 0, unit)
             write_coil(client, 1020, 0, unit)
             write_coil(client, 1001, 0, unit)
         except Exception:

@@ -53,7 +53,8 @@ void finishRequest()
     pendingEnableSync = false;
 }
 
-// Latch trigger coil (1020)
+// Safety trigger coil (1020): sense-aware — pulses only if the latch reads
+// locked, at least LATCH_PULSE_MS, extending while still locked, 500ms cap.
 void onLatchTriggerCommand(uint16_t addr, uint16_t value)
 {
     (void)addr;
@@ -72,6 +73,25 @@ void onLatchTriggerCommand(uint16_t addr, uint16_t value)
     }
 }
 
+// Force trigger coil (1019): ignores the sense pin entirely and always fires
+// a fixed full-width pulse at the solenoid spec max (LATCH_MAX_UNLOCK_TIME).
+// The 500ms hard cap (exit + TIM7 guard) and 2s cooldown still apply.
+void onLatchForceTriggerCommand(uint16_t addr, uint16_t value)
+{
+    (void)addr;
+    (void)value;
+
+    if (latchBusyWith(MB_COIL_LATCH_FORCE_TRIGGER))
+    {
+        return;
+    }
+    if (!latchRequestUnlock(LATCH_MAX_UNLOCK_TIME, MB_COIL_LATCH_FORCE_TRIGGER, false,
+                            /*ignoreSense=*/true))
+    {
+        mbCoilWrite(MB_COIL_LATCH_FORCE_TRIGGER, false);
+    }
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -81,6 +101,7 @@ void onLatchTriggerCommand(uint16_t addr, uint16_t value)
 void latchControlInit()
 {
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_TRIGGER, onLatchTriggerCommand);
+    mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_FORCE_TRIGGER, onLatchForceTriggerCommand);
 }
 
 bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableCoil,

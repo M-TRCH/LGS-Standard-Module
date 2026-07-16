@@ -106,12 +106,15 @@
 | 1010 | Enable Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ⁹ |
 | 1011 | Enable Light 1 and Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ⁹ |
 | 1012–1018 | Enable Light 2–8 and Display | R/W | FALSE | TRUE/FALSE | | | | ✗ |
-| 1020 | Trig Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ |
+| 1019 | Force Trig Latch | R/W | FALSE | TRUE/FALSE | | | | ✓ ¹⁰ |
+| 1020 | Trig Latch (Safety) | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ ¹⁰ |
 | 1021 | Trig Light 1 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ |
 | 1022–1028 | Trig Light 2–8 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✗ |
 
+¹⁰ R5.0 แบ่งการสั่งกลอนเป็น 2 แนวทาง: **1019 Force Trigger** = ยิงเสมอโดยไม่สนใจ sense, pulse คงที่เต็มสเปคสูงสุด 500ms · **1020 Safety Trigger** = sense-aware — ยิงเฉพาะเมื่อ sense อ่านว่ากลอนล็อกอยู่, จ่ายไฟอย่างน้อย 300ms, ต่อไฟขณะยังล็อกจนถึงเพดาน 500ms (1021 ใช้ลอจิก Safety เช่นเดียวกับ 1020)
+
 ## หมายเหตุพฤติกรรม R5.0
 
-- **Trig Latch (1020/1021)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
-- **ข้อจำกัดความปลอดภัยกลอน**: pulse สูงสุด 500ms, ระยะห่างระหว่างการปลดล็อกขั้นต่ำ 2000ms (นับจากจุดเริ่ม pulse)
+- **Trig Latch (1019/1020/1021)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
+- **ข้อจำกัดความปลอดภัยกลอน (ใช้กับทั้ง Force และ Safety)**: pulse สูงสุด 500ms (เพดานถูกบังคับซ้ำด้วย hardware timer guard), ระยะห่างระหว่างการปลดล็อกขั้นต่ำ 2000ms (นับจากจุดเริ่ม pulse), delay ก่อนปลดล็อกตาม reg 80
 - **Servo (PC6/PC7)**: ยังไม่มี address — จองไว้สำหรับอนาคต

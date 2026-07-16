@@ -54,7 +54,8 @@ constexpr uint16_t MB_COIL_SOFTWARE_RESET                = 504;
 constexpr uint16_t MB_COIL_LED_1_ENABLE     = 1001; // full 16-pixel ring
 constexpr uint16_t MB_COIL_DISPLAY_ENABLE   = 1010; // reserved: display feature
 constexpr uint16_t MB_COIL_LED_1_DISPLAY    = 1011; // reserved: display feature
-constexpr uint16_t MB_COIL_LATCH_TRIGGER    = 1020;
+constexpr uint16_t MB_COIL_LATCH_FORCE_TRIGGER = 1019; // R5.0-new: ignore sense, full 500ms pulse
+constexpr uint16_t MB_COIL_LATCH_TRIGGER    = 1020; // safety trigger: sense-aware min/extend/cap
 constexpr uint16_t MB_COIL_LED_1_LATCH      = 1021; // LED on + latch pulse in one command
 
 // --- Reserved for future features (documented only, not yet implemented) ---
@@ -74,6 +75,7 @@ static_assert(MB_REG_TOTAL_LED_ON_CNT == 200,    "wire contract");
 static_assert(MB_REG_LED_1_ON_COUNTER == 210,    "wire contract");
 static_assert(MB_COIL_WRITE_TO_EEPROM == 503,    "wire contract");
 static_assert(MB_COIL_LED_1_ENABLE == 1001,      "wire contract");
+static_assert(MB_COIL_LATCH_FORCE_TRIGGER == 1019, "wire contract");
 static_assert(MB_COIL_LATCH_TRIGGER == 1020,     "wire contract");
 static_assert(MB_COIL_LED_1_LATCH == 1021,       "wire contract");
 

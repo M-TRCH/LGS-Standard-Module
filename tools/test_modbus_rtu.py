@@ -158,8 +158,9 @@ WRITE_TESTS = [
     (112, "LED Green",            22, 112),
     (113, "LED Blue",             33, 113),
     (114, "LED Max On-Time",    1800, 114),
-    (190, "Global Brightness",    45, 110),   # fan-out -> reg 110
-    (194, "Global Max On-Time", 2400, 114),   # fan-out -> reg 114
+    # NOTE: globals 190/194 are NOT here - they fan out to ALL preset regs on
+    # R5.0, so the simple single-reg restore would leak state into presets
+    # 2-8. The PRESET phase tests them with a full snapshot/restore.
 ]
 
 # State coils that hold their value (safe to toggle + restore). These now
@@ -436,24 +437,27 @@ def phase_preset(client, unit, loop, writer, stats):
            "PRESET", 1, 1001, "Enable Preset 1", c1, 0, stats)
     time.sleep(0.8)
 
-    # Global brightness fan-out: 190 must land in every preset's brightness reg.
-    orig_b = {}
-    for n in range(1, 9):
-        orig_b[n] = _read_reg_val(client, 100 + 10 * n, unit)
-        time.sleep(INTER_TXN_S)
-    write_reg(client, 190, 37, unit); time.sleep(INTER_TXN_S)
-    fanout_ok = True
-    for n in range(1, 9):
-        v = _read_reg_val(client, 100 + 10 * n, unit)
-        if v != 37:
-            fanout_ok = False
-        time.sleep(INTER_TXN_S)
-    _check(fanout_ok, "reg 190 = 37 fanned out to all 8 preset brightness regs", writer, loop,
-           "PRESET", 3, 190, "Global Brightness", 37 if fanout_ok else -1, 37, stats)
-    for n in range(1, 9):   # restore
-        if orig_b[n] is not None:
-            write_reg(client, 100 + 10 * n, orig_b[n], unit)
+    # Global fan-outs: 190 (brightness, offset +0) and 194 (max-on-time,
+    # offset +4) must land in EVERY preset's register. Snapshot + restore all
+    # 8 so no test state leaks into presets 2-8.
+    for gaddr, gname, offset, test_val in ((190, "Global Brightness", 0, 37),
+                                           (194, "Global Max On-Time", 4, 2400)):
+        orig = {}
+        for n in range(1, 9):
+            orig[n] = _read_reg_val(client, 100 + 10 * n + offset, unit)
             time.sleep(INTER_TXN_S)
+        write_reg(client, gaddr, test_val, unit); time.sleep(INTER_TXN_S)
+        fanout_ok = True
+        for n in range(1, 9):
+            if _read_reg_val(client, 100 + 10 * n + offset, unit) != test_val:
+                fanout_ok = False
+            time.sleep(INTER_TXN_S)
+        _check(fanout_ok, f"reg {gaddr} = {test_val} fanned out to all 8 preset regs", writer,
+               loop, "PRESET", 3, gaddr, gname, test_val if fanout_ok else -1, test_val, stats)
+        for n in range(1, 9):   # restore every preset
+            if orig[n] is not None:
+                write_reg(client, 100 + 10 * n + offset, orig[n], unit)
+                time.sleep(INTER_TXN_S)
 
     # Off via the active preset's coil.
     write_coil(client, 1003, 0, unit); time.sleep(INTER_TXN_S)

@@ -8,10 +8,11 @@
 // UART Debug
 #define HW_UART_DEBUG_TX_PIN           PA2
 
-// UART RS485
+// UART RS485 (USART1). Transceiver is auto-direction (COSMAX13487): the driver
+// self-enables on TX activity and RE is tied to 3V3 in hardware, so there is no
+// MCU DE/RE pin to define.
 #define HW_UART_RS485_RX_PIN           PB7
 #define HW_UART_RS485_TX_PIN           PA9
-#define HW_UART_RS485_DE_PIN           PD0
 
 // I2C - internal devices
 #define HW_I2C1_SDA_PIN                PB9

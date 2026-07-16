@@ -33,6 +33,12 @@
 | 502 | Apply Factory Reset (All Data) | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ |
 | 503 | Write data to Flash Memory ⁴ | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ |
 | 504 | Software Reset | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ |
+| 505 | OTA: Enter update mode ᴼ | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ |
+| 506 | OTA: Finalize (verify CRC32) ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
+| 507 | OTA: Apply (reboot + copy) ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
+| 508 | OTA: Abort session ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
+
+ᴼ ดูหัวข้อ "OTA over RS485" ท้ายเอกสาร — coil 505 คง address จากระบบ OTA ของบอร์ดเก่า (R4.3) แต่โปรโตคอลรับส่งเปลี่ยนเป็น Modbus broadcast ทั้งหมด
 
 ⁴ บน R5.0 เขียนลง AT24C32D (external EEPROM) — ชื่อคำสั่งคงเดิมเพื่อความเข้ากันได้
 
@@ -116,6 +122,20 @@
 ¹⁰ R5.0 แบ่งการสั่งกลอนเป็น 2 แนวทาง: **1019 Force Trigger** = ยิงเสมอโดยไม่สนใจ sense, pulse คงที่เต็มสเปคสูงสุด 500ms · **1020 Safety Trigger** = sense-aware — ยิงเฉพาะเมื่อ sense อ่านว่ากลอนล็อกอยู่, จ่ายไฟอย่างน้อย 300ms, ต่อไฟขณะยังล็อกจนถึงเพดาน 500ms (คำสั่ง combo ที่มี latch ทุกตัวใช้ลอจิก Safety)
 ¹³ **Radio switching**: coil ตระกูล Light 1–8 ทั้งหมดขับ**วงแหวนเดียวกัน** โดยเลือก preset สี — เปิด preset ใหม่ขณะตัวเก่าติดอยู่ = วงแหวนเปลี่ยนสีทันทีและ coil ของตัวเก่า (ทั้ง enable และ display-combo) ถูกเคลียร์เป็น 0 อัตโนมัติ; อ่าน coils จะเห็นตัวที่ติดจริงตัวเดียวเสมอ
 ¹⁴ ใหม่ใน R5.0 (ไม่มีในบอร์ดเก่า): คำสั่งเดียว = เปิด preset N + แสดงเลข reg 60 บนจอ + ยิงกลอน (Safety) — จอติดทันทีที่รับคำสั่ง, coil enable ของ preset ถูก sync หลัง pulse จบ, coil คำสั่ง self-clear เหมือน 1021
+
+## OTA over RS485 (Holding Registers 282–389, R5.0 เท่านั้น)
+
+| Addr | Data Name | Access | ความหมาย |
+|---:|---|---|---|
+| 282 | OTA State | R | lo byte: 0 idle / 1 receiving / 2 verified / 3 failed · hi byte: error code (1 bad size, 2 bad chunk count, 3 CRC32 mismatch, 4 timeout, 5 flash error, 6 not verified, 7 latch busy, 8 incomplete) |
+| 283 | OTA Chunks Received | R | จำนวน chunk ที่รับแล้ว |
+| 284–288 | OTA Metadata | W | image size u32 (hi/lo), CRC32 u32 (hi/lo), total chunks — เขียน (broadcast FC16) ก่อนสั่ง coil 505 |
+| 290–292 | Chunk Header | W | chunk index, payload length (1–128), payload CRC16-CCITT |
+| 293–356 | Chunk Payload | W | 64 registers = 128 bytes (big-endian ต่อ register) |
+| 357 | Chunk Commit | W | tx-counter — master เพิ่มค่าทุกการส่ง (รวม retransmit) เพื่อ trigger การประมวลผล chunk |
+| 360–389 | Received Bitmap | R | 30 registers = 480 bits (bit ต่อ chunk) — master อ่านรายตัว (unicast FC03) เพื่อหา chunk ที่หายแล้วยิงซ่อม |
+
+Flow: metadata → coil 505 (erase staging ~1s) → stream chunks (broadcast, ทุกตัวบนบัสรับพร้อมกัน) → อ่าน bitmap รายตัว + repair → coil 506 (verify) → coil 507 (apply: เขียน header + รีบูต ให้ bootloader copy) → อ่าน reg 1 ยืนยันเวอร์ชันใหม่. เครื่องมือ: `tools/ota_sender.py`. Image ต้อง build ที่ offset 0x1000 และ ≤ 61,440 bytes. ระหว่างรับ OLED แสดง % ด้วยเลขใหญ่; session ไร้กิจกรรม 30 วินาที = ยกเลิกตัวเอง
 
 ## หมายเหตุพฤติกรรม R5.0
 

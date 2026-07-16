@@ -146,7 +146,14 @@ board.h + vendor lib, ฟังก์ชัน prefix ชื่อ module
 | + ฟีเจอร์ OLED/SET_ID/mode-indicator | 5,860 B | 64,792 B |
 | + flash-reduction Tier 1–2 | 5,860 B | 55,952 B (42.7%) |
 | + Tier 3 (bitmap → GFXfont) | 5,860 B | 54,928 B (41.9%) |
-| **+ Tier 4 (defer Servo)** | **5,568 B** | **54,444 B (41.5%)** |
+| + Tier 4 (defer Servo) | 5,568 B | 54,444 B (41.5%) |
+| + LED presets 8 ช่อง + display | 6,156 B | 55,328 B |
+| **+ OTA (v16076): app** | **4,612 B** | **56,368 B / เพดาน 61,440** |
+| **+ OTA: bootloader (แยก)** | — | **932 B / slot 4,096** |
+
+หมายเหตุ OTA era: ตัด legacy importer + EEPROM emulation คืน RAM 2,080B; ตัวเลข %
+ของ `pio run` ตอนนี้เทียบกับเพดาน 65,536 (boot 4K + image cap 60K) ไม่ใช่ 128K —
+**app ต้องไม่เกิน 61,440B** ไม่งั้น link พัง (ตั้งใจ)
 
 Tier 1–2: `-D SSD1306_NO_SPLASH` (ตัด logo ~1.3KB) + **ตัด float ออกจาก path อุณหภูมิ**
 (ใช้ `measureHighPrecisionTicks` + integer `17500*ticks/65535-4500`, `sniprintf`) → ตัด soft-float
@@ -160,11 +167,37 @@ Tier 3: เลขใหญ่ DEMO เปลี่ยนจาก bitmap 53×64 
 - กติกา: ห้าม String/heap/float ใน runtime path; ตาราง const ใน flash; ไม่มี virtual dispatch
   (⚠️ lib ภายนอกอาจแอบดึง float — เช่น Sensirion `measureHighPrecision(float&)` เดิมดึง soft-float 7.5KB; ใช้ variant `...Ticks` แทน)
 - แยก flash รายหมวด (LTO รวมโค้ดเราไว้ใน `main`): HAL/core ~17KB · libc ~11KB · Arduino classes ~5.5KB · Modbus/RS485 ~4KB · rodata ฟอนต์ ~4.5KB (OledBigNum GFXfont ~3.2KB + GFX built-in font 1.3KB) · โค้ดเรา ~5.5KB
-- Config อยู่บน AT24 แล้ว → MCU flash ทั้ง 128KB ใช้กับโค้ดได้เต็ม
-- ผัง flash ในอนาคต (ยังไม่ลงมือ — รอ bootloader):
-  `[bootloader ~8-16KB] [app slot ≤56KB] [staging slot ≤56KB]`
-  คำสั่ง OTA = register/coil ชุดใหม่ผ่าน `mbRegisterHandler` + service เขียน flash แยก module
-  ยังไม่ relocate vector table / ไม่แตะ linker script จนกว่า bootloader จะเกิดจริง
+- Config อยู่บน AT24 แล้ว → MCU flash ใช้กับโค้ด + OTA ได้เต็ม
+
+## OTA ผ่าน RS485 broadcast (ใช้งานจริงแล้ว — E2E ผ่านบนบอร์ด 16/07/2026)
+
+**ผัง flash จริง** (`include/flash_layout.h` = SSOT ที่ app และ bootloader ใช้ร่วมกัน):
+```
+0x08000000  boot     2 pages   4KB   bare-metal (env LGS_BOOT, framework=cmsis, ~932B)
+0x08001000  app     31 pages  62KB   board_build.flash_offset=0x1000 (VTOR+linker อัตโนมัติ)
+0x08010800  staging 31 pages  62KB   header 1 page + image 30 pages (เพดาน 61,440B)
+```
+- `board_upload.maximum_size = 65536` → build ที่ใหญ่เกินเพดาน OTA **พังตอน link**
+- `-D SERIAL_RX_BUFFER_SIZE=256` จำเป็น: libmodbus รอทั้ง frame step ใน `available()>=n`
+  ครั้งเดียว — ring 64B เดิมรับ chunk frame 145B ไม่ได้เลย
+
+**Transport = Modbus broadcast FC16** (slave id 0 — libmodbus รับและไม่ตอบตามสเปค):
+master ยิง chunk 128B ลง window regs 290-357 (index/len/crc16/data 64 regs/commit
+tx-counter) ทีละ frame; อุปกรณ์เก็บ bitmap ที่ regs 360-389 ให้ master อ่านรายตัวแล้ว
+**ยิงซ่อมเฉพาะ chunk ที่หาย**; coil 505 enter (ตาม address legacy) → 506 finalize
+(CRC32) → 507 apply → 508 abort; state/error ที่ reg 282. Progress = เลขใหญ่ % บน OLED
+
+**Bootloader** (src/boot, ทนไฟดับทุกจุด): reload IWDG เสมอ (IWDG รอดข้าม
+NVIC_SystemReset!) → header valid + CRC32 ตรง → erase app → copy → verify →
+**erase header เป็นขั้นสุดท้าย** → ไฟดับกลาง copy = copy ซ้ำรอบหน้า; ไม่มี header =
+boot app เดิม; sanity vector ก่อน jump. ข้อจำกัดที่ยอมรับ: **ไม่มี rollback** ถ้า image
+ใหม่ verified แต่ crash (กู้ด้วย ST-Link หรือ OTA ซ้ำถ้า app ยังพอวิ่ง)
+
+**Deployment**: บอร์ด field เดิมต้อง ST-Link ครั้งเดียว (`pio run -e LGS_BOOT -t upload`
++ `pio run -t upload`) จากนั้น OTA ตลอดด้วย `tools/ota_sender.py -p COMx --ids ... -f firmware.bin`
+(9600 ≈ 80s/รอบ ทุกตัวบนบัสพร้อมกัน; `--status`/`--abort`/`--drop-every` สำหรับ
+ตรวจ/ยกเลิก/ทดสอบ repair). Legacy importer จาก MCU flash ถูกถอด — EEPROM
+emulation page เดิม (0x1F800) กลายเป็นพื้นที่ staging
 
 ## Verification gates
 

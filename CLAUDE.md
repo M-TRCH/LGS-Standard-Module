@@ -13,14 +13,22 @@ sensors, external AT24C32D EEPROM, function switch, 2 reserved servo outputs.
 PlatformIO is **not on PATH** — call the full path:
 
 ```bash
-"$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run          # build (env: LGS_STM32G070CBT6)
-"$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run -t upload # flash via ST-Link
+"$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run          # build app (env: LGS_STM32G070CBT6)
+"$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run -t upload # flash app via ST-Link
+"$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run -e LGS_BOOT -t upload  # flash bootloader (once per board)
 "$USERPROFILE/.platformio/penv/Scripts/platformio.exe" run -t clean
 ```
 
+**Flash layout (OTA)**: `[boot 4KB @0x08000000][app 62KB @0x08001000][staging 62KB]`
+(`include/flash_layout.h` = SSOT shared with `src/boot/`). The app links at offset 0x1000
+with a hard `board_upload.maximum_size` cap — **an app over 61,440 B fails at link time**
+(that's the OTA staging limit). Field updates go over RS485 with
+`tools/ota_sender.py -p COMx --ids <id,...> -f firmware.bin` (Modbus broadcast, per-device
+verify + chunk repair); ST-Link is only needed once per board to install boot + offset app.
+
 There is no host test suite; verification is `pio run` (build) plus on-hardware checks using the
-Python scripts in `tools/` (Modbus RTU/TCP testers, gateway). **Record flash/RAM every build** —
-the image must stay small to leave headroom for a future RS485-broadcast OTA.
+Python scripts in `tools/` (`test_modbus_rtu.py` sweep tester, `ota_sender.py`). **Record
+flash/RAM every build** against the budget table in `doc/ARCHITECTURE.md`.
 
 ## Architecture (see `doc/ARCHITECTURE.md` for the full version)
 
@@ -30,12 +38,14 @@ Strict downward-only layers; nothing includes upward:
 L0 constants  include/{version.h, board.h, config.h}    — pure constants, no project includes
 L1 util       src/util/periodic_timer.h                 — Arduino.h only
 L2 drivers/   one device per module, object file-static, functions only
-              board_io · rs485_port · led_ring · oled · temp_sensor · eeprom_at24 · servo_out
+              board_io · rs485_port · led_ring · oled · temp_sensor · eeprom_at24 ·
+              flash_stage (OTA staging) · servo_out
               → include L0 + vendor lib ONLY (never svc/ or app/)
 L3 svc/       settings · modbus_map.h (address SSOT) · modbus_server (persist + watch tables)
-L4 app/       app (boot + tick pipeline) · modes · led_control · latch_control · ops
-              display_control (stub) · servo_control (stub)
+L4 app/       app (boot + tick pipeline) · modes · led_control (8 presets) · latch_control ·
+              ops · display_control · ota_control · servo_control (stub)
 main.cpp → app.h only
+src/boot/     bare-metal bootloader (env LGS_BOOT, framework=cmsis) — outside the app layers
 ```
 
 `appRun()` is a fixed tick pipeline — **order is a safety invariant**:

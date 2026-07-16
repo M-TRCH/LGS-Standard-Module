@@ -2,6 +2,26 @@
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
 **ไฟล์:** firmware_stm32f103_*.bin
 
+## v3.1.0 / FW 16076 (2026-07-16) — R5.0 เท่านั้น
+### New Features
+- **OTA ผ่าน RS485 broadcast**: bootloader 4KB + app slot 0x08001000 + staging;
+  ส่งด้วย `tools/ota_sender.py` ผ่าน Modbus broadcast FC16 (regs 282–389, coils 505–508);
+  ตรวจรายตัว + ยิงซ่อม chunk ที่หาย; ทนไฟดับทุกจุด (E2E + fault-injection ผ่านบนบอร์ดจริง)
+- **LED Presets 1–8**: Light 1–8 = preset สีบนวงแหวนเดียว แบบ radio switching;
+  config regs 110–184 persist ทั้งหมด (settings schema v2, migrate จาก v1 อัตโนมัติ);
+  stats ราย preset 210–281; combo ใหม่ 1031–1038 (Light N + Latch + Display)
+- **Display ใช้งานจริง**: coil 1010 + reg 60 แสดงเลขใหญ่ 0–99 บน OLED (เกิน clamp เป็น 99)
+- **Latch แบ่ง 2 คำสั่ง**: 1019 Force (ไม่เช็ค sense, 500ms คงที่) / 1020 Safety (sense-aware)
+
+### Breaking Changes (สำหรับ backend / การ deploy)
+- **บอร์ดเดิมต้อง flash ผ่าน ST-Link หนึ่งครั้ง** (bootloader + app ที่ offset ใหม่)
+  จากนั้นอัปเดตผ่าน OTA ได้ตลอด; app image ต้องไม่เกิน 61,440 bytes
+- ตัด legacy importer จาก MCU flash (พื้นที่นั้นเป็น staging แล้ว) — config อยู่บน AT24 เท่านั้น
+- Enable Light 2–8 (1002–1008) กลับมาใช้ได้ แต่ความหมายใหม่ = เลือก preset สีบนวงแหวนเดียว
+  (เปิดตัวใหม่เคลียร์ coil ตัวเก่าอัตโนมัติ); 190/194 fan-out เขียนทุก preset
+
+---
+
 ## v3.0.0 (2026-07-13) — R5.0 เท่านั้น
 ### Compatibility
 - R5.0 (STM32G070CBT6) — ใช้กับบอร์ด R4.x ไม่ได้

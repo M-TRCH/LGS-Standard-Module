@@ -138,6 +138,11 @@ bool latchBusyWith(uint16_t coil)
     return (state != LatchState::IDLE) && (pendingCoil == coil);
 }
 
+bool latchControlFsmIdle()
+{
+    return state == LatchState::IDLE;
+}
+
 void latchControlTick(uint32_t now)
 {
     switch (state)

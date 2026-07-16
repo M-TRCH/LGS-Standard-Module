@@ -25,4 +25,9 @@ void displayControlInit(bool ownScreen);
  *         mirror coil 1010. Idempotent; safe to call from other handlers. */
 void displayControlSetEnabled(bool on);
 
+/*  @brief Firmware-driven number update: write reg 60 and re-render if the
+ *         display is enabled (bus writes go through the reg-60 handler; this
+ *         is for internal producers like the OTA progress percent). */
+void displayControlShowNumber(uint16_t value);
+
 #endif // APP_DISPLAY_CONTROL_H

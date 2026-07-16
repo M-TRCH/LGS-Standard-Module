@@ -57,6 +57,9 @@
 // --- Fault indication ---
 #define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
+// --- OTA over RS485 ---
+#define OTA_SESSION_TIMEOUT_MS      30000   // no bus activity this long -> session fails out
+
 // --- Watchdog ---
 // A single RTUServer.poll() can legitimately stall for hundreds of ms
 // (long response flush + libmodbus byte timeouts under bus noise), so the

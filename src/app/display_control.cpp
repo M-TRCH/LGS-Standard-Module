@@ -58,6 +58,19 @@ void displayControlInit(bool runScreenOwner)
     mbRegisterHandler(MB_WATCH_COIL_CHANGE, MB_COIL_DISPLAY_ENABLE, onDisplayEnableChange);
 }
 
+void displayControlShowNumber(uint16_t value)
+{
+    if (value > 99)
+    {
+        value = 99;
+    }
+    mbRegWrite(MB_REG_SET_NUM_DISPLAY, value); // shadow-synced: handler won't re-fire
+    if (displayOn)
+    {
+        render();
+    }
+}
+
 void displayControlSetEnabled(bool on)
 {
     // Mirror the enable coil first (idempotent; the shadow sync keeps this

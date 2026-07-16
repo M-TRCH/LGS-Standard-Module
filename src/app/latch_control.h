@@ -61,4 +61,8 @@ bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, uint16_t enableC
  *         re-triggering). */
 bool latchBusyWith(uint16_t coil);
 
+/*  @brief true when the pulse machine is IDLE (no delay/pulse/cooldown in
+ *         flight) — gate for entering OTA mode. */
+bool latchControlFsmIdle();
+
 #endif // APP_LATCH_CONTROL_H

@@ -9,6 +9,7 @@
 #include "app/ops.h"
 #include "app/display_control.h"
 #include "app/servo_control.h"
+#include "app/ota_control.h"
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
 #include "drivers/led_ring.h"
@@ -88,6 +89,7 @@ void appInit()
     ledControlInit();
     displayControlInit(functionMode == FUNC_SW_RUN && oledReady);
     servoControlInit();
+    otaControlInit();
     mbWatchSeedShadows();
 
     // Start the independent watchdog LAST — after the (up to 15s) blocking
@@ -111,6 +113,7 @@ void appRun()
     uint32_t now = millis();
     latchControlTick(now);  // pulse FSM + lock-state tracking + reg 40
     ledControlTick(now);    // max-on-time enforcement + statistics
+    otaControlTick(now);    // OTA session inactivity timeout
 
     switch (functionMode)
     {

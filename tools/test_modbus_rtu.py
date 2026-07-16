@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LGS Standard Module (R5.0) — Modbus RTU serial sweep tester
+LGS Standard Module (R5.0) - Modbus RTU serial sweep tester
 ===========================================================
 Connects to the board over a USB-to-RS485 adapter (a COM port) and exercises
 the whole R5.0 Modbus address set defined in src/svc/modbus_map.h, logging every
@@ -17,7 +17,7 @@ Phases (run in order):
   6. SUMMARY   - per-phase OK/FAIL/ERR counts; exit 0 only if no FAIL
 
 Safety: the destructive coils (500/501/502 factory reset, 503 persist+reboot,
-504 soft reset) and the identity registers 3/4 (baud/ID) are NOT touched — they
+504 soft reset) and the identity registers 3/4 (baud/ID) are NOT touched - they
 would reboot the board or drop it off the bus mid-sweep. The latch coils fire a
 real solenoid and are gated behind a confirmation prompt (skip with --yes,
 disable with --no-latch).
@@ -50,11 +50,12 @@ try:
 except ImportError:
     list_ports = None
 
-# Keep pymodbus from flooding the console; we do our own reporting.
-logging.getLogger("pymodbus").setLevel(logging.WARNING)
+# Keep pymodbus from flooding the console; we do our own reporting. (CRITICAL
+# hides the per-timeout "No response received" spam during an ID scan.)
+logging.getLogger("pymodbus").setLevel(logging.CRITICAL)
 
 # --------------------------------------------------------------------------- #
-# R5.0 address map — mirrors src/svc/modbus_map.h (the firmware SSOT).
+# R5.0 address map - mirrors src/svc/modbus_map.h (the firmware SSOT).
 # Keep in lock-step with that header: one row here per address there.
 # --------------------------------------------------------------------------- #
 
@@ -191,7 +192,7 @@ def log_row(writer, loop, phase, fc, addr, name, op, raw, decoded,
 
 
 # --------------------------------------------------------------------------- #
-# Transaction wrappers — always return (ok, value, latency_ms, note)
+# Transaction wrappers - always return (ok, value, latency_ms, note)
 # --------------------------------------------------------------------------- #
 
 def _timed(fn):
@@ -236,7 +237,7 @@ def write_coil(client, addr, value, unit):
 
 def list_serial_ports():
     if list_ports is None:
-        print("  (pyserial not available — cannot list ports)")
+        print("  (pyserial not available - cannot list ports)")
         return
     ports = list(list_ports.comports())
     if not ports:
@@ -247,27 +248,35 @@ def list_serial_ports():
 
 
 def discover_id(port, baud, candidates, scan_timeout=0.25):
-    """Probe reg 0 (device type) across candidate IDs; return the first responder."""
-    scan = ModbusSerialClient(port=port, baudrate=baud, bytesize=8,
-                              parity="N", stopbits=1, timeout=scan_timeout)
-    if not scan.connect():
-        print(f"  [ERR] cannot open {port} @ {baud} for scan")
-        return None
+    """Probe reg 0 (device type) across candidate IDs; return the first responder.
+
+    Uses a FRESH client per probe (open -> read -> close). A persistent pymodbus
+    client wedges its transaction state after the first no-response and then
+    misses even a valid ID; a fresh client sidesteps that. retries=0 keeps each
+    miss to a single timeout so a full 1..247 sweep stays quick.
+    """
     print(f"  scanning IDs on {port} @ {baud} 8N1 (probe reg 0)...")
-    found = None
-    try:
-        for i, uid in enumerate(candidates):
-            ok, val, _dt, _note = read_reg(scan, 0, uid)
-            if ok:
-                dtype = DEVICE_TYPES.get(val, "?")
-                print(f"  [OK] ID {uid} responded  (Device Type {val} = {dtype})")
-                found = uid
-                break
-            if i and i % 25 == 0:
-                print(f"  ...probed {i}/{len(candidates)}")
-    finally:
-        scan.close()
-    return found
+    for i, uid in enumerate(candidates):
+        c = ModbusSerialClient(port=port, baudrate=baud, bytesize=8,
+                               parity="N", stopbits=1, timeout=scan_timeout, retries=0)
+        if not c.connect():
+            print(f"  [ERR] cannot open {port} @ {baud} for scan")
+            return None
+        ok, val, _dt, _note = read_reg(c, 0, uid)
+        c.close()
+        if ok:
+            dtype = DEVICE_TYPES.get(val, "?")
+            print(f"  [OK] ID {uid} responded  (Device Type {val} = {dtype})")
+            return uid
+        if i and i % 25 == 0:
+            print(f"  ...probed {i}/{len(candidates)}")
+        time.sleep(0.02)   # let the OS release the port between opens
+    return None
+
+
+# NOTE: auto-discovery is best-effort. This board reliably answers only DIRECT,
+# paced addressing (it can drop frames during a fast multi-ID scan and recover
+# a moment later), so if a scan comes up empty, pass the known --id.
 
 
 # --------------------------------------------------------------------------- #
@@ -281,7 +290,7 @@ def banner(title):
 
 
 def phase_read(client, unit, loop, writer, stats):
-    banner("PHASE 2 — READ SWEEP (holding registers + coil states)")
+    banner("PHASE 2 - READ SWEEP (holding registers + coil states)")
     print(f"  {'Addr':>5}  {'Name':<22} {'Value (decoded)':<34} {'ms':>6}")
     print("  " + "-" * 70)
     for addr, name, unit_s, decoder in REGISTERS:
@@ -317,7 +326,7 @@ def _read_reg_val(client, addr, unit):
 
 
 def phase_write(client, unit, loop, writer, stats):
-    banner("PHASE 3 — WRITE / VERIFY / RESTORE (safe registers + state coils)")
+    banner("PHASE 3 - WRITE / VERIFY / RESTORE (safe registers + state coils)")
 
     # Snapshot every target register up-front so restores are exact even for the
     # fan-out pairs (190->110, 194->114) that share a target.
@@ -384,7 +393,7 @@ def phase_write(client, unit, loop, writer, stats):
 
 
 def phase_led(client, unit, loop, writer, stats):
-    banner("PHASE 4 — LED ACTUATION (visible: blue ring for ~1.5 s)")
+    banner("PHASE 4 - LED ACTUATION (visible: blue ring for ~1.5 s)")
     orig = {a: _read_reg_val(client, a, unit) for a in (110, 111, 112, 113)}
     _ok, orig_en, _dt, _n = read_coil(client, 1001, unit)
 
@@ -441,7 +450,7 @@ def _fire_latch(client, unit, coil, name, loop, writer, stats):
     t40_after = _read_reg_val(client, 40, unit)
     if cleared_ms is not None:
         hint = "pulsed (sense locked)" if cleared_ms > 150 else "accepted; no pulse (sense not locked / no latch wired)"
-        print(f"  coil {coil} ({name}) fired; self-cleared in {cleared_ms:.0f} ms — {hint}")
+        print(f"  coil {coil} ({name}) fired; self-cleared in {cleared_ms:.0f} ms - {hint}")
         print(f"       reg40 before={t40_before}  after={t40_after}")
         log_row(writer, loop, "LATCH", 1, coil, name, "fire", 0,
                 f"cleared {cleared_ms:.0f}ms; {hint}", "self-clear", "OK", dt,
@@ -454,7 +463,7 @@ def _fire_latch(client, unit, coil, name, loop, writer, stats):
 
 
 def phase_latch(client, unit, loop, writer, stats, fires, test_1021):
-    banner("PHASE 5 — LATCH ACTUATION (coil 1020 / 1021, PHYSICAL solenoid)")
+    banner("PHASE 5 - LATCH ACTUATION (coil 1020 / 1021, PHYSICAL solenoid)")
     for n in range(fires):
         print(f"  --- fire {n + 1}/{fires} : coil 1020 (Latch Trigger) ---")
         _fire_latch(client, unit, 1020, "Latch Trigger", loop, writer, stats)
@@ -498,7 +507,7 @@ def main():
         return 0
 
     # ----- Phase 1: connect + discover -------------------------------------- #
-    banner("PHASE 1 — CONNECT")
+    banner("PHASE 1 - CONNECT")
     print(f"  port={args.port}  baud={args.baud}  framing=8N1  timeout={args.timeout}s")
 
     unit = args.id
@@ -512,7 +521,7 @@ def main():
     print(f"  using slave ID {unit}")
 
     client = ModbusSerialClient(port=args.port, baudrate=args.baud, bytesize=8,
-                                parity="N", stopbits=1, timeout=args.timeout)
+                                parity="N", stopbits=1, timeout=args.timeout, retries=1)
     if not client.connect():
         print(f"  [ERR] could not open {args.port}")
         return 2
@@ -546,7 +555,7 @@ def main():
             if do_latch:
                 phase_latch(client, unit, loop, writer, stats, args.latch_fires, args.test_1021)
     except KeyboardInterrupt:
-        print("\n  interrupted — driving latch/LED off before exit...")
+        print("\n  interrupted - driving latch/LED off before exit...")
         try:
             write_coil(client, 1020, 0, unit)
             write_coil(client, 1001, 0, unit)

@@ -150,7 +150,7 @@ static void runDemoMode()
         // sense pin (always energizes, fixed max duration), so the solenoid
         // drive can be tested regardless of latch state. Still safety-capped
         // at 500ms with the 2s cooldown between pulses.
-        latchRequestUnlock(LATCH_MAX_UNLOCK_TIME, 0, false, /*ignoreSense=*/true);
+        latchRequestUnlock(LATCH_MAX_UNLOCK_TIME, 0, /*enableCoilToSync=*/0, /*ignoreSense=*/true);
     }
     lastSwitchPressed = switchPressed;
 

@@ -25,7 +25,7 @@ uint32_t pulseStartMs = 0;      // PULSE start; also the COOLDOWN reference
 uint32_t delayMs = 0;           // captured unlock delay for this request
 uint32_t pulseMinMs = 0;        // minimum ON time for this request (extends to the 500ms cap while locked)
 uint16_t pendingCoil = 0;       // coil to clear when the request resolves
-bool pendingEnableSync = false; // set the LED enable coil on completion
+uint16_t pendingEnableCoil = 0; // preset-enable coil to set on completion (0 = none)
 bool pendingIgnoreSense = false;// skip sense checks: always pulse, fixed pulseMinMs (bench test)
 
 // Debounced lock state: two consecutive LOW samples (one per loop tick)
@@ -34,23 +34,24 @@ bool lastSenseSample = false;
 
 uint32_t lastTimeLatchLocked = 0;
 
-// Resolve the in-flight request: clear its coil and sync the enable coil
-// when the LED-latch command asked for it. The sync is skipped if the LED
-// was legitimately turned off while the request was in flight (max-on-time
-// enforcement or a bus write) — otherwise coil 1001 would read 1 with the
-// ring dark and a later write-1 would be shadow-suppressed.
+// Resolve the in-flight request: clear its coil and sync the requested
+// preset-enable coil when the LED-latch command asked for it. The sync is
+// skipped unless that coil still names the ACTIVE preset — the LED may have
+// been turned off (max-on-time / bus write) or radio-switched to another
+// preset while the pulse was in flight; setting a stale coil would make it
+// read 1 with a different color on the ring.
 void finishRequest()
 {
     if (pendingCoil != 0)
     {
         mbCoilWrite(pendingCoil, false);
     }
-    if (pendingEnableSync && ledControlChannelOn())
+    if (pendingEnableCoil != 0 && ledControlActiveEnableCoil() == pendingEnableCoil)
     {
-        mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
+        mbCoilWrite(pendingEnableCoil, true);
     }
     pendingCoil = 0;
-    pendingEnableSync = false;
+    pendingEnableCoil = 0;
 }
 
 // Safety trigger coil (1020): sense-aware — pulses only if the latch reads
@@ -64,7 +65,7 @@ void onLatchTriggerCommand(uint16_t addr, uint16_t value)
     {
         return; // request in flight: coil stays set until the pulse resolves
     }
-    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LATCH_TRIGGER, false))
+    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LATCH_TRIGGER, 0))
     {
         // Busy (delay/pulse/cooldown of another request): reject and clear
         // immediately, otherwise the command would retry every poll and
@@ -85,7 +86,7 @@ void onLatchForceTriggerCommand(uint16_t addr, uint16_t value)
     {
         return;
     }
-    if (!latchRequestUnlock(LATCH_MAX_UNLOCK_TIME, MB_COIL_LATCH_FORCE_TRIGGER, false,
+    if (!latchRequestUnlock(LATCH_MAX_UNLOCK_TIME, MB_COIL_LATCH_FORCE_TRIGGER, 0,
                             /*ignoreSense=*/true))
     {
         mbCoilWrite(MB_COIL_LATCH_FORCE_TRIGGER, false);
@@ -104,7 +105,7 @@ void latchControlInit()
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_FORCE_TRIGGER, onLatchForceTriggerCommand);
 }
 
-bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableCoil,
+bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, uint16_t enableCoilToSync,
                         bool ignoreSense)
 {
     if (state != LatchState::IDLE)
@@ -125,7 +126,7 @@ bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableC
     }
 
     pendingCoil = coilToClear;
-    pendingEnableSync = syncEnableCoil;
+    pendingEnableCoil = enableCoilToSync;
     pendingIgnoreSense = ignoreSense;
     phaseStartMs = millis();
     state = LatchState::DELAY;

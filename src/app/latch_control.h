@@ -36,22 +36,24 @@ void latchControlTick(uint32_t now);
  *  energizes for at least @p pulseMs, then keeps energizing while still
  *  locked until the latch opens or the LATCH_MAX_UNLOCK_TIME cap.
  *
- *  @p ignoreSense mode (bench test): the sense pin is not consulted at all —
- *  the pulse always starts and runs for a fixed @p pulseMs (pass
- *  LATCH_MAX_UNLOCK_TIME for the full 500ms).
+ *  @p ignoreSense mode (force trigger / bench test): the sense pin is not
+ *  consulted at all — the pulse always starts and runs for a fixed
+ *  @p pulseMs (pass LATCH_MAX_UNLOCK_TIME for the full 500ms).
  *
  *  When the pulse completes, @p coilToClear is written back to 0 and, if
- *  requested, the LED enable coil is set.
+ *  @p enableCoilToSync is nonzero, that preset-enable coil is set — but only
+ *  when it still names the ACTIVE preset (a preset switch while the pulse is
+ *  in flight must not resurrect a stale coil).
  *
- *  @param pulseMs        Minimum (or, with ignoreSense, exact) pulse width;
- *                        clamped to LATCH_MAX_UNLOCK_TIME
- *  @param coilToClear    Modbus coil cleared when the request resolves (0 = none)
- *  @param syncEnableCoil Set the LED enable coil on completion (LED-latch command)
- *  @param ignoreSense    Skip all sense checks: always pulse, fixed pulseMs
+ *  @param pulseMs          Minimum (or, with ignoreSense, exact) pulse width;
+ *                          clamped to LATCH_MAX_UNLOCK_TIME
+ *  @param coilToClear      Modbus coil cleared when the request resolves (0 = none)
+ *  @param enableCoilToSync Preset-enable coil to set on completion (0 = none)
+ *  @param ignoreSense      Skip all sense checks: always pulse, fixed pulseMs
  *  @return true when accepted; false while DELAY/PULSE/COOLDOWN is active —
  *          the caller must clear its coil immediately to avoid a retry loop
  */
-bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, bool syncEnableCoil,
+bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, uint16_t enableCoilToSync,
                         bool ignoreSense = false);
 
 /*  @brief true while an accepted request for @p coil is still in flight

@@ -24,4 +24,9 @@ void ledControlTick(uint32_t now);
  *         enable coil). */
 bool ledControlChannelOn();
 
+/*  @brief Enable-coil address (1000+n) of the currently active preset, or 0
+ *         when the ring is off. latch_control compares this against a
+ *         combo's requested coil before syncing it on pulse completion. */
+uint16_t ledControlActiveEnableCoil();
+
 #endif // APP_LED_CONTROL_H

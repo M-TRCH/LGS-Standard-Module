@@ -98,7 +98,7 @@ void onLedLatchCommand(uint16_t addr, uint16_t value)
     // this coil and syncs the enable coil. When busy (another request or
     // cooldown) the LED still turns on — same as the original reject path —
     // but the coils resolve immediately so the command is not retried.
-    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LED_1_LATCH, true))
+    if (!latchRequestUnlock(LATCH_PULSE_MS, MB_COIL_LED_1_LATCH, MB_COIL_LED_1_ENABLE))
     {
         mbCoilWrite(MB_COIL_LED_1_LATCH, false);
         mbCoilWrite(MB_COIL_LED_1_ENABLE, true);
@@ -146,6 +146,12 @@ void ledControlInit()
 bool ledControlChannelOn()
 {
     return channelOn;
+}
+
+uint16_t ledControlActiveEnableCoil()
+{
+    // Single-preset shim (preset engine lands next): active = preset 1.
+    return channelOn ? MB_COIL_LED_1_ENABLE : 0;
 }
 
 void ledControlTick(uint32_t now)

@@ -142,6 +142,9 @@ def main():
     ap.add_argument("--status", action="store_true", help="read OTA state per device and exit")
     ap.add_argument("--abort", action="store_true", help="broadcast OTA abort (coil 508) and exit")
     ap.add_argument("-y", "--yes", action="store_true", help="skip the confirmation prompt")
+    ap.add_argument("--drop-every", type=int, default=0, metavar="N",
+                    help="TEST: skip every Nth chunk in the main stream so the "
+                         "bitmap repair rounds have real work to do")
     args = ap.parse_args()
 
     ids = [int(x) for x in args.ids.split(",") if x.strip()]
@@ -215,6 +218,8 @@ def main():
         print(f"[4/8] streaming {total_chunks} chunks @{args.baud} baud ...")
         t0 = time.time()
         for idx in range(total_chunks):
+            if args.drop_every and idx % args.drop_every == args.drop_every - 1:
+                continue  # TEST: simulate a lost broadcast frame
             s.send_chunk(image, idx, total_chunks)
             if idx % 32 == 31 or idx == total_chunks - 1:
                 pct = (idx + 1) * 100 // total_chunks

@@ -59,25 +59,26 @@
 | 61–63 | *(สำรอง)* | | | | | | | | |
 | 80 | Delay before unlock | R/W(F) | 0 | 0-8000 | ms | | | ✓ | ✓ |
 | 81 | ~~LED Num Per Strip~~ ¹⁰ | R/W(F) | 1 | - | - | | | | ✗ |
-| 110 | Light 1 Brightness | R/W(F) | 80 | 0-100 | - | ✓ | ✓ | | ✓ |
+| 110 | Light 1 Brightness | R/W(F) | 80 | 0-100 | - | ✓ | ✓ | | ✓ ¹¹ |
 | 111 | Light 1 Red Value | R/W(F) | 255 | 0-255 | - | ✓ | ✓ | | ✓ |
 | 112 | Light 1 Green Value | R/W(F) | 0 | 0-255 | - | ✓ | ✓ | | ✓ |
 | 113 | Light 1 Blue Value | R/W(F) | 0 | 0-255 | - | ✓ | ✓ | | ✓ |
 | 114 | Light 1 Max On Time Limit | R/W(F) | 3600 | 0-65535 | sec | ✓ | ✓ | | ✓ |
-| 120–124 | Light 2 (Brightness/R:0/G:255/B:0/Max On) | R/W(F) | 80/0/255/0/3600 | | | ✓ | ✓ | | ✗ ¹¹ |
-| 130–134 | Light 3 (Brightness/R:0/G:0/B:255/Max On) | R/W(F) | 80/0/0/255/3600 | | | ✓ | ✓ | | ✗ |
-| 140–144 | Light 4 (Brightness/R:255/G:215/B:0/Max On) | R/W(F) | 80/255/215/0/3600 | | | ✓ | ✓ | | ✗ |
-| 150–154 | Light 5 (Brightness/R:0/G:255/B:255/Max On) | R/W(F) | 80/0/255/255/3600 | | | ✓ | ✓ | | ✗ |
-| 160–164 | Light 6 (Brightness/R:255/G:0/B:255/Max On) | R/W(F) | 80/255/0/255/3600 | | | ✓ | ✓ | | ✗ |
-| 170–174 | Light 7 (Brightness/R:255/G:60/B:0/Max On) | R/W(F) | 80/255/60/0/3600 | | | ✓ | ✓ | | ✗ |
-| 180–184 | Light 8 (Brightness/R:255/G:245/B:120/Max On) | R/W(F) | 80/255/245/120/3600 | | | ✓ | ✓ | | ✗ |
-| 190 | Global Brightness | R/W | 80 | 0-100 | - | | | ✓ | ✓ |
+| 120–124 | Light 2 (Brightness/R:0/G:255/B:0/Max On) | R/W(F) | 80/0/255/0/3600 | | | ✓ | ✓ | | ✓ ¹¹ |
+| 130–134 | Light 3 (Brightness/R:0/G:0/B:255/Max On) | R/W(F) | 80/0/0/255/3600 | | | ✓ | ✓ | | ✓ |
+| 140–144 | Light 4 (Brightness/R:255/G:215/B:0/Max On) | R/W(F) | 80/255/215/0/3600 | | | ✓ | ✓ | | ✓ |
+| 150–154 | Light 5 (Brightness/R:0/G:255/B:255/Max On) | R/W(F) | 80/0/255/255/3600 | | | ✓ | ✓ | | ✓ |
+| 160–164 | Light 6 (Brightness/R:255/G:0/B:255/Max On) | R/W(F) | 80/255/0/255/3600 | | | ✓ | ✓ | | ✓ |
+| 170–174 | Light 7 (Brightness/R:255/G:60/B:0/Max On) | R/W(F) | 80/255/60/0/3600 | | | ✓ | ✓ | | ✓ |
+| 180–184 | Light 8 (Brightness/R:255/G:245/B:120/Max On) | R/W(F) | 80/255/245/120/3600 | | | ✓ | ✓ | | ✓ |
+| 190 | Global Brightness | R/W | 80 | 0-100 | - | | | ✓ | ✓ ¹² |
 | 191–193 | *(สำรอง)* | | | | | | | | |
-| 194 | Global Max On Time Limit | R/W | 3600 | 0-65535 | sec | | | ✓ | ✓ |
+| 194 | Global Max On Time Limit | R/W | 3600 | 0-65535 | sec | | | ✓ | ✓ ¹² |
 
-⁹ R5.0 จอง address ไว้ (แสดงเลข 0-9999 บน OLED) — การเรนเดอร์จะตามมาใน firmware รุ่นถัดไป
+⁹ R5.0 เรนเดอร์จริงบน OLED เมื่อ coil 1010 = 1 ด้วยฟอนต์เลขใหญ่ 2 หลัก — **ช่วงที่แสดงคือ 0-99**: ค่าที่เขียนเกิน 99 จะถูก clamp เป็น 99 และรีจิสเตอร์สะท้อนค่าที่ clamp แล้ว; เขียนค่าใหม่ขณะจอเปิดอยู่ → อัปเดตทันที; ค่า volatile (รีเซ็ตเป็น 0 เมื่อรีบูต)
 ¹⁰ คำสั่งเก่าของบอร์ดรุ่น Delivery (LED 8 เส้นแยกขา) ไม่อยู่ใน Control Table PDF — เลิกใช้และถูกถอดออกจากโค้ด R5.0
-¹¹ บอร์ด R5.0 มี LED channel เดียว (Light 1 = วงแหวน 16 พิกเซลทั้งวง) — Light 2–8 คงไว้ในเอกสารสำหรับบอร์ดเก่าเท่านั้น
+¹¹ **แนวคิดใหม่ของ R5.0: Light 1–8 = color preset 1–8 บนวงแหวนเดียวกัน** (ฮาร์ดแวร์มีวงแหวน 16 พิกเซลวงเดียว) — config ราย preset persist ทั้ง 8 ชุด (schema v2 บน AT24; อัปเกรดจาก v1 อัตโนมัติโดยคง config เดิมเป็น preset 1); ค่า default ของ preset 2–8 คือ palette ของ Light 2–8 ในตารางนี้
+¹² R5.0: fan-out เขียนลงรีจิสเตอร์ของ**ทุก preset** (110/120/…/180 หรือ 114/124/…/184) ตามความหมาย legacy
 
 ## Statistics (Holding Registers, 2 byte)
 
@@ -87,13 +88,13 @@
 | 201 | Total Light Runtime | R | 0 | 0-65535 | sec | | | ✓ | ✓ |
 | 210 | Light 1 On Count | R | 0 | 0-65535 | times | ✓ | ✓ | | ✓ |
 | 211 | Light 1 Runtime | R | 0 | 0-65535 | sec | ✓ | ✓ | | ✓ |
-| 220–221 | Light 2 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 230–231 | Light 3 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 240–241 | Light 4 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 250–251 | Light 5 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 260–261 | Light 6 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 270–271 | Light 7 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
-| 280–281 | Light 8 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✗ |
+| 220–221 | Light 2 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 230–231 | Light 3 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 240–241 | Light 4 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 250–251 | Light 5 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 260–261 | Light 6 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 270–271 | Light 7 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
+| 280–281 | Light 8 On Count / Runtime | R | 0 | 0-65535 | | ✓ | ✓ | | ✓ |
 | 290 | Display On Count | R | 0 | 0-65535 | times | | | | ✗ |
 | 291 | Display Runtime | R | 0 | 0-65535 | sec | | | | ✗ |
 
@@ -101,20 +102,24 @@
 
 | Addr | Data Name | Access | Initial | Range | R4.0 | R4.0.1 | R4.3 | R5.0 |
 |---:|---|---|---|---|:-:|:-:|:-:|:-:|
-| 1001 | Enable Light 1 | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ |
-| 1002–1008 | Enable Light 2–8 | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✗ |
+| 1001 | Enable Light 1 | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ ¹³ |
+| 1002–1008 | Enable Light 2–8 | R/W | FALSE | TRUE/FALSE | ✓ | ✓ | | ✓ ¹³ |
 | 1010 | Enable Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ⁹ |
-| 1011 | Enable Light 1 and Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ⁹ |
-| 1012–1018 | Enable Light 2–8 and Display | R/W | FALSE | TRUE/FALSE | | | | ✗ |
+| 1011 | Enable Light 1 and Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ¹³ |
+| 1012–1018 | Enable Light 2–8 and Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ¹³ |
 | 1019 | Force Trig Latch | R/W | FALSE | TRUE/FALSE | | | | ✓ ¹⁰ |
 | 1020 | Trig Latch (Safety) | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ ¹⁰ |
-| 1021 | Trig Light 1 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ |
-| 1022–1028 | Trig Light 2–8 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✗ |
+| 1021 | Trig Light 1 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ ¹³ |
+| 1022–1028 | Trig Light 2–8 and Latch | R/W | FALSE | TRUE/FALSE | | | ✓ | ✓ ¹³ |
+| 1031–1038 | Trig Light 1–8 + Latch + Display | R/W | FALSE | TRUE/FALSE | | | | ✓ ¹⁴ |
 
-¹⁰ R5.0 แบ่งการสั่งกลอนเป็น 2 แนวทาง: **1019 Force Trigger** = ยิงเสมอโดยไม่สนใจ sense, pulse คงที่เต็มสเปคสูงสุด 500ms · **1020 Safety Trigger** = sense-aware — ยิงเฉพาะเมื่อ sense อ่านว่ากลอนล็อกอยู่, จ่ายไฟอย่างน้อย 300ms, ต่อไฟขณะยังล็อกจนถึงเพดาน 500ms (1021 ใช้ลอจิก Safety เช่นเดียวกับ 1020)
+¹⁰ R5.0 แบ่งการสั่งกลอนเป็น 2 แนวทาง: **1019 Force Trigger** = ยิงเสมอโดยไม่สนใจ sense, pulse คงที่เต็มสเปคสูงสุด 500ms · **1020 Safety Trigger** = sense-aware — ยิงเฉพาะเมื่อ sense อ่านว่ากลอนล็อกอยู่, จ่ายไฟอย่างน้อย 300ms, ต่อไฟขณะยังล็อกจนถึงเพดาน 500ms (คำสั่ง combo ที่มี latch ทุกตัวใช้ลอจิก Safety)
+¹³ **Radio switching**: coil ตระกูล Light 1–8 ทั้งหมดขับ**วงแหวนเดียวกัน** โดยเลือก preset สี — เปิด preset ใหม่ขณะตัวเก่าติดอยู่ = วงแหวนเปลี่ยนสีทันทีและ coil ของตัวเก่า (ทั้ง enable และ display-combo) ถูกเคลียร์เป็น 0 อัตโนมัติ; อ่าน coils จะเห็นตัวที่ติดจริงตัวเดียวเสมอ
+¹⁴ ใหม่ใน R5.0 (ไม่มีในบอร์ดเก่า): คำสั่งเดียว = เปิด preset N + แสดงเลข reg 60 บนจอ + ยิงกลอน (Safety) — จอติดทันทีที่รับคำสั่ง, coil enable ของ preset ถูก sync หลัง pulse จบ, coil คำสั่ง self-clear เหมือน 1021
 
 ## หมายเหตุพฤติกรรม R5.0
 
-- **Trig Latch (1019/1020/1021)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
+- **Trig Latch (1019/1020/1021–1028/1031–1038)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
 - **ข้อจำกัดความปลอดภัยกลอน (ใช้กับทั้ง Force และ Safety)**: pulse สูงสุด 500ms (เพดานถูกบังคับซ้ำด้วย hardware timer guard), ระยะห่างระหว่างการปลดล็อกขั้นต่ำ 2000ms (นับจากจุดเริ่ม pulse), delay ก่อนปลดล็อกตาม reg 80
+- **Config เก็บเป็น schema v2** บน AT24C32D: บูตแรกหลังอัปเกรดจาก firmware v1 จะ migrate อัตโนมัติ (ค่าเดิมกลายเป็น preset 1, preset 2–8 = palette default)
 - **Servo (PC6/PC7)**: ยังไม่มี address — จองไว้สำหรับอนาคต

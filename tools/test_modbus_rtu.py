@@ -12,10 +12,15 @@ Phases (run in order):
   1. CONNECT   - open the port, auto-discover the slave ID (or use --id)
   2. READ      - read every holding register (FC03) + coil state (FC01), decoded
   3. WRITE     - write-verify-restore the safe writable registers + state coils
-  4. LED       - set a colour and toggle the ring (coil 1001), then restore
-  5. LATCH     - fire the unlock coils: 1020 safety (sense-aware), 1019 force
-                 (ignore sense, fixed 500 ms), 1021 LED+latch (PHYSICAL; gated)
-  6. SUMMARY   - per-phase OK/FAIL/ERR counts; exit 0 only if no FAIL
+  4. PRESET    - radio switching across the 8 color presets (1001-1008) +
+                 global 190 fan-out to every preset's brightness reg
+  5. DISPLAY   - reg 60 + coil 1010: big number on the OLED, immediate
+                 re-render on write, >99 clamp to 99
+  6. LED       - set a colour and toggle the ring (coil 1001), then restore
+  7. LATCH     - fire the unlock coils: 1020 safety (sense-aware), 1019 force
+                 (ignore sense, fixed 500 ms), --test-combos adds 1022/1031,
+                 --test-1021 adds 1021 (all PHYSICAL; gated)
+  8. SUMMARY   - per-phase OK/FAIL/ERR counts; exit 0 only if no FAIL
 
 Safety: the destructive coils (500/501/502 factory reset, 503 persist+reboot,
 504 soft reset) and the identity registers 3/4 (baud/ID) are NOT touched - they
@@ -104,18 +109,21 @@ REGISTERS = [
     (40,  "Time After Unlock",    "s",   dec_plain),
     (60,  "Display Number",       "",    dec_plain),
     (80,  "Unlock Delay",         "ms",  dec_plain),
-    (110, "LED Brightness",       "%",   dec_plain),
-    (111, "LED Red",              "",    dec_plain),
-    (112, "LED Green",            "",    dec_plain),
-    (113, "LED Blue",             "",    dec_plain),
-    (114, "LED Max On-Time",      "s",   dec_plain),
     (190, "Global Brightness",    "%",   dec_plain),
     (194, "Global Max On-Time",   "s",   dec_plain),
     (200, "Total LED On Count",   "",    dec_plain),
     (201, "Total LED On Time",    "s",   dec_plain),
-    (210, "LED 1 On Count",       "",    dec_plain),
-    (211, "LED 1 On Time",        "s",   dec_plain),
 ]
+
+# Preset config blocks (regs 100+10n..+4) and per-preset stats (200+10n/+1)
+# for presets 1-8 - one physical ring, eight color presets (R5.0).
+_PRESET_FIELDS = [("Brightness", "%"), ("Red", ""), ("Green", ""), ("Blue", ""), ("Max On-Time", "s")]
+for _n in range(1, 9):
+    for _k, (_fname, _funit) in enumerate(_PRESET_FIELDS):
+        REGISTERS.append((100 + 10 * _n + _k, f"Preset {_n} {_fname}", _funit, dec_plain))
+    REGISTERS.append((200 + 10 * _n, f"Preset {_n} On Count", "", dec_plain))
+    REGISTERS.append((201 + 10 * _n, f"Preset {_n} On Time", "s", dec_plain))
+REGISTERS.sort(key=lambda r: r[0])
 
 # Coils (FC01 read / FC05 write). danger: excluded from every write path.
 COILS = [
@@ -125,19 +133,25 @@ COILS = [
     (502,  "Apply Reset (all data)",      True),
     (503,  "Write to EEPROM (+reboot)",   True),
     (504,  "Software Reset",              True),
-    (1001, "LED 1 Enable",                False),
-    (1010, "Display Enable (stub)",       False),
-    (1011, "LED 1 + Display (stub)",      False),
+    (1010, "Display Enable",              False),
     (1019, "Latch Force Trigger",         False),  # gated separately (physical)
     (1020, "Latch Trigger (Safety)",      False),  # gated separately (physical)
-    (1021, "LED 1 + Latch",               False),  # gated separately (physical)
 ]
+
+# Preset coil families for presets 1-8 (enable / +display / +latch /
+# +latch+display). Latch-bearing coils fire the solenoid - gated phases only.
+for _n in range(1, 9):
+    COILS.append((1000 + _n, f"Enable Preset {_n}", False))
+    COILS.append((1010 + _n, f"Preset {_n} + Display", False))
+    COILS.append((1020 + _n, f"Preset {_n} + Latch", False))
+    COILS.append((1030 + _n, f"Preset {_n} + Latch + Display", False))
+COILS.sort(key=lambda c: c[0])
 
 # Safe register write tests: (addr, name, test_value, verify_addr).
 # verify_addr differs from addr for the fan-out registers 190->110 and 194->114:
 # writing them copies into the target register, so we check the target's value.
 WRITE_TESTS = [
-    (60,  "Display Number",     1234, 60),
+    (60,  "Display Number",       45, 60),   # in-range; the >99 clamp is checked in the DISPLAY phase
     (80,  "Unlock Delay",        250, 80),
     (110, "LED Brightness",       50, 110),
     (111, "LED Red",              11, 111),
@@ -148,11 +162,13 @@ WRITE_TESTS = [
     (194, "Global Max On-Time", 2400, 114),   # fan-out -> reg 114
 ]
 
-# State coils that hold their value (safe to toggle + restore).
+# State coils that hold their value (safe to toggle + restore). These now
+# have REAL effects (ring lights / number renders for a moment during the
+# toggle) - the flicker is expected.
 STATE_COILS = [
-    (1001, "LED 1 Enable"),
-    (1010, "Display Enable (stub)"),
-    (1011, "LED 1 + Display (stub)"),
+    (1001, "Enable Preset 1"),
+    (1010, "Display Enable"),
+    (1011, "Preset 1 + Display"),
 ]
 
 LATCH_COOLDOWN_S = 2.2   # firmware enforces >=2000 ms between unlock pulses
@@ -394,8 +410,90 @@ def phase_write(client, unit, loop, writer, stats):
             time.sleep(INTER_TXN_S)
 
 
+def _check(cond, label, writer, loop, phase, fc, addr, name, raw, expected, stats):
+    result = "OK" if cond else "FAIL"
+    print(f"  [{result}] {label}")
+    log_row(writer, loop, phase, fc, addr, name, "check", raw, label, expected, result, 0.0)
+    stats.add(result)
+
+
+def phase_preset(client, unit, loop, writer, stats):
+    banner("PHASE 4 - LED PRESETS (radio switching; ring changes color)")
+
+    # Radio: enable preset 1 (red), then preset 3 (blue) - 1001 must auto-clear.
+    write_coil(client, 1001, 1, unit); time.sleep(INTER_TXN_S)
+    _ok, c1, _dt, _n = read_coil(client, 1001, unit)
+    _check(c1 == 1, "enable 1001 -> coil 1001 reads 1 (ring red)", writer, loop,
+           "PRESET", 1, 1001, "Enable Preset 1", c1, 1, stats)
+    time.sleep(0.8)
+
+    write_coil(client, 1003, 1, unit); time.sleep(INTER_TXN_S)
+    _ok, c3, _dt, _n = read_coil(client, 1003, unit)
+    _ok, c1, _dt, _n = read_coil(client, 1001, unit)
+    _check(c3 == 1, "enable 1003 -> coil 1003 reads 1 (ring blue)", writer, loop,
+           "PRESET", 1, 1003, "Enable Preset 3", c3, 1, stats)
+    _check(c1 == 0, "radio: coil 1001 auto-cleared after enabling 1003", writer, loop,
+           "PRESET", 1, 1001, "Enable Preset 1", c1, 0, stats)
+    time.sleep(0.8)
+
+    # Global brightness fan-out: 190 must land in every preset's brightness reg.
+    orig_b = {}
+    for n in range(1, 9):
+        orig_b[n] = _read_reg_val(client, 100 + 10 * n, unit)
+        time.sleep(INTER_TXN_S)
+    write_reg(client, 190, 37, unit); time.sleep(INTER_TXN_S)
+    fanout_ok = True
+    for n in range(1, 9):
+        v = _read_reg_val(client, 100 + 10 * n, unit)
+        if v != 37:
+            fanout_ok = False
+        time.sleep(INTER_TXN_S)
+    _check(fanout_ok, "reg 190 = 37 fanned out to all 8 preset brightness regs", writer, loop,
+           "PRESET", 3, 190, "Global Brightness", 37 if fanout_ok else -1, 37, stats)
+    for n in range(1, 9):   # restore
+        if orig_b[n] is not None:
+            write_reg(client, 100 + 10 * n, orig_b[n], unit)
+            time.sleep(INTER_TXN_S)
+
+    # Off via the active preset's coil.
+    write_coil(client, 1003, 0, unit); time.sleep(INTER_TXN_S)
+    _ok, c3, _dt, _n = read_coil(client, 1003, unit)
+    _check(c3 == 0, "disable 1003 -> ring off", writer, loop,
+           "PRESET", 1, 1003, "Enable Preset 3", c3, 0, stats)
+
+
+def phase_display(client, unit, loop, writer, stats):
+    banner("PHASE 5 - DISPLAY (OLED big number via reg 60 + coil 1010)")
+
+    write_reg(client, 60, 45, unit); time.sleep(INTER_TXN_S)
+    write_coil(client, 1010, 1, unit); time.sleep(INTER_TXN_S)
+    _ok, c, _dt, _n = read_coil(client, 1010, unit)
+    _check(c == 1, "coil 1010 on -> OLED should show '45'", writer, loop,
+           "DISPLAY", 1, 1010, "Display Enable", c, 1, stats)
+    time.sleep(1.5)
+
+    # Immediate re-render on a reg-60 write while enabled.
+    write_reg(client, 60, 7, unit)
+    print("  wrote reg 60 = 7 while enabled -> OLED should now show '07'")
+    time.sleep(1.2)
+
+    # Clamp: >99 must read back (and display) 99.
+    write_reg(client, 60, 1234, unit); time.sleep(0.1)
+    rb = _read_reg_val(client, 60, unit)
+    _check(rb == 99, f"reg 60 = 1234 clamps: readback {rb} (OLED shows '99')", writer, loop,
+           "DISPLAY", 3, 60, "Display Number", rb, 99, stats)
+    time.sleep(1.2)
+
+    write_coil(client, 1010, 0, unit); time.sleep(INTER_TXN_S)
+    _ok, c, _dt, _n = read_coil(client, 1010, unit)
+    _check(c == 0, "coil 1010 off -> OLED blank", writer, loop,
+           "DISPLAY", 1, 1010, "Display Enable", c, 0, stats)
+    write_reg(client, 60, 0, unit)   # restore the boot value
+    time.sleep(INTER_TXN_S)
+
+
 def phase_led(client, unit, loop, writer, stats):
-    banner("PHASE 4 - LED ACTUATION (visible: blue ring for ~1.5 s)")
+    banner("PHASE 6 - LED ACTUATION (visible: blue ring for ~1.5 s)")
     orig = {a: _read_reg_val(client, a, unit) for a in (110, 111, 112, 113)}
     _ok, orig_en, _dt, _n = read_coil(client, 1001, unit)
 
@@ -465,17 +563,44 @@ def _fire_latch(client, unit, coil, name, loop, writer, stats):
         stats.add("FAIL")
 
 
-def phase_latch(client, unit, loop, writer, stats, fires, test_1021, test_force=True):
-    banner("PHASE 5 - LATCH ACTUATION (coil 1019 / 1020 / 1021, PHYSICAL solenoid)")
+def phase_latch(client, unit, loop, writer, stats, fires, test_1021, test_force=True,
+                test_combos=False):
+    banner("PHASE 7 - LATCH ACTUATION (PHYSICAL solenoid; safety/force/combos)")
     for n in range(fires):
         print(f"  --- fire {n + 1}/{fires} : coil 1020 (Safety Trigger, sense-aware) ---")
         _fire_latch(client, unit, 1020, "Safety Trigger", loop, writer, stats)
-        if n < fires - 1 or test_1021 or test_force:
+        if n < fires - 1 or test_1021 or test_force or test_combos:
             print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
             time.sleep(LATCH_COOLDOWN_S)
     if test_force:
         print("  --- coil 1019 (Force Trigger, ignore sense, fixed 500 ms) ---")
         _fire_latch(client, unit, 1019, "Force Trigger", loop, writer, stats)
+        if test_1021 or test_combos:
+            print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
+            time.sleep(LATCH_COOLDOWN_S)
+    if test_combos:
+        print("  --- coil 1022 (Preset 2 + Latch: ring green + safety pulse) ---")
+        _fire_latch(client, unit, 1022, "Preset 2 + Latch", loop, writer, stats)
+        time.sleep(0.3)
+        _ok, c, _dt, _n = read_coil(client, 1002, unit)
+        _check(c == 1, "enable coil 1002 synced after the 1022 request resolved",
+               writer, loop, "LATCH", 1, 1002, "Enable Preset 2", c, 1, stats)
+        write_coil(client, 1002, 0, unit)   # ring off
+        print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
+        time.sleep(LATCH_COOLDOWN_S)
+
+        print("  --- coil 1031 (Preset 1 + Latch + Display: red + number + pulse) ---")
+        _fire_latch(client, unit, 1031, "Preset 1 + Latch + Display", loop, writer, stats)
+        time.sleep(0.3)
+        _ok, d, _dt, _n = read_coil(client, 1010, unit)
+        _ok, e, _dt, _n = read_coil(client, 1001, unit)
+        _check(d == 1, "display coil 1010 turned on by the 1031 combo",
+               writer, loop, "LATCH", 1, 1010, "Display Enable", d, 1, stats)
+        _check(e == 1, "enable coil 1001 synced after the 1031 request resolved",
+               writer, loop, "LATCH", 1, 1001, "Enable Preset 1", e, 1, stats)
+        time.sleep(1.0)
+        write_coil(client, 1001, 0, unit); time.sleep(INTER_TXN_S)
+        write_coil(client, 1010, 0, unit)   # blank the display again
         if test_1021:
             print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
             time.sleep(LATCH_COOLDOWN_S)
@@ -502,10 +627,13 @@ def main():
     ap.add_argument("--loops", type=int, default=1, help="repeat the whole sweep this many times")
     ap.add_argument("--latch-fires", type=int, default=1, help="number of coil-1020 pulses per loop")
     ap.add_argument("--test-1021", action="store_true", help="also fire coil 1021 (LED + latch)")
+    ap.add_argument("--test-combos", action="store_true",
+                    help="also fire the preset combos 1022 and 1031 (each pulses the solenoid)")
     ap.add_argument("--no-force", action="store_true",
                     help="skip coil 1019 (force trigger, ignore-sense fixed 500 ms)")
     ap.add_argument("--no-latch", action="store_true", help="skip the physical latch phase entirely")
-    ap.add_argument("--no-led", action="store_true", help="skip the visible LED phase")
+    ap.add_argument("--no-led", action="store_true",
+                    help="skip the visible LED/preset/display phases")
     ap.add_argument("-y", "--yes", action="store_true", help="skip the latch confirmation prompt")
     ap.add_argument("--csv", default=None, help="CSV log path (default: logs/rtu_sweep_<ts>.csv)")
     ap.add_argument("--timeout", type=float, default=1.0, help="RTU response timeout (s)")
@@ -541,6 +669,7 @@ def main():
     do_latch = not args.no_latch
     if do_latch and not args.yes:
         total = (args.latch_fires + (0 if args.no_force else 1)
+                 + (2 if args.test_combos else 0)
                  + (1 if args.test_1021 else 0)) * args.loops
         try:
             ans = input(f"\n  Phase 5 will FIRE THE SOLENOID ~{total} time(s). Continue? [y/N] ")
@@ -563,16 +692,20 @@ def main():
             phase_read(client, unit, loop, writer, stats)
             phase_write(client, unit, loop, writer, stats)
             if not args.no_led:
+                phase_preset(client, unit, loop, writer, stats)
+                phase_display(client, unit, loop, writer, stats)
                 phase_led(client, unit, loop, writer, stats)
             if do_latch:
                 phase_latch(client, unit, loop, writer, stats, args.latch_fires,
-                            args.test_1021, test_force=not args.no_force)
+                            args.test_1021, test_force=not args.no_force,
+                            test_combos=args.test_combos)
     except KeyboardInterrupt:
         print("\n  interrupted - driving latch/LED off before exit...")
         try:
             write_coil(client, 1019, 0, unit)
             write_coil(client, 1020, 0, unit)
             write_coil(client, 1001, 0, unit)
+            write_coil(client, 1010, 0, unit)
         except Exception:
             pass
     finally:

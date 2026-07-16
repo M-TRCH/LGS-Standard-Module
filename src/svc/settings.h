@@ -8,12 +8,13 @@
  *
  *  The blob is versioned (magic + schema version + CRC16). Loading follows
  *  a strict order:
- *    1. valid blob on the AT24            -> use it
- *    2. no/foreign magic                  -> one-time import from the legacy
- *       MCU-flash EEPROM layout (keeps the fielded Modbus ID), then save
- *    3. valid magic but bad CRC (torn)    -> defaults, salvaging a plausible
- *       identifier; never falls through to the legacy importer
- *    4. AT24 absent                       -> defaults in RAM, nothing persists
+ *    1. valid v2 blob on the AT24         -> use it
+ *    2. valid v1 blob                     -> one-time in-place migration
+ *       (v1 fields become preset 1; presets 2-8 = factory palette)
+ *    3. no/foreign magic                  -> format with factory defaults
+ *    4. valid magic but bad CRC (torn)    -> defaults, salvaging a plausible
+ *       identifier
+ *    5. AT24 absent                       -> defaults in RAM, nothing persists
  *       (settingsStorageOk() returns false)
  */
 

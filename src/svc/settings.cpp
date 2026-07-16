@@ -1,5 +1,4 @@
 #include "svc/settings.h"
-#include <EEPROM.h>
 #include "config.h"
 #include "drivers/eeprom_at24.h"
 
@@ -89,78 +88,16 @@ bool writeHeader()
     return at24Write(SETTINGS_AT24_ADDR, (const uint8_t *)&blob, BLOB_HEADER_SIZE);
 }
 
-// ---------------------------------------------------------------------------
-// Legacy import: EepromConfig_t layout in the MCU flash-emulated EEPROM,
-// as written by firmware builds before the AT24 migration. Kept isolated
-// so it can be deleted once no R5.0 board with old data remains.
-// ---------------------------------------------------------------------------
-
-struct LegacyEepromConfig
-{
-    bool isFirstBootExceptID;
-    bool isFirstBoot;
-    uint16_t deviceType;
-    uint16_t fwVersion;
-    uint16_t hwVersion;
-    uint16_t baudRate;
-    uint16_t identifier;
-    uint16_t led_brightness[8];
-    uint16_t led_r[8];
-    uint16_t led_g[8];
-    uint16_t led_b[8];
-    uint16_t maxOnTime[8];
-    uint16_t ledNumPerStrip;
-    uint16_t unlockDelayTime;
-};
-
 uint16_t clampU16(uint16_t value, uint16_t maxValue)
 {
     return (value > maxValue) ? maxValue : value;
 }
 
-// Try to carry a fielded configuration over from the MCU flash. Returns
-// false when the flash content is not a plausible legacy config (e.g. a
-// factory-fresh chip full of 0xFF).
-bool importLegacy(Settings &out)
-{
-    LegacyEepromConfig legacy;
-    EEPROM.get(0, legacy);
-
-    if (legacy.identifier < 1 || legacy.identifier > 247)
-    {
-        return false;
-    }
-    if (legacy.led_brightness[0] > 100)
-    {
-        return false;
-    }
-
-    out = kDefaults;
-    out.identifier    = legacy.identifier;
-    out.baudRate      = settingsBaudAllowed(legacy.baudRate) ? legacy.baudRate : DEFAULT_BAUD_RATE;
-    out.unlockDelayMs = clampU16(legacy.unlockDelayTime, UNLOCK_DELAY_MAX_MS);
-    // The legacy layout stores all 8 lights; carry every one over as a color
-    // preset (index 0's plausibility was already vetted above, the rest are
-    // clamped into range).
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        out.presets[i].brightness = clampU16(legacy.led_brightness[i], 100);
-        out.presets[i].r          = clampU16(legacy.led_r[i], 255);
-        out.presets[i].g          = clampU16(legacy.led_g[i], 255);
-        out.presets[i].b          = clampU16(legacy.led_b[i], 255);
-        out.presets[i].maxOnTimeS = legacy.maxOnTime[i];
-    }
-    return true;
-}
-
-// Invalidate the MCU-flash copy after a successful migration, so a later
-// AT24 fault can never resurrect stale pre-migration config through the
-// importer (the identifier 0 fails importLegacy's plausibility check).
-void tombstoneLegacy()
-{
-    uint16_t invalidId = 0;
-    EEPROM.put(offsetof(LegacyEepromConfig, identifier), invalidId);
-}
+// NOTE: the pre-AT24 legacy importer (MCU-flash EEPROM emulation) was removed
+// for OTA: the emulation lived in the LAST flash page (0x0801F800), which is
+// now part of the OTA staging area — its tombstone write would corrupt a
+// staged image, and staged image bytes could in turn fool the importer's
+// plausibility check. Every fielded R5.0 board already carries an AT24 blob.
 
 } // namespace
 
@@ -270,19 +207,12 @@ void settingsInit()
     }
     else
     {
-        // No valid magic: first boot on this AT24. Import a fielded config
-        // from the MCU flash if one is there, otherwise start from defaults.
-        // Payload goes first, the header (magic) last; the legacy copy is
-        // tombstoned only after the new blob is fully committed.
-        Settings imported;
-        bool didImport = importLegacy(imported);
-        if (didImport)
+        // No valid magic: first boot on this AT24 — format with defaults.
+        // Payload goes first, the header (magic) last, so a torn format
+        // leaves a blank-looking chip rather than a valid-looking blob.
+        if (writePayload(active))
         {
-            active = imported;
-        }
-        if (writePayload(active) && writeHeader() && didImport)
-        {
-            tombstoneLegacy();
+            writeHeader();
         }
     }
 

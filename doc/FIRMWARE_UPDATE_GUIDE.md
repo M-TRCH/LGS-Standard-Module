@@ -1,149 +1,159 @@
-# การอัพเดท Firmware
+# คู่มืออัพเดท Firmware — LGS Standard Module
 
-ไฟล์นี้อธิบายขั้นตอนการอัพเดท firmware ลงบอร์ด STM32F103 โดยใช้ STM32Cube Programmer แบ่งเป็น 3 ส่วน
+**บอร์ด R5.0 (STM32G070CBT6) / firmware ≥ v3.1.0** — บอร์ดรุ่นเก่า (R4.x / STM32F103) ดู[ภาคผนวก](#ภาคผนวก-บอร์ด-r4x-stm32f103)
+
+## ภาพรวม
+
+R5.0 มีช่องทางอัพเดท 2 แบบ:
+
+| ช่องทาง | ใช้เมื่อ | ต้องแกะตู้/ต่อสาย SWD |
+|---|---|---|
+| **OTA ผ่าน RS485** (ส่วนที่ 2) | งานปกติทุกครั้ง — อัพเดตทุกบอร์ดบนบัสพร้อมกันผ่านสายสื่อสารเดิม | ❌ ไม่ต้อง |
+| **ST-Link** (ส่วนที่ 1, 3) | ติดตั้งครั้งแรก / กู้คืนบอร์ดที่ boot ไม่ขึ้น | ✅ ต้อง |
+
+ผัง flash ของ R5.0 (รายละเอียด: `include/flash_layout.h`, `ARCHITECTURE.md`):
+
+```
+0x08000000  bootloader   4KB   ติดตั้งครั้งเดียว แทบไม่ต้องแตะอีก
+0x08001000  application 62KB   ← ตัวที่ OTA อัพเดต (เพดาน image 61,440 bytes)
+0x08010800  staging     62KB   พื้นที่รับ image ใหม่ระหว่าง OTA
+```
+
+ค่า config (Modbus ID, สี preset, ฯลฯ) อยู่บน EEPROM ภายนอก (AT24) — **รอดทุกกรณี** ไม่ว่าอัพเดตทางไหน
 
 ---
 
-## ส่วนที่ 1: อัพโหลด Firmware ครั้งแรก (Initial Programming)
+## ส่วนที่ 1: ติดตั้งครั้งแรก (บอร์ดใหม่ / บอร์ดที่มาจาก firmware ≤ v3.0.0)
 
-เป็นการอัพโหลดครั้งแรกหลังจากผลิตบอร์ด ต้องล้างหน่วยความจำและตรวจสอบก่อน
+ทำ**ครั้งเดียวต่อบอร์ด**ผ่าน ST-Link — ติดตั้ง bootloader + application:
 
-### 1.1 เตรียมไฟล์ Firmware
+```powershell
+# 1. bootloader (env LGS_BOOT)
+& "$env:USERPROFILE\.platformio\penv\Scripts\platformio.exe" run -e LGS_BOOT -t upload
 
-1. หาไฟล์ firmware (.bin) ที่ต้องการอัพโหลด ชื่อไฟล์ตัวอย่าง:
-   ```
-   firmware_stm32f103_v2.0.2_2025-12-17.bin
-   firmware_stm32f103_v2.0.1_2025-11-27.bin
-   firmware_stm32f103_v1.0.0_2025-08-28.bin
-   ```
+# 2. application (env หลัก, ลิงก์ที่ offset 0x1000 อยู่แล้ว)
+& "$env:USERPROFILE\.platformio\penv\Scripts\platformio.exe" run -t upload
+```
 
-2. ตรวจสอบว่าไฟล์มี extension `.bin` และจดบันทึก **Version** และ **Date** สำหรับติดตามรุ่น
+ตรวจรับงาน: ไฟ RUN LED กะพริบ + อ่าน Modbus reg 1 ได้เวอร์ชันที่คาด (เช่นด้วย
+`tools/test_modbus_rtu.py -p COMx --id <id>`) — จากนั้นการอัพเดตทุกครั้งใช้ OTA ได้เลย
 
-### 1.2 เปิด STM32Cube Programmer และ Browse ไฟล์
-
-1. เปิด **STM32Cube Programmer**
-2. ไปที่เมนู **Erasing & Programming**
-3. คลิกปุ่ม **Browse** เพื่อเลือกไฟล์ firmware
-4. เลือกไฟล์ `.bin` ที่เตรียมไว้ในขั้นที่ 1.1
-5. ตรวจสอบ **Start Address** ว่าแสดง `0x08000000` (ถ้าไม่ถูกต้องให้แก้ไข)
-
-### 1.3 ตั้งค่า Options ในเมนู **Download**
-
-ให้ **Check (เปิด)** ตัวเลือกต่อไปนี้:
-
-| Option | คำอธิบาย |
-|--------|---------|
-| ✓ **Verify program** | ตรวจสอบความถูกต้องของข้อมูลหลังอัพโหลด |
-| ✓ **Full Flash memory checksum** | ตรวจสอบ checksum ของไฟล์ทั้งหมด |
-| ✓ **Run after program** | ให้ MCU รันทันทีหลังอัพโหลดเสร็จ |
-
-> **Start Address**: ตรวจสอบว่าตั้งค่า `0x08000000` ถ้าไม่ถูกต้องให้กรอกเอง
-
-### 1.4 ไปที่เมนู Automatic Mode
-ให้ **Check (เปิด)** ตัวเลือกต่อไปนี้:
-
-| Option | คำอธิบาย |
-|--------|---------|
-| ✓ **Full chip erase** | ล้างหน่วยความจำทั้งชิป (ลบโปรแกรมเก่า) |
-| ✓ **Download file** | อัพโหลดไฟล์ firmware ใหม่ |
-
-### 1.5 คลิก "Start Auto Download"
-
-1. คลิกปุ่ม **"Start automatic mode"** 
-2. รอให้ STM32Cube Programmer แสดง progress bar
-
-### 1.6 เสียบสายเชื่อมต่อ รีเซต และตรวจสอบ
-
-1. **เสียบสายเชื่อมต่อ** ระหว่างบอร์ดกับคอมพิวเตอร์ (ST-Link)
-2. รอจนกว่า STM32Cube Programmer แสดง **100% Complete**
-3. หลังจากสำเร็จ ให้คลิกปุ่ม **Reset** (ปุ่มรีเซตบนบอร์ด)
-4. รอจนกว่าไฟ **RUN LED** เริ่มกระพริบ 
-
-> **หมายเหตุ**: หากอัพโหลดสำเร็จ MCU จะเข้าโหมดทำงาน (RUN mode) โดยอัตโนมัติ
+> บอร์ดที่เคยรัน v3.0.0 (app ที่ 0x08000000): ขั้นตอนเดียวกันนี้จะย้าย app ไป slot ใหม่ให้เอง
+> ค่า config บน AT24 ไม่หาย
 
 ---
 
-## ส่วนที่ 2: อัพโหลด Firmware ครั้งถัดไป (Subsequent Updates)
+## ส่วนที่ 2: อัพเดตผ่าน OTA (งานปกติ)
 
-เมื่ออัพโหลดครั้งแรกสำเร็จแล้ว การอัพโหลดครั้งต่อไปจะง่ายขึ้น
+### 2.1 เตรียม image
 
-### 2.1 เตรียมไฟล์ Firmware เวอร์ชันใหม่
+1. แก้โค้ดเสร็จแล้ว **bump `FW_VERSION`** ใน `include/version.h` (รูปแบบ `ddmmy`
+   เช่น `16076` = 16/07/2026) — ใช้ยืนยันหลังอัพเดตว่าเปลี่ยนจริง
+2. Build:
+   ```powershell
+   & "$env:USERPROFILE\.platformio\penv\Scripts\platformio.exe" run
+   ```
+   ได้ไฟล์ `.pio/build/LGS_STM32G070CBT6/firmware.bin`
 
-ทำตามเหมือน [ส่วนที่ 1.1](#11-เตรียมไฟล์-firmware)
+> ถ้า image เกินเพดาน 61,440 bytes จะ**พังตั้งแต่ตอน build** (ตั้งใจ — กันส่งของที่ใส่
+> staging ไม่ลง) ต้องลดขนาดโค้ดก่อน
 
-### 2.2 Browse ไฟล์ใน Automatic Mode (เหมือนขั้นที่ 1.2)
+⚠️ **ทดสอบ image บนบอร์ดโต๊ะก่อนยิงเข้าไซต์เสมอ** — image ที่ CRC ผ่านแต่โค้ดบั๊กจน
+boot ไม่ขึ้น ไม่มี rollback อัตโนมัติ ต้องกู้ด้วย ST-Link
 
-ทำตามเหมือน [ส่วนที่ 1.2](#12-เปิด-stm32cube-programmer-และ-browse-ไฟล์) แต่ข้ามขั้นที่ 1.3 และ 1.4
+### 2.2 ยิงอัพเดต
 
-### 2.3 ตั้งค่า Automatic Mode (เฉพาะ Download)
+```powershell
+& "$env:USERPROFILE\miniconda3\python.exe" tools\ota_sender.py -p COM30 --ids 21 -f .pio\build\LGS_STM32G070CBT6\firmware.bin
+```
 
-1. ไปที่เมนู **Automatic Mode**
-2. ให้ **Check (เปิด)** เฉพาะตัวเลือก:
+หลายบอร์ด: `--ids 21,22,23` — ข้อมูลส่งเป็น **broadcast ทุกตัวรับพร้อมกัน**
+(30 ตัวใช้เวลาเท่า 1 ตัว) ใช้เวลา ~80 วินาที ที่ 9600 baud (~20 วิ ที่ 57600)
 
-| Option | สถานะ |
-|--------|-------|
-| ✓ **Download file** | เปิด (อัพโหลดไฟล์ใหม่) |
+สคริปต์ทำครบทุกขั้นและรายงานผลรายตัว:
 
-> **ความแตกต่างจากครั้งแรก**: ไม่เปิด "Full chip erase" เพื่อเก็บ EEPROM ที่มีการตั้งค่าไว้
+```
+[1/8] probe      เช็คอุปกรณ์ + จดเวอร์ชันเดิม
+[2/8] metadata   ประกาศขนาด + CRC32
+[3/8] enter      coil 505 — บอร์ดลบ staging, จอ OLED ขึ้น 0%
+[4/8] stream     ส่ง chunk 128B (จอวิ่ง 0→99)
+[5/8] repair     อ่าน bitmap รายตัว → ยิงซ่อมเฉพาะ chunk ที่หาย
+[6/8] finalize   coil 506 — บอร์ดตรวจ CRC32 ทั้ง image เอง
+[7/8] apply      coil 507 — รีบูต ให้ bootloader คัดลอกลง app slot (~4 วิ)
+[8/8] confirm    "FW 13076 -> 16076 [UPDATED]"
+```
 
-### 2.4 คลิก "Start Auto Download"
+### 2.3 Options
 
-1. ตรวจสอบการตั้งค่า (ขั้นที่ 2.2 - 2.3)
-2. คลิก **"Start automatic mode"**
+| Flag | ใช้ทำอะไร |
+|---|---|
+| `-y` | ข้าม confirm |
+| `-b 57600` | บัสที่ตั้ง baud สูง (ตั้งล่วงหน้าด้วย reg 3 + coil 503) |
+| `--status` | อ่านสถานะ OTA รายตัว (idle / receiving / verified / failed + สาเหตุ) |
+| `--abort` | ยกเลิก session ทั้งบัส (broadcast coil 508) |
+| `--broadcast-apply` | สั่ง apply ทีเดียวทั้งบัส (ดีฟอลต์ = unicast ทีละตัวเฉพาะที่ verified) |
+| `--gap`, `--repair-rounds` | จูนจังหวะส่ง / จำนวนรอบซ่อม |
 
-### 2.5 เสียบสายเชื่อมต่อและรอสำเร็จ
-ทำตามเหมือน [ส่วนที่ 1.6](#16-เสียบสายเชื่อมต่อ-รีเซต-และตรวจสอบ)
+### 2.4 เมื่อมีปัญหา — ออกแบบให้พังแล้วปลอดภัยเสมอ
 
-> **หมายเหตุ**: การอัพโหลดครั้งต่อไปจะเร็วกว่าครั้งแรก เนื่องจากไม่ต้องลบข้อมูลทั้งชิป
+| เหตุการณ์ | ผลลัพธ์ | ต้องทำอะไร |
+|---|---|---|
+| สัญญาณรบกวน / chunk หาย | repair round ยิงซ่อมอัตโนมัติ | ไม่ต้องทำอะไร |
+| สายหลุด / ปิดโปรแกรมกลางทาง | บอร์ด timeout 30 วิ → กลับสู่ปกติ, app เดิมวิ่งต่อ | ยิงใหม่ตั้งแต่ต้น |
+| ไฟดับระหว่างส่ง | staging เสีย, app เดิมไม่ถูกแตะ | ยิงใหม่ตั้งแต่ต้น |
+| ไฟดับระหว่าง bootloader คัดลอก | header ยัง valid → เปิดไฟแล้ว**คัดลอกซ้ำเอง** | ไม่ต้องทำอะไร |
+| image เสีย / CRC ไม่ตรง | finalize ไม่ผ่าน → ไม่ถูก apply | ตรวจไฟล์แล้วยิงใหม่ |
+| บางตัว `failed` ในขั้น verify | ตัวนั้นไม่ถูก apply, ตัวอื่นอัพเดตปกติ | `--status` ดูสาเหตุ แล้วยิงซ้ำเฉพาะตัวนั้น |
+| app ใหม่ boot ไม่ขึ้น (บั๊กในโค้ด) | บอร์ดเงียบ | กู้ด้วย ST-Link (ส่วนที่ 3) |
+
+หลังอัพเดตจอ OLED ค้างเลข "99" (progress สุดท้าย) — ดับด้วยการเขียน coil 1010 = 0
+หรือปล่อยไว้จน power cycle ถัดไป
 
 ---
 
-## ส่วนที่ 3: เตรียมไฟล์ .bin จาก VS Code
+## ส่วนที่ 3: กู้คืนด้วย ST-Link / STM32CubeProgrammer
 
-ส่วนนี้อธิบายวิธีการ Build และ Extract ไฟล์ firmware (.bin) จาก VS Code เพื่อนำไปอัพโหลด
+ใช้เมื่อบอร์ด boot ไม่ขึ้นหรือคุยผ่านบัสไม่ได้แล้วเท่านั้น
 
-### 3.1 Build และ Upload ลองบอร์ดทดลองก่อน
+**ทาง PlatformIO (แนะนำ):** ทำเหมือน[ส่วนที่ 1](#ส่วนที่-1-ติดตั้งครั้งแรก-บอร์ดใหม่--บอร์ดที่มาจาก-firmware--v300)
+— อัพโหลด app อย่างเดียว (`run -t upload`) พอ ถ้า bootloader ยังอยู่ (ปกติอยู่เสมอ
+เพราะไม่มีอะไรเขียนทับ slot นั้น)
 
-1. เปิด **VS Code** พร้อมโปรเจกต์ PlatformIO
-2. ไปที่ **PlatformIO > Run Other tasks** หรือคลิก `Build` 
-3. เลือก **Build** เพื่อ compile code
-   ```
-   pio run
-   ```
-   หรือใช้ **Upload** เพื่อ build และอัพโหลดทันที
-   ```
-   pio run -t upload
-   ```
+**ทาง STM32CubeProgrammer (ใช้ไฟล์ .bin):**
 
-4. รอให้ Build สำเร็จ และตรวจสอบ Console ว่าไม่มี Error
+| ไฟล์ | Start Address |
+|---|---|
+| `firmware.bin` ของ app (จาก `.pio/build/LGS_STM32G070CBT6/`) | **`0x08001000`** ⚠️ ไม่ใช่ 0x08000000 |
+| `firmware.bin` ของ bootloader (จาก `.pio/build/LGS_BOOT/`) | `0x08000000` |
 
-### 3.2 ตัวอย่างผลลัพธ์
+เปิด **Verify program** + **Run after program** ตามปกติ
 
-หลังจาก Build สำเร็จ ไฟล์ firmware จะอยู่ที่:
-
-```
-.pio/build/generic/firmware.bin
-```
-
-หรือในบางกรณี:
-
-```
-build/generic/firmware.bin
-```
-
-### 3.3 คัดลอกไฟล์ .bin
-
-1. นำไฟล์ `firmware.bin` ไปวางในโฟลเดอร์ที่จัดเก็บ firmware ต่างๆ เช่น:
-   ```
-   assets/firmware_stm32f103_v[VERSION]_[DATE].bin
-   ```
-
-2. ตั้งชื่อไฟล์ให้ชัดเจน ตัวอย่าง:
-   ```
-   firmware_stm32f103_v2.0.2_2025-12-17.bin
-   ```
-
-3. บันทึก git history หรือ version control เพื่อติดตามเวอร์ชัน
+> ⚠️ **อย่าใช้ Full chip erase** ถ้าไม่จำเป็น — มันลบ bootloader ทิ้งด้วย (ต้องลงใหม่ทั้งคู่)
+> ค่า config ไม่หายอยู่แล้วเพราะอยู่บน AT24 ภายนอก ไม่ใช่ flash ของ MCU
 
 ---
 
+## ส่วนที่ 4: การจัดเก็บไฟล์ release
+
+1. Build แล้วคัดลอก `.pio/build/LGS_STM32G070CBT6/firmware.bin` ไปเก็บใน `assets/`
+   ตั้งชื่อตามแบบแผน:
+   ```
+   firmware_stm32g070_v3.1.0_fw16076_2026-07-16.bin
+   ```
+2. บันทึกรายละเอียดรุ่นใน `FIRMWARE_VERSION_NOTE.md` (เวอร์ชัน, วันที่, การเปลี่ยนแปลง,
+   breaking changes สำหรับ backend)
+3. ไฟล์ release ที่เก็บไว้ใช้ยิง OTA ได้ตรงๆ: `ota_sender.py -f assets/firmware_stm32g070_...bin`
+
+---
+
+## ภาคผนวก: บอร์ด R4.x (STM32F103)
+
+บอร์ดรุ่นเก่าไม่ได้ build จาก source tree นี้ — ใช้ไฟล์สำเร็จใน `assets/firmware_stm32f103_*.bin`
+อัพโหลดด้วย STM32CubeProgrammer:
+
+1. **Erasing & Programming** → Browse เลือกไฟล์ `.bin` → Start Address `0x08000000`
+2. เปิด **Verify program**, **Full Flash memory checksum**, **Run after program**
+3. ครั้งแรกหลังผลิตบอร์ด: เปิด **Full chip erase** ใน Automatic Mode ด้วย;
+   ครั้งถัดไป**ไม่ต้องเปิด** (เก็บค่า EEPROM ที่ตั้งไว้ — R4.x เก็บ config ใน flash ของ MCU)
+4. **Start automatic mode** → เสียบ ST-Link → รอ 100% → กดปุ่ม Reset บนบอร์ด →
+   ไฟ RUN LED กะพริบ = สำเร็จ

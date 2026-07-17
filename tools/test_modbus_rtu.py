@@ -133,6 +133,7 @@ COILS = [
     (502,  "Apply Reset (all data)",      True),
     (503,  "Write to EEPROM (+reboot)",   True),
     (504,  "Software Reset",              True),
+    (511,  "All Off (ring + display)",    False),
     (1010, "Display Enable",              False),
     (1019, "Latch Force Trigger",         False),  # gated separately (physical)
     (1020, "Latch Trigger (Safety)",      False),  # gated separately (physical)
@@ -418,6 +419,88 @@ def _check(cond, label, writer, loop, phase, fc, addr, name, raw, expected, stat
     stats.add(result)
 
 
+def phase_validate(client, unit, loop, writer, stats):
+    """Write-range guards: bad values must be rejected/clamped ON THE WIRE."""
+    banner("PHASE 3.5 - VALIDATION (range guards; includes one persist+reboot)")
+
+    # -- reg 80: clamp+reflect immediately (watch-based)
+    orig80 = _read_reg_val(client, 80, unit)
+    write_reg(client, 80, 9000, unit); time.sleep(0.1)
+    rb = _read_reg_val(client, 80, unit)
+    _check(rb == 8000, f"reg 80 = 9000 clamps to 8000 (readback {rb})",
+           writer, loop, "VALIDATE", 3, 80, "Unlock Delay", rb, 8000, stats)
+    write_reg(client, 80, orig80 if orig80 is not None else 0, unit); time.sleep(INTER_TXN_S)
+
+    # -- reg 190: clamp + fan-out the clamped value (not silently ignored)
+    origb = {n: _read_reg_val(client, 100 + 10 * n, unit) for n in range(1, 9)}
+    write_reg(client, 190, 150, unit); time.sleep(0.1)
+    rb190 = _read_reg_val(client, 190, unit)
+    rb110 = _read_reg_val(client, 110, unit)
+    _check(rb190 == 100 and rb110 == 100,
+           f"reg 190 = 150 clamps to 100 + fans out (190={rb190}, 110={rb110})",
+           writer, loop, "VALIDATE", 3, 190, "Global Brightness", rb190, 100, stats)
+    for n in range(1, 9):
+        if origb[n] is not None:
+            write_reg(client, 100 + 10 * n, origb[n], unit); time.sleep(INTER_TXN_S)
+
+    # -- coil 500 alone: must self-clear, must NOT reset or factory-reset
+    write_reg(client, 60, 42, unit); time.sleep(INTER_TXN_S)  # volatile reboot canary
+    write_coil(client, 500, 1, unit); time.sleep(0.5)
+    _ok, c500, _dt, _n = read_coil(client, 500, unit)
+    canary = _read_reg_val(client, 60, unit)
+    _check(c500 == 0, f"coil 500 without 501/502 self-clears (readback {c500})",
+           writer, loop, "VALIDATE", 1, 500, "Factory Reset (arm)", c500, 0, stats)
+    _check(canary == 42, f"...and the device did not reset (reg 60 canary {canary})",
+           writer, loop, "VALIDATE", 3, 60, "Display Number", canary, 42, stats)
+    write_reg(client, 60, 0, unit); time.sleep(INTER_TXN_S)
+
+    # -- coil 511 All Off: one command from any state to everything-off
+    write_coil(client, 1003, 1, unit); time.sleep(INTER_TXN_S)
+    write_coil(client, 1010, 1, unit); time.sleep(INTER_TXN_S)
+    write_coil(client, 511, 1, unit); time.sleep(0.3)
+    _ok, c1003, _dt, _n = read_coil(client, 1003, unit)
+    _ok, c1010, _dt, _n = read_coil(client, 1010, unit)
+    _check(c1003 == 0 and c1010 == 0,
+           f"coil 511 All Off cleared ring+display (1003={c1003}, 1010={c1010})",
+           writer, loop, "VALIDATE", 1, 511, "All Off", c1003, 0, stats)
+
+    # -- persist-path validation (reg 3 garbage, reg 4=246, preset clamp):
+    #    needs coil 503 = persist + REBOOT. Two reboots total (test + restore).
+    orig3 = _read_reg_val(client, 3, unit)
+    orig4 = _read_reg_val(client, 4, unit)
+    write_reg(client, 3, 12345, unit); time.sleep(INTER_TXN_S)
+    write_reg(client, 4, 246, unit); time.sleep(INTER_TXN_S)
+    write_reg(client, 120, 999, unit); time.sleep(INTER_TXN_S)   # preset 2 brightness
+    print("  persisting via coil 503 (device reboots ~3s)...")
+    try:
+        client.write_coil(503, True, device_id=unit)
+    except Exception:
+        pass  # device resets before answering
+    time.sleep(4.0)
+    rb3 = _read_reg_val(client, 3, unit)
+    rb4 = _read_reg_val(client, 4, unit)
+    rb120 = _read_reg_val(client, 120, unit)
+    _check(rb3 == orig3, f"reg 3 = 12345 rejected across persist (readback {rb3})",
+           writer, loop, "VALIDATE", 3, 3, "Baud Rate", rb3, orig3, stats)
+    _check(rb4 == orig4, f"reg 4 = 246 (SET_ID reserved) rejected (readback {rb4})",
+           writer, loop, "VALIDATE", 3, 4, "Slave ID", rb4, orig4, stats)
+    _check(rb120 == 100, f"preset brightness 999 clamped to 100 at persist (readback {rb120})",
+           writer, loop, "VALIDATE", 3, 120, "Preset 2 Brightness", rb120, 100, stats)
+    # restore preset 2 brightness and persist the clean value back
+    write_reg(client, 120, origb[2] if origb[2] is not None else 80, unit)
+    time.sleep(INTER_TXN_S)
+    print("  restoring + persisting via coil 503 (device reboots ~3s)...")
+    try:
+        client.write_coil(503, True, device_id=unit)
+    except Exception:
+        pass
+    time.sleep(4.0)
+    rb120 = _read_reg_val(client, 120, unit)
+    _check(rb120 == (origb[2] if origb[2] is not None else 80),
+           f"preset 2 brightness restored (readback {rb120})",
+           writer, loop, "VALIDATE", 3, 120, "Preset 2 Brightness", rb120, origb[2], stats)
+
+
 def phase_preset(client, unit, loop, writer, stats):
     banner("PHASE 4 - LED PRESETS (radio switching; ring changes color)")
 
@@ -598,13 +681,21 @@ def phase_latch(client, unit, loop, writer, stats, fires, test_1021, test_force=
         time.sleep(0.3)
         _ok, d, _dt, _n = read_coil(client, 1010, unit)
         _ok, e, _dt, _n = read_coil(client, 1001, unit)
+        _ok, m, _dt, _n = read_coil(client, 1011, unit)
         _check(d == 1, "display coil 1010 turned on by the 1031 combo",
                writer, loop, "LATCH", 1, 1010, "Display Enable", d, 1, stats)
         _check(e == 1, "enable coil 1001 synced after the 1031 request resolved",
                writer, loop, "LATCH", 1, 1001, "Enable Preset 1", e, 1, stats)
+        _check(m == 1, "state combo 1011 mirrored by the 1031 command",
+               writer, loop, "LATCH", 1, 1011, "Preset 1 + Display", m, 1, stats)
         time.sleep(1.0)
-        write_coil(client, 1001, 0, unit); time.sleep(INTER_TXN_S)
-        write_coil(client, 1010, 0, unit)   # blank the display again
+        # A9: ONE write closes everything the combo opened.
+        write_coil(client, 1011, 0, unit); time.sleep(0.3)
+        _ok, e, _dt, _n = read_coil(client, 1001, unit)
+        _ok, d, _dt, _n = read_coil(client, 1010, unit)
+        _check(e == 0 and d == 0,
+               f"single 1011=0 shut ring AND display (1001={e}, 1010={d})",
+               writer, loop, "LATCH", 1, 1011, "Preset 1 + Display", e, 0, stats)
         if test_1021:
             print(f"  cooldown {LATCH_COOLDOWN_S:.1f} s (firmware min interval)...")
             time.sleep(LATCH_COOLDOWN_S)
@@ -638,6 +729,10 @@ def main():
     ap.add_argument("--no-latch", action="store_true", help="skip the physical latch phase entirely")
     ap.add_argument("--no-led", action="store_true",
                     help="skip the visible LED/preset/display phases")
+    ap.add_argument("--no-validate", action="store_true",
+                    help="skip the range-guard validation phase (it persists via "
+                         "coil 503 twice = two reboots; ONLY run against firmware "
+                         "with the validation guards, older builds would persist garbage)")
     ap.add_argument("-y", "--yes", action="store_true", help="skip the latch confirmation prompt")
     ap.add_argument("--csv", default=None, help="CSV log path (default: logs/rtu_sweep_<ts>.csv)")
     ap.add_argument("--timeout", type=float, default=1.0, help="RTU response timeout (s)")
@@ -695,6 +790,8 @@ def main():
                 banner(f"LOOP {loop}/{args.loops}")
             phase_read(client, unit, loop, writer, stats)
             phase_write(client, unit, loop, writer, stats)
+            if not args.no_validate:
+                phase_validate(client, unit, loop, writer, stats)
             if not args.no_led:
                 phase_preset(client, unit, loop, writer, stats)
                 phase_display(client, unit, loop, writer, stats)

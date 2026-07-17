@@ -85,6 +85,7 @@ constexpr uint16_t MB_COIL_OTA_ENTER                     = 505; // legacy OTA ad
 constexpr uint16_t MB_COIL_OTA_FINALIZE                  = 506; // verify staged image CRC32
 constexpr uint16_t MB_COIL_OTA_APPLY                     = 507; // commit header + reset into bootloader
 constexpr uint16_t MB_COIL_OTA_ABORT                     = 508;
+constexpr uint16_t MB_COIL_ALL_OFF                       = 511; // one command: ring + display off
 
 // --- Control group (coils) ---
 // Preset coil families (n = 1..8, all on the single physical ring):

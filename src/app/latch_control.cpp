@@ -74,6 +74,18 @@ void onLatchTriggerCommand(uint16_t addr, uint16_t value)
     }
 }
 
+// Unlock delay (reg 80): clamp bus writes above the control-table range and
+// reflect the clamped value immediately (same pattern as reg 60), so the
+// register never disagrees with the delay actually applied.
+void onUnlockDelayChange(uint16_t addr, uint16_t value)
+{
+    (void)addr;
+    if (value > UNLOCK_DELAY_MAX_MS)
+    {
+        mbRegWrite(MB_REG_UNLOCK_DELAY, UNLOCK_DELAY_MAX_MS);
+    }
+}
+
 // Force trigger coil (1019): ignores the sense pin entirely and always fires
 // a fixed full-width pulse at the solenoid spec max (LATCH_MAX_UNLOCK_TIME).
 // The 500ms hard cap (exit + TIM7 guard) and 2s cooldown still apply.
@@ -103,6 +115,7 @@ void latchControlInit()
 {
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_TRIGGER, onLatchTriggerCommand);
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_LATCH_FORCE_TRIGGER, onLatchForceTriggerCommand);
+    mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_UNLOCK_DELAY, onUnlockDelayChange);
 }
 
 bool latchRequestUnlock(uint16_t pulseMs, uint16_t coilToClear, uint16_t enableCoilToSync,

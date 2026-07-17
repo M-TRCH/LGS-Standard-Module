@@ -33,6 +33,12 @@ void onFactoryReset(uint16_t addr, uint16_t value)
         settingsFactoryReset(false);
         opsSystemReset();
     }
+
+    // No modifier armed: reject and clear, mirroring the latch commands.
+    // Leaving the coil set would re-fire this handler every poll AND turn a
+    // later 501/502 write into a surprise factory reset weeks after the
+    // half-formed command was written.
+    mbCoilWrite(MB_COIL_FACTORY_RESET, false);
 }
 
 // Software reset (Addr.504)

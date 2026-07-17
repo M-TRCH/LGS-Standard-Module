@@ -205,27 +205,48 @@ void mbRegistersToSettings(bool save)
 {
     Settings &s = settingsEdit();
     uint16_t previousId = s.identifier;
+    uint16_t previousBaud = s.baudRate;
 
     for (const PersistRow &row : kPersistRows)
     {
         settingsFieldAt(s, row.offset) = RTUServer.holdingRegisterRead(row.addr);
     }
+    // Preset fields clamp to their wire ranges (brightness 0-100, RGB 0-255)
+    // and the clamped value is reflected back, so the registers, the EEPROM
+    // and the color actually applied never disagree.
     for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
     {
         uint16_t *fields = presetFields(s, (uint8_t)(n - 1));
         for (uint8_t k = 0; k < LED_PRESET_FIELDS; k++)
         {
-            fields[k] = RTUServer.holdingRegisterRead(mbRegLedBase(n) + k);
+            uint16_t v = RTUServer.holdingRegisterRead(mbRegLedBase(n) + k);
+            uint16_t maxV = (k == 0) ? 100 : (k <= 3) ? 255 : 65535;
+            if (v > maxV)
+            {
+                v = maxV;
+                RTUServer.holdingRegisterWrite(mbRegLedBase(n) + k, v);
+            }
+            fields[k] = v;
         }
     }
 
     // Reject an out-of-range slave ID before it is persisted: a value >255
     // would otherwise alias mod-256 at the next boot and answer at another
-    // device's address. Keep the previous ID and reflect it back.
-    if (s.identifier < 1 || s.identifier > 247)
+    // device's address; 246 is reserved for SET_ID discovery. Keep the
+    // previous ID and reflect it back.
+    if (s.identifier < 1 || s.identifier > 247 || s.identifier == 246)
     {
         s.identifier = previousId;
         RTUServer.holdingRegisterWrite(MB_REG_IDENTIFIER, previousId);
+    }
+
+    // Reject a baud outside the whitelist the same way — persisting garbage
+    // would silently fall back to 9600 at the next boot while the register
+    // kept claiming the bogus value.
+    if (!settingsBaudAllowed(s.baudRate))
+    {
+        s.baudRate = previousBaud;
+        RTUServer.holdingRegisterWrite(MB_REG_BAUD_RATE, previousBaud);
     }
 
     if (save)

@@ -172,6 +172,10 @@ void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
     uint8_t n = (uint8_t)(addr - 1030);
     activatePreset(n);
     displayControlSetEnabled(true);
+    // Mirror the preset+display STATE coil right away (the display part is
+    // already active), so one write of 101N=0 later shuts both the ring and
+    // the display — symmetric with turning a 1021 command off via 1001=0.
+    mbCoilWrite(mbCoilLedDisplay(n), true);
 
     if (!latchRequestUnlock(LATCH_PULSE_MS, addr, mbCoilLedEnable(n)))
     {
@@ -180,18 +184,40 @@ void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
     }
 }
 
+// All Off (coil 511): one command back to the resting state from ANY coil
+// configuration — ring off, display blank, every preset mirror cleared.
+// Also the simple recovery when a master has lost track of the coil state.
+void onAllOffCommand(uint16_t addr, uint16_t value)
+{
+    (void)addr;
+    (void)value;
+    mbCoilWrite(MB_COIL_ALL_OFF, false);
+
+    deactivate(); // ring off + active preset's mirrors cleared
+    displayControlSetEnabled(false);
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        mbCoilWrite(mbCoilLedEnable(n), false);
+        mbCoilWrite(mbCoilLedDisplay(n), false);
+    }
+}
+
 // Global brightness (190): fan out to every preset's brightness register.
-// Persist-style semantics: no re-apply to already-lit pixels (the value
-// takes effect at the next enable edge), matching the original firmware.
+// Out-of-range writes clamp to 100 and the clamped value is reflected back
+// (a silently-ignored write would leave the register claiming a value that
+// was never applied). Persist-style semantics: no re-apply to already-lit
+// pixels (takes effect at the next enable edge), matching the original.
 void onGlobalBrightnessChange(uint16_t addr, uint16_t value)
 {
     (void)addr;
-    if (value <= 100)
+    if (value > 100)
     {
-        for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
-        {
-            mbRegWrite(mbRegLedBase(n) + 0, value);
-        }
+        value = 100;
+        mbRegWrite(MB_REG_GLOBAL_BRIGHTNESS, value);
+    }
+    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        mbRegWrite(mbRegLedBase(n) + 0, value);
     }
 }
 
@@ -227,6 +253,7 @@ void ledControlInit()
     }
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_BRIGHTNESS, onGlobalBrightnessChange);
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_MAX_ON_TIME, onGlobalMaxOnTimeChange);
+    mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_ALL_OFF, onAllOffCommand);
 }
 
 bool ledControlChannelOn()

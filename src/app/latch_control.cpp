@@ -233,7 +233,8 @@ void latchControlTick(uint32_t now)
     lastSenseSample = sample;
 
     // Time after unlocking (reg 40): 0 while locked, seconds since the
-    // latch was last seen locked otherwise.
+    // latch was last seen locked otherwise. Reg 41 is the same state as a
+    // direct boolean, so masters don't have to infer it from reg 40 == 0.
     if (lockedDebounced)
     {
         lastTimeLatchLocked = now;
@@ -243,4 +244,10 @@ void latchControlTick(uint32_t now)
     {
         mbRegWrite(MB_REG_TIME_AFTER_UNLOCK, (uint16_t)((now - lastTimeLatchLocked) / 1000));
     }
+    mbRegWrite(MB_REG_LATCH_LOCKED, lockedDebounced ? 1 : 0);
+}
+
+bool latchControlLocked()
+{
+    return lockedDebounced;
 }

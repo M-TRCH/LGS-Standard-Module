@@ -266,6 +266,11 @@ uint16_t ledControlActiveEnableCoil()
     return (activePreset != 0) ? mbCoilLedEnable(activePreset) : 0;
 }
 
+uint8_t ledControlActivePreset()
+{
+    return activePreset;
+}
+
 void ledControlTick(uint32_t now)
 {
     // Enforce the ACTIVE preset's max-on-time limit (0 = unlimited)

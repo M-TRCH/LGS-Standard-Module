@@ -65,4 +65,8 @@ bool latchBusyWith(uint16_t coil);
  *         flight) — gate for entering OTA mode. */
 bool latchControlFsmIdle();
 
+/*  @brief Debounced lock state (true = sense reads locked). Also published
+ *         at reg 41 / health bit 4. */
+bool latchControlLocked();
+
 #endif // APP_LATCH_CONTROL_H

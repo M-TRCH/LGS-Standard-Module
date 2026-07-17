@@ -30,4 +30,7 @@ bool ledControlChannelOn();
  *         combo's requested coil before syncing it on pulse completion. */
 uint16_t ledControlActiveEnableCoil();
 
+/*  @brief Active preset number (0 = ring off, 1-8). Published at reg 11. */
+uint8_t ledControlActivePreset();
+
 #endif // APP_LED_CONTROL_H

@@ -60,6 +60,11 @@
 // --- OTA over RS485 ---
 #define OTA_SESSION_TIMEOUT_MS      30000   // no bus activity this long -> session fails out
 
+// --- Diagnostics ---
+#define TEMP_SENTINEL               0x8000  // reg 20/21 value when a sensor is faulted (-327.68C)
+#define TEMP_FAIL_THRESHOLD         3       // consecutive read failures before the sentinel
+#define DIAG_PUBLISH_INTERVAL_MS    1000    // uptime/health refresh cadence
+
 // --- Watchdog ---
 // A single RTUServer.poll() can legitimately stall for hundreds of ms
 // (long response flush + libmodbus byte timeouts under bus noise), so the

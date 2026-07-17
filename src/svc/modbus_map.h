@@ -19,12 +19,22 @@ constexpr uint16_t MB_REG_DEVICE_TYPE       = 0;    // 10/20/30/40, compile-time
 constexpr uint16_t MB_REG_FW_VERSION        = 1;    // ddmmy, compile-time
 constexpr uint16_t MB_REG_HW_VERSION        = 2;    // mnp, compile-time (500 = R5.0)
 constexpr uint16_t MB_REG_BAUD_RATE         = 3;    // bps, whitelist, (F)
-constexpr uint16_t MB_REG_IDENTIFIER        = 4;    // slave ID 1-245, 246 special, (F)
+constexpr uint16_t MB_REG_IDENTIFIER        = 4;    // slave ID 1-245/247, 246 reserved, (F)
+
+// --- Diagnostics group (holding registers, read-only, R5.0-new) ---
+constexpr uint16_t MB_REG_UPTIME_HI         = 5;    // uptime seconds u32 (hi word)
+constexpr uint16_t MB_REG_UPTIME_LO         = 6;    //                    (lo word)
+constexpr uint16_t MB_REG_BOOT_COUNT        = 7;    // boots since factory/stat clear (AT24)
+constexpr uint16_t MB_REG_RESET_CAUSE       = 8;    // bit0 IWDG, 1 SW, 2 PWR, 3 PIN, 4 WWDG, 5 LPWR, 6 OBL
+constexpr uint16_t MB_REG_HEALTH            = 9;    // bit0 AT24, 1 OLED, 2 room sens, 3 board sens, 4 latch locked
+constexpr uint16_t MB_REG_FUNCTION_MODE     = 10;   // 0 RUN / 1 DEMO / 2 SET_ID / 3 FACTORY_RESET
+constexpr uint16_t MB_REG_ACTIVE_PRESET     = 11;   // 0 = ring off, 1-8 = active color preset
 
 // --- Sensor group (holding registers, read-only) ---
-constexpr uint16_t MB_REG_ROOM_TEMP         = 20;   // STS40-CD1B, deg C x100
-constexpr uint16_t MB_REG_BOARD_TEMP        = 21;   // STS40-AD1B, deg C x100
+constexpr uint16_t MB_REG_ROOM_TEMP         = 20;   // STS40-CD1B, deg C x100; 0x8000 = sensor fault
+constexpr uint16_t MB_REG_BOARD_TEMP        = 21;   // STS40-AD1B, deg C x100; 0x8000 = sensor fault
 constexpr uint16_t MB_REG_TIME_AFTER_UNLOCK = 40;   // seconds since last unlock
+constexpr uint16_t MB_REG_LATCH_LOCKED      = 41;   // 1 = latch reads locked (debounced), R5.0-new
 
 // --- Configuration group (holding registers) ---
 constexpr uint16_t MB_REG_SET_NUM_DISPLAY   = 60;   // R5.0 renders 0-99 (clamped); legacy range 0-9999
@@ -110,6 +120,10 @@ constexpr uint16_t MB_COIL_LED_1_LATCH      = 1021; // = mbCoilLedLatch(1)
 // Freeze the wire contract: these values are what deployed masters and the
 // control table agree on. Any edit here must be a deliberate map change.
 static_assert(MB_REG_IDENTIFIER == 4,            "wire contract");
+static_assert(MB_REG_UPTIME_HI == 5,             "wire contract");
+static_assert(MB_REG_ACTIVE_PRESET == 11,        "wire contract");
+static_assert(MB_REG_LATCH_LOCKED == 41,         "wire contract");
+static_assert(MB_COIL_ALL_OFF == 511,            "wire contract");
 static_assert(MB_REG_ROOM_TEMP == 20,            "wire contract");
 static_assert(MB_REG_BOARD_TEMP == 21,           "wire contract");
 static_assert(MB_REG_TIME_AFTER_UNLOCK == 40,    "wire contract");

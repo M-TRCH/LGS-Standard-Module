@@ -10,6 +10,7 @@
 #include "app/display_control.h"
 #include "app/servo_control.h"
 #include "app/ota_control.h"
+#include "app/diag_control.h"
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
 #include "drivers/led_ring.h"
@@ -90,6 +91,7 @@ void appInit()
     displayControlInit(functionMode == FUNC_SW_RUN && oledReady);
     servoControlInit();
     otaControlInit();
+    diagControlInit(oledReady, (uint8_t)functionMode);
     mbWatchSeedShadows();
 
     // Start the independent watchdog LAST — after the (up to 15s) blocking
@@ -114,6 +116,7 @@ void appRun()
     latchControlTick(now);  // pulse FSM + lock-state tracking + reg 40
     ledControlTick(now);    // max-on-time enforcement + statistics
     otaControlTick(now);    // OTA session inactivity timeout
+    diagControlTick(now);   // uptime/health publishing
 
     switch (functionMode)
     {
@@ -305,17 +308,21 @@ static void runNormalMode()
         int16_t centiC = 0; // degrees C x100, integer (no float)
         if (readBoardNext)
         {
-            if (tempReadBoardCenti(centiC))
+            bool ok = tempReadBoardCenti(centiC);
+            if (ok)
             {
                 mbRegWrite(MB_REG_BOARD_TEMP, (uint16_t)centiC);
             }
+            diagReportSensor(1, ok); // repeated failures -> 0x8000 sentinel
         }
         else
         {
-            if (tempReadRoomCenti(centiC))
+            bool ok = tempReadRoomCenti(centiC);
+            if (ok)
             {
                 mbRegWrite(MB_REG_ROOM_TEMP, (uint16_t)centiC);
             }
+            diagReportSensor(0, ok);
         }
         readBoardNext = !readBoardNext;
     }

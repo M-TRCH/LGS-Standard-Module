@@ -38,8 +38,20 @@ R5.0 มีช่องทางอัพเดท 2 แบบ:
 ตรวจรับงาน: ไฟ RUN LED กะพริบ + อ่าน Modbus reg 1 ได้เวอร์ชันที่คาด (เช่นด้วย
 `tools/test_modbus_rtu.py -p COMx --id <id>`) — จากนั้นการอัพเดตทุกครั้งใช้ OTA ได้เลย
 
-> บอร์ดที่เคยรัน v3.0.0 (app ที่ 0x08000000): ขั้นตอนเดียวกันนี้จะย้าย app ไป slot ใหม่ให้เอง
-> ค่า config บน AT24 ไม่หาย
+### ทางเลือก: STM32CubeProgrammer + factory image (ไฟล์เดียวจบ — เหมาะกับสายผลิต)
+
+ใช้ไฟล์รวม `assets/firmware_stm32g070_v3.0.0_factory_2026-07-17.bin`
+(= bootloader + padding + app ต่อกัน; flash ครั้งเดียวได้ทั้งคู่):
+
+1. เปิด **STM32CubeProgrammer** → เลือก **ST-LINK** → **Connect**
+2. เมนู **Erasing & Programming** → **Browse** เลือกไฟล์ `*_factory_*.bin`
+3. **Start Address = `0x08000000`**
+4. เปิด ✓ **Verify programming** และ ✓ **Run after programming**
+5. (บอร์ดใหม่จากไลน์ผลิต: เปิด **Full chip erase** ได้ — config อยู่บน AT24 ภายนอก ไม่โดนลบอยู่แล้ว)
+6. **Start Programming** → รอ 100% → ไฟ RUN LED กะพริบ = สำเร็จ
+
+หรือใช้ **Automatic Mode** (Full chip erase + Download + Run) กับไฟล์ factory นี้
+สำหรับผลิตทีละหลายบอร์ด — flow เดียวกับสมัย F103 ทุกประการ แค่เปลี่ยนไฟล์
 
 ---
 

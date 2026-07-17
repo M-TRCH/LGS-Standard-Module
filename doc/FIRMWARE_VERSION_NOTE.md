@@ -7,6 +7,7 @@
 > **build: FW 17076, Device Type 20 (NARCOTIC)** — ส่งขึ้นบอร์ดผ่าน OTA แล้ว
 > ไฟล์ release: `assets/firmware_stm32g070_v3.0.0_2026-07-17.bin` (57,884 B, CRC32 435D5D79)
 > bootloader: `assets/bootloader_stm32g070_v1.0_2026-07-17.bin` (932 B, ลงครั้งเดียวต่อบอร์ดที่ 0x08000000)
+> factory image (boot+app ไฟล์เดียว flash ที่ 0x08000000): `assets/firmware_stm32g070_v3.0.0_factory_2026-07-17.bin` (61,980 B, CRC32 B7FC6056)
 
 ### Compatibility
 - R5.0 (STM32G070CBT6) เท่านั้น — ใช้กับบอร์ด R4.x ไม่ได้

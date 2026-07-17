@@ -1,12 +1,24 @@
 # Firmware Version Note
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
-**ไฟล์:** firmware_stm32f103_*.bin
+**ไฟล์:** firmware_stm32f103_*.bin (R4.x) / firmware_stm32g070_*.bin (R5.0)
 
-## v3.1.0 / FW 16076–17076 (2026-07-16/17) — R5.0 เท่านั้น
+## v3.0.0 / FW 17076 (2026-07-17) — release แรกของบอร์ด R5.0
 
-> build ปัจจุบัน: **FW 17076, Device Type 20 (NARCOTIC)** — ส่งขึ้นบอร์ดผ่าน OTA แล้ว
-> ไฟล์ release: `assets/firmware_stm32g070_narcotic_v3.1.0_fw17076_2026-07-17.bin` (57,884 B, CRC32 435D5D79)
+> **build: FW 17076, Device Type 20 (NARCOTIC)** — ส่งขึ้นบอร์ดผ่าน OTA แล้ว
+> ไฟล์ release: `assets/firmware_stm32g070_v3.0.0_2026-07-17.bin` (57,884 B, CRC32 435D5D79)
 > bootloader: `assets/bootloader_stm32g070_v1.0_2026-07-17.bin` (932 B, ลงครั้งเดียวต่อบอร์ดที่ 0x08000000)
+
+### Compatibility
+- R5.0 (STM32G070CBT6) เท่านั้น — ใช้กับบอร์ด R4.x ไม่ได้
+
+### Architecture
+- Refactor ยกเครื่องทั้งโครงสร้าง: เลเยอร์ drivers/svc/app, ไม่มี global state ข้าม module,
+  ตาราง Modbus แบบ table-driven — ดู `ARCHITECTURE.md`
+- Runtime เป็น non-blocking ทั้งหมด: บัส Modbus ตอบสนองระหว่างปลดล็อกกลอนและหน้าต่าง factory reset
+- ค่า R/W(F) เก็บบน external EEPROM AT24C32D (I2C1, 0x50) พร้อม magic/version/CRC —
+  config รอดข้ามการ flash firmware เต็มชิป
+- ผัง flash: bootloader 4KB @0x08000000 + app 62KB @0x08001000 + staging 62KB (สำหรับ OTA)
+
 ### New Features
 - **OTA ผ่าน RS485 broadcast**: bootloader 4KB + app slot 0x08001000 + staging;
   ส่งด้วย `tools/ota_sender.py` ผ่าน Modbus broadcast FC16 (regs 282–389, coils 505–508);
@@ -24,43 +36,22 @@
 - **Validation แน่นขึ้น**: coil 500 เดี่ยวไม่ค้างเป็นกับดักอีก; baud/ID (รวมห้าม 246) ถูกปฏิเสธ
   ตอน persist พร้อมสะท้อนค่าเดิม; reg 80/190/preset configs clamp+สะท้อนค่าที่ใช้จริง;
   combo 1031-1038 mirror coil 1011-1018 → ปิดครบชุดด้วย 101N=0 คำสั่งเดียว
-
-### Breaking Changes (สำหรับ backend / การ deploy)
-- **บอร์ดเดิมต้อง flash ผ่าน ST-Link หนึ่งครั้ง** (bootloader + app ที่ offset ใหม่)
-  จากนั้นอัปเดตผ่าน OTA ได้ตลอด; app image ต้องไม่เกิน 61,440 bytes
-- ตัด legacy importer จาก MCU flash (พื้นที่นั้นเป็น staging แล้ว) — config อยู่บน AT24 เท่านั้น
-- Enable Light 2–8 (1002–1008) กลับมาใช้ได้ แต่ความหมายใหม่ = เลือก preset สีบนวงแหวนเดียว
-  (เปิดตัวใหม่เคลียร์ coil ตัวเก่าอัตโนมัติ); 190/194 fan-out เขียนทุก preset
-
----
-
-## v3.0.0 (2026-07-13) — R5.0 เท่านั้น
-### Compatibility
-- R5.0 (STM32G070CBT6) — ใช้กับบอร์ด R4.x ไม่ได้
-
-### Architecture
-- Refactor ยกเครื่องทั้งโครงสร้าง: เลเยอร์ drivers/svc/app, ไม่มี global state ข้าม module,
-  ตาราง Modbus แบบ table-driven — ดู `ARCHITECTURE.md`
-- Runtime เป็น non-blocking ทั้งหมด: บัส Modbus ตอบสนองระหว่างปลดล็อกกลอนและหน้าต่าง factory reset
-- ย้ายที่เก็บค่า R/W(F) จาก flash บน MCU → external EEPROM AT24C32D (I2C1, 0x50)
-  พร้อม magic/version/CRC — ค่า config รอดข้ามการ flash firmware เต็มชิป
-  (import ค่าเดิมจาก MCU flash ให้อัตโนมัติครั้งแรก)
-- ลดขนาด image: 71,016 → 61,404 bytes (เตรียม headroom สำหรับ OTA ผ่าน RS485 ในอนาคต)
-
-### New Features
 - เพิ่ม Board Temperature (Addr.21) จากเซนเซอร์ STS40-AD1B; Addr.20 เป็นอุณหภูมิห้องจาก STS40-CD1B
 - Baud Rate (Addr.3) มีผลจริง: whitelist 9600/19200/38400/57600, ค่าไม่ถูกต้อง fallback 9600,
   โหมด SET_ID/FACTORY RESET บังคับ 9600 เป็นช่องทางกู้คืน
 - Time after unlocking (Addr.40) รายงานค่าจริง (เดิมรายงาน 0 ตลอด)
-- จอง Display commands (Addr.60, coils 1010/1011) ไว้ในโค้ด (ยังไม่เรนเดอร์)
+- SET_ID ตั้ง ID ด้วยปุ่ม Function ได้ (แตะ +1, กดค้างบันทึก) ควบคู่การตั้งผ่าน Modbus ที่ ID 246
 
-### Breaking Changes (สำหรับ backend)
-- ชุดคำสั่งเหลือเฉพาะคอลัมน์ R5.0 ใน `LGS-Control-Table.md`:
-  ตัด Light 2-8 ทุกกลุ่ม (120-184, 220-281, 1002-1008, 1012-1018, 1022-1028) และ reg 81
+### Breaking Changes เทียบกับ v2.x (สำหรับ backend / การ deploy)
+- **การติดตั้งครั้งแรกต้อง flash ผ่าน ST-Link หนึ่งครั้ง** (bootloader + app ที่ offset 0x08001000)
+  จากนั้นอัปเดตผ่าน OTA ได้ตลอด; app image ต้องไม่เกิน 61,440 bytes
+- ชุดคำสั่งตามคอลัมน์ R5.0 ใน `LGS-Control-Table.md` — reg 81 เลิกใช้;
+  Light 2–8 (1002–1008 และ config 120–184) **ความหมายใหม่** = เลือก preset สีบนวงแหวนเดียว
+  แบบ radio (เปิดตัวใหม่เคลียร์ coil ตัวเก่าอัตโนมัติ); 190/194 fan-out เขียนทุก preset
 - Addr.1 (FW version) รายงานเวอร์ชันของ build จริง (เดิมค้างค่าใน EEPROM); Addr.2 = 500
 - Coil 1020/1021 อ่านค่า 1 ได้ระหว่าง pulse (เดิมบัสค้างจนจบ); คำขอระหว่าง cooldown ถูกเคลียร์ทันที
 - Factory reset เหลือ reboot เดียว (เดิม 2 ครั้ง)
-- Downgrade กลับ v2.x: firmware เก่าอ่านจาก MCU flash จะเห็นค่า ณ ก่อน migrate (ไม่เห็นค่าใน AT24)
+- Config อยู่บน AT24 เท่านั้น (ไม่มี import จาก MCU flash — พื้นที่นั้นเป็น OTA staging แล้ว)
 
 ---
 

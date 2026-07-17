@@ -1,6 +1,6 @@
 # คู่มืออัพเดท Firmware — LGS Standard Module
 
-**บอร์ด R5.0 (STM32G070CBT6) / firmware ≥ v3.1.0** — บอร์ดรุ่นเก่า (R4.x / STM32F103) ดู[ภาคผนวก](#ภาคผนวก-บอร์ด-r4x-stm32f103)
+**บอร์ด R5.0 (STM32G070CBT6) / firmware ≥ v3.0.0** — บอร์ดรุ่นเก่า (R4.x / STM32F103) ดู[ภาคผนวก](#ภาคผนวก-บอร์ด-r4x-stm32f103)
 
 ## ภาพรวม
 
@@ -138,7 +138,7 @@ boot ไม่ขึ้น ไม่มี rollback อัตโนมัติ 
 1. Build แล้วคัดลอก `.pio/build/LGS_STM32G070CBT6/firmware.bin` ไปเก็บใน `assets/`
    ตั้งชื่อตามแบบแผน:
    ```
-   firmware_stm32g070_v3.1.0_fw16076_2026-07-16.bin
+   firmware_stm32g070_v3.0.0_2026-07-17.bin
    ```
 2. บันทึกรายละเอียดรุ่นใน `FIRMWARE_VERSION_NOTE.md` (เวอร์ชัน, วันที่, การเปลี่ยนแปลง,
    breaking changes สำหรับ backend)

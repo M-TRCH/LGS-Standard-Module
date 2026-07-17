@@ -266,6 +266,55 @@ void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
     }
 }
 
+// --- Identify (coil 509) ---------------------------------------------------
+// Blink the ring white so the unit can be spotted in a wall of lockers.
+// Pure overlay: preset state, coils and statistics are untouched; when the
+// window ends the ring goes back to whatever the active preset says.
+
+bool identifyActive = false;
+uint32_t identifyStartMs = 0;
+
+void onIdentifyCommand(uint16_t addr, uint16_t value)
+{
+    (void)addr;
+    (void)value;
+    mbCoilWrite(MB_COIL_IDENTIFY, false);
+    identifyActive = true;
+    identifyStartMs = millis();
+}
+
+void identifyOverlayTick(uint32_t now)
+{
+    static bool phaseOn = false;
+    static uint32_t lastToggleMs = 0;
+
+    if (!identifyActive)
+    {
+        return;
+    }
+    if (now - identifyStartMs >= IDENTIFY_DURATION_MS)
+    {
+        identifyActive = false;
+        // Hand the ring back to the preset engine.
+        if (activePreset != 0)
+        {
+            applyPresetColor(activePreset);
+        }
+        else
+        {
+            ledSetAllPixels(0, ledColor(0, 0, 0));
+        }
+        return;
+    }
+    if (now - lastToggleMs >= IDENTIFY_BLINK_MS)
+    {
+        lastToggleMs = now;
+        phaseOn = !phaseOn;
+        uint8_t w = phaseOn ? IDENTIFY_WHITE_LEVEL : 0;
+        ledSetAllPixels(0, ledColor(w, w, w));
+    }
+}
+
 // Clear statistics (coil 510): zero every counter, on the wire and in the
 // persistent blob.
 void onClearStatsCommand(uint16_t addr, uint16_t value)
@@ -347,6 +396,7 @@ void ledControlInit()
     }
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_BRIGHTNESS, onGlobalBrightnessChange);
     mbRegisterHandler(MB_WATCH_REG_CHANGE, MB_REG_GLOBAL_MAX_ON_TIME, onGlobalMaxOnTimeChange);
+    mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_IDENTIFY, onIdentifyCommand);
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_CLEAR_STATS, onClearStatsCommand);
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_ALL_OFF, onAllOffCommand);
 }
@@ -426,4 +476,7 @@ void ledControlTick(uint32_t now)
     {
         ledControlPersistStats();
     }
+
+    // Identify overlay renders last so it wins the frame while active.
+    identifyOverlayTick(now);
 }

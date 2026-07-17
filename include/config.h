@@ -65,6 +65,11 @@
 #define TEMP_FAIL_THRESHOLD         3       // consecutive read failures before the sentinel
 #define DIAG_PUBLISH_INTERVAL_MS    1000    // uptime/health refresh cadence
 
+// --- Identify (coil 509: find this unit in a wall of lockers) ---
+#define IDENTIFY_DURATION_MS        5000    // how long the ring blinks
+#define IDENTIFY_BLINK_MS           250     // blink half-period
+#define IDENTIFY_WHITE_LEVEL        80      // white brightness (kept moderate: 16 px supply draw)
+
 // --- Statistics persistence (AT24; settings blob owns bytes 0-95) ---
 #define STATS_AT24_ADDR             128     // StatsBlob offset on the AT24C32D
 #define STATS_PERSIST_INTERVAL_MS   3600000UL // hourly, plus a flush before every commanded reset

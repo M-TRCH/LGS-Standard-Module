@@ -95,6 +95,8 @@ constexpr uint16_t MB_COIL_OTA_ENTER                     = 505; // legacy OTA ad
 constexpr uint16_t MB_COIL_OTA_FINALIZE                  = 506; // verify staged image CRC32
 constexpr uint16_t MB_COIL_OTA_APPLY                     = 507; // commit header + reset into bootloader
 constexpr uint16_t MB_COIL_OTA_ABORT                     = 508;
+constexpr uint16_t MB_COIL_IDENTIFY                      = 509; // blink the ring white ~5s (find this unit)
+constexpr uint16_t MB_COIL_CLEAR_STATS                   = 510; // zero the LED statistics (RAM + AT24)
 constexpr uint16_t MB_COIL_ALL_OFF                       = 511; // one command: ring + display off
 
 // --- Control group (coils) ---

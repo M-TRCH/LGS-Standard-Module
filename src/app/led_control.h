@@ -33,4 +33,13 @@ uint16_t ledControlActiveEnableCoil();
 /*  @brief Active preset number (0 = ring off, 1-8). Published at reg 11. */
 uint8_t ledControlActivePreset();
 
+/*  @brief Flush the statistics to the AT24 if they changed (folds the
+ *         running on-interval in first). Called hourly from the tick and
+ *         by opsSystemReset before every commanded reboot. */
+void ledControlPersistStats();
+
+/*  @brief Zero all statistics (wire + persistent blob). Coil 510 and
+ *         factory reset use this. */
+void ledControlClearStats();
+
 #endif // APP_LED_CONTROL_H

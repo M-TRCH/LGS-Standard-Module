@@ -1,4 +1,5 @@
 #include "app/ops.h"
+#include "app/led_control.h"
 #include "drivers/board_io.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
@@ -24,12 +25,14 @@ void onFactoryReset(uint16_t addr, uint16_t value)
     // Address 501: factory reset except ID
     if (mbCoilRead(MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID))
     {
+        ledControlClearStats(); // factory state includes zeroed statistics
         settingsFactoryReset(true);
         opsSystemReset();
     }
     // Address 502: factory reset all data
     if (mbCoilRead(MB_COIL_APPLY_FACTORY_RESET_ALL_DATA))
     {
+        ledControlClearStats();
         settingsFactoryReset(false);
         opsSystemReset();
     }
@@ -60,6 +63,10 @@ void opsInit()
 
 void opsSystemReset()
 {
+    // Flush the LED statistics so a commanded reboot (coil 503/504, OTA
+    // apply, SET_ID save) never loses more than the sub-second remainder.
+    ledControlPersistStats();
+
     // The latch pulse spans loop iterations once it is a state machine, so a
     // reset request can arrive mid-pulse. Force the MOSFET off before the
     // GPIO goes hi-Z during reset, otherwise the gate would float.

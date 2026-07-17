@@ -65,6 +65,10 @@
 #define TEMP_FAIL_THRESHOLD         3       // consecutive read failures before the sentinel
 #define DIAG_PUBLISH_INTERVAL_MS    1000    // uptime/health refresh cadence
 
+// --- Statistics persistence (AT24; settings blob owns bytes 0-95) ---
+#define STATS_AT24_ADDR             128     // StatsBlob offset on the AT24C32D
+#define STATS_PERSIST_INTERVAL_MS   3600000UL // hourly, plus a flush before every commanded reset
+
 // --- Watchdog ---
 // A single RTUServer.poll() can legitimately stall for hundreds of ms
 // (long response flush + libmodbus byte timeouts under bus noise), so the

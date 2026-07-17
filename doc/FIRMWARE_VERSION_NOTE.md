@@ -5,6 +5,8 @@
 ## v3.1.0 / FW 16076–17076 (2026-07-16/17) — R5.0 เท่านั้น
 
 > build ปัจจุบัน: **FW 17076, Device Type 20 (NARCOTIC)** — ส่งขึ้นบอร์ดผ่าน OTA แล้ว
+> ไฟล์ release: `assets/firmware_stm32g070_narcotic_v3.1.0_fw17076_2026-07-17.bin` (57,884 B, CRC32 435D5D79)
+> bootloader: `assets/bootloader_stm32g070_v1.0_2026-07-17.bin` (932 B, ลงครั้งเดียวต่อบอร์ดที่ 0x08000000)
 ### New Features
 - **OTA ผ่าน RS485 broadcast**: bootloader 4KB + app slot 0x08001000 + staging;
   ส่งด้วย `tools/ota_sender.py` ผ่าน Modbus broadcast FC16 (regs 282–389, coils 505–508);

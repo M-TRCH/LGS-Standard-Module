@@ -12,6 +12,14 @@
   stats ราย preset 210–281; combo ใหม่ 1031–1038 (Light N + Latch + Display)
 - **Display ใช้งานจริง**: coil 1010 + reg 60 แสดงเลขใหญ่ 0–99 บน OLED (เกิน clamp เป็น 99)
 - **Latch แบ่ง 2 คำสั่ง**: 1019 Force (ไม่เช็ค sense, 500ms คงที่) / 1020 Safety (sense-aware)
+- **Diagnostics (regs 5-11, 41)**: uptime, boot counter, สาเหตุ reset ล่าสุด (จับ watchdog reset),
+  health bitfield (AT24/OLED/เซนเซอร์/กลอน), function mode, active preset, สถานะกลอนตรงๆ
+- **สถิติ persist บน AT24**: regs 200-281 รอด reboot/OTA (flush รายชั่วโมง + ก่อน reset ที่สั่งเอง);
+  coil 510 ล้างสถิติ; เซนเซอร์เสีย ≥3 ครั้งติด → reg 20/21 = 0x8000 (sentinel)
+- **คำสั่งใหม่**: coil 509 Identify (กะพริบขาวหาตัวเครื่อง), 511 All Off (ดับไฟ+จอคำสั่งเดียว)
+- **Validation แน่นขึ้น**: coil 500 เดี่ยวไม่ค้างเป็นกับดักอีก; baud/ID (รวมห้าม 246) ถูกปฏิเสธ
+  ตอน persist พร้อมสะท้อนค่าเดิม; reg 80/190/preset configs clamp+สะท้อนค่าที่ใช้จริง;
+  combo 1031-1038 mirror coil 1011-1018 → ปิดครบชุดด้วย 101N=0 คำสั่งเดียว
 
 ### Breaking Changes (สำหรับ backend / การ deploy)
 - **บอร์ดเดิมต้อง flash ผ่าน ST-Link หนึ่งครั้ง** (bootloader + app ที่ offset ใหม่)

@@ -141,6 +141,8 @@ COILS = [
     (502,  "Apply Reset (all data)",      True),
     (503,  "Write to EEPROM (+reboot)",   True),
     (504,  "Software Reset",              True),
+    (509,  "Identify (blink white 5s)",   False),
+    (510,  "Clear Statistics",            False),
     (511,  "All Off (ring + display)",    False),
     (1010, "Display Enable",              False),
     (1019, "Latch Force Trigger",         False),  # gated separately (physical)
@@ -471,6 +473,20 @@ def phase_validate(client, unit, loop, writer, stats):
     _check(c1003 == 0 and c1010 == 0,
            f"coil 511 All Off cleared ring+display (1003={c1003}, 1010={c1010})",
            writer, loop, "VALIDATE", 1, 511, "All Off", c1003, 0, stats)
+
+    # -- coil 509 Identify: self-clears; ring blinks white ~5s (visual)
+    write_coil(client, 509, 1, unit); time.sleep(0.3)
+    _ok, c509, _dt, _n = read_coil(client, 509, unit)
+    _check(c509 == 0, "coil 509 Identify accepted + self-cleared (ring blinks WHITE ~5s)",
+           writer, loop, "VALIDATE", 1, 509, "Identify", c509, 0, stats)
+
+    # -- coil 510 Clear Statistics: counters read zero afterwards
+    write_coil(client, 510, 1, unit); time.sleep(0.5)
+    rb210 = _read_reg_val(client, 210, unit)
+    rb200 = _read_reg_val(client, 200, unit)
+    _check(rb210 == 0 and rb200 == 0,
+           f"coil 510 cleared the statistics (210={rb210}, 200={rb200})",
+           writer, loop, "VALIDATE", 3, 210, "LED 1 On Count", rb210, 0, stats)
 
     # -- persist-path validation (reg 3 garbage, reg 4=246, preset clamp):
     #    needs coil 503 = persist + REBOOT. Two reboots total (test + restore).

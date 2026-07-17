@@ -17,12 +17,19 @@
 | 0 | Device Type | R | - | 10:STANDARD, 20:NARCOTIC ¹ | - | ✓ | ✓ | | ✓ |
 | 1 | Firmware Version | R | - | - | - | ✓ | ✓ | | ✓ |
 | 2 | Hardware Version | R | - | - | - | ✓ | ✓ | | ✓ ² |
-| 3 | Baud Rate | R/W(F) | 9600 | - | bps | | | | ✓ ³ |
-| 4 | Modbus Slave ID | R/W(F) | 247 | 1-245, 246:SPECIFIC | - | ✓ | ✓ | | ✓ |
+| 3 | Baud Rate | R/W(F) | 9600 | 9600/19200/38400/57600 | bps | | | | ✓ ³ |
+| 4 | Modbus Slave ID | R/W(F) | 247 | 1-245, 247 (246:SPECIFIC ห้ามเขียน) | - | ✓ | ✓ | | ✓ ³ |
+| 5-6 | Uptime (u32 hi/lo) | R | 0 | - | sec | | | | ✓ ᵈ |
+| 7 | Boot Counter | R | 0 | 0-65535 | ครั้ง | | | | ✓ ᵈ |
+| 8 | Last Reset Cause | R | - | bitfield | - | | | | ✓ ᵈ |
+| 9 | Health Status | R | - | bitfield | - | | | | ✓ ᵈ |
+| 10 | Function Mode | R | 0 | 0-3 | - | | | | ✓ ᵈ |
+| 11 | Active LED Preset | R | 0 | 0-8 | - | | | | ✓ ᵈ |
 
 ¹ firmware ปัจจุบันมีชนิดเพิ่ม: 30:LITE, 40:DELIVERY
 ² R5.0 รายงานค่า 500; ค่าเวอร์ชันบน R5.0 เป็น compile-time constant (ไม่ค้างใน EEPROM อีกต่อไป)
-³ R5.0 ใช้ค่า baud จริงตอนบูต (whitelist: 9600/19200/38400/57600 — ค่า 115200 เกินช่วง register 16-bit; ค่าไม่ถูกต้อง fallback 9600; โหมด SET_ID/FACTORY RESET บังคับ 9600 เป็นช่องทางกู้คืน) — บอร์ดก่อนหน้า persist ค่าแต่ไม่มีผล
+³ R5.0 **validate ตอน persist (coil 503)**: baud นอก whitelist หรือ ID นอกช่วง (รวม 246 ที่สงวนให้โหมด SET_ID) จะถูกปฏิเสธและ register สะท้อนค่าเดิมกลับ — ไม่มีการ persist ค่าที่ใช้ไม่ได้แล้ว fallback เงียบๆ อีก; โหมด SET_ID/FACTORY RESET ยังบังคับ 9600 เป็นช่องทางกู้คืน
+ᵈ กลุ่ม Diagnostics ใหม่ของ R5.0 (อ่านอย่างเดียว, refresh ทุก 1 วินาที): **Uptime** = วินาทีตั้งแต่บูต (จับการรีบูตผิดปกติ) · **Boot Counter** = จำนวนครั้งที่บูต (persist บน AT24, ล้างพร้อมสถิติ) · **Reset Cause** = bit0 IWDG watchdog / bit1 software / bit2 power-on / bit3 NRST pin / bit4 WWDG / bit5 low-power / bit6 option-byte (อ่านแล้วเคลียร์ — แต่ละ boot รายงานสาเหตุของตัวเอง) · **Health** = bit0 AT24 ok / bit1 OLED ok / bit2 room sensor ok / bit3 board sensor ok / bit4 กลอนล็อกอยู่ · **Function Mode** = 0 RUN / 1 DEMO / 2 SET_ID / 3 FACTORY_RESET · **Active Preset** = preset ที่วงแหวนติดอยู่ (0 = ดับ) ไม่ต้องไล่อ่าน coil 1001-1008
 
 ## Operation (Coils, 1 bit)
 
@@ -37,6 +44,11 @@
 | 506 | OTA: Finalize (verify CRC32) ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
 | 507 | OTA: Apply (reboot + copy) ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
 | 508 | OTA: Abort session ᴼ | R/W | FALSE | TRUE/FALSE | | | | ✓ |
+| 509 | Identify (วงแหวนกะพริบขาว ~5s) | R/W | FALSE | TRUE/FALSE | | | | ✓ ᵛ |
+| 510 | Clear Statistics | R/W | FALSE | TRUE/FALSE | | | | ✓ ᵛ |
+| 511 | All Off (ไฟ + จอ ดับหมด) | R/W | FALSE | TRUE/FALSE | | | | ✓ ᵛ |
+
+ᵛ คำสั่งใหม่ R5.0 (self-clear): **509** = หาตัวเครื่องในแถว — กะพริบขาวชั่วคราวแล้วคืนสีเดิม ไม่กระทบ preset/สถิติ · **510** = ล้างสถิติ (ทั้ง registers และค่า persist) · **511** = คำสั่งเดียวกลับสู่สถานะพัก: วงแหวนดับ จอดับ เคลียร์ coil ตระกูล preset ทุกตัว
 
 ᴼ ดูหัวข้อ "OTA over RS485" ท้ายเอกสาร — coil 505 คง address จากระบบ OTA ของบอร์ดเก่า (R4.3) แต่โปรโตคอลรับส่งเปลี่ยนเป็น Modbus broadcast ทั้งหมด
 
@@ -50,6 +62,7 @@
 | 21 | Board Temperature ⁷ | R | - | 100-9000 | °C ×100 | | | | ✓ |
 | 22–23 | *(สำรอง)* | | | | | | | | |
 | 40 | Time after unlocking ⁸ | R | - | 0-65535 | sec | | | ✓ | ✓ |
+| 41 | Latch Locked Status | R | - | 0/1 | - | | | | ✓ (R5.0 ใหม่: สถานะกลอนตรงๆ 1=ล็อก, ไม่ต้องอนุมานจาก reg 40==0) |
 | 41–43 | *(สำรอง)* | | | | | | | | |
 
 ⁵ บน R5.0: reg 20 = **อุณหภูมิห้อง** จาก STS40-CD1B-R3 (I2C1 @0x46) — บอร์ดก่อนหน้ามีเซนเซอร์ตัวเดียว
@@ -138,6 +151,10 @@
 Flow: metadata → coil 505 (erase staging ~1s) → stream chunks (broadcast, ทุกตัวบนบัสรับพร้อมกัน) → อ่าน bitmap รายตัว + repair → coil 506 (verify) → coil 507 (apply: เขียน header + รีบูต ให้ bootloader copy) → อ่าน reg 1 ยืนยันเวอร์ชันใหม่. เครื่องมือ: `tools/ota_sender.py`. Image ต้อง build ที่ offset 0x1000 และ ≤ 61,440 bytes. ระหว่างรับ OLED แสดง % ด้วยเลขใหญ่; session ไร้กิจกรรม 30 วินาที = ยกเลิกตัวเอง
 
 ## หมายเหตุพฤติกรรม R5.0
+
+- **Validation บน wire (v3.1.x)**: reg 80 เกิน 8000 → clamp เป็น 8000 + สะท้อนทันที; reg 190 เกิน 100 → clamp เป็น 100 + fan-out ค่าที่ clamp; config preset (110-184) ถูก clamp เข้าช่วง (brightness ≤100, RGB ≤255) ตอน persist และ register สะท้อนค่า clamp; **coil 500 ที่เขียนโดยไม่มี 501/502 จะถูกเคลียร์ทิ้ง** (ไม่ค้างเป็นคำสั่งติดอาวุธ)
+- **Sensor fault**: reg 20/21 แสดง **0x8000** เมื่ออ่านเซนเซอร์ล้มเหลวติดกัน ≥3 ครั้ง (แทนการค้างค่าสุดท้ายเงียบๆ) — กลับปกติเมื่ออ่านสำเร็จ
+- **สถิติ (200-281) persist แล้ว**: เก็บบน AT24 — flush รายชั่วโมง + ก่อน reset ที่สั่งผ่านบัสทุกแบบ (ไฟดับกะทันหันเสียแค่เศษชั่วโมงสุดท้าย); ล้างด้วย coil 510 หรือ factory reset
 
 - **Trig Latch (1019/1020/1021–1028/1031–1038)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
 - **ข้อจำกัดความปลอดภัยกลอน (ใช้กับทั้ง Force และ Safety)**: pulse สูงสุด 500ms (เพดานถูกบังคับซ้ำด้วย hardware timer guard), ระยะห่างระหว่างการปลดล็อกขั้นต่ำ 2000ms (นับจากจุดเริ่ม pulse), delay ก่อนปลดล็อกตาม reg 80

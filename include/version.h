@@ -12,13 +12,13 @@
 
 // Device type: 10=STANDARD, 20=NARCOTIC, 30=LITE, 40=DELIVERY
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE     40
+#define DEVICE_TYPE     20
 #endif
 
 // Firmware version, ddmmy encoding: dd=day, mm=month, y=last digit of year
-// (e.g. 16076 = 16/07/2026)
+// (e.g. 17076 = 17/07/2026)
 #ifndef FW_VERSION
-#define FW_VERSION      16076
+#define FW_VERSION      17076
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run

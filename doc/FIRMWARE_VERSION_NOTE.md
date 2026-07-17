@@ -2,7 +2,9 @@
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
 **ไฟล์:** firmware_stm32f103_*.bin
 
-## v3.1.0 / FW 16076 (2026-07-16) — R5.0 เท่านั้น
+## v3.1.0 / FW 16076–17076 (2026-07-16/17) — R5.0 เท่านั้น
+
+> build ปัจจุบัน: **FW 17076, Device Type 20 (NARCOTIC)** — ส่งขึ้นบอร์ดผ่าน OTA แล้ว
 ### New Features
 - **OTA ผ่าน RS485 broadcast**: bootloader 4KB + app slot 0x08001000 + staging;
   ส่งด้วย `tools/ota_sender.py` ผ่าน Modbus broadcast FC16 (regs 282–389, coils 505–508);

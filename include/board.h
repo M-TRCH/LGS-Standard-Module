@@ -36,4 +36,17 @@
 #define HW_SERVO1_PIN                  PC6
 #define HW_SERVO2_PIN                  PC7
 
+// Expansion header (3 signal pins routed to spare pads). Chosen so the trio
+// covers every likely future role at once:
+//   - all three together = the complete SPI1 port (SCK/MISO/MOSI)
+//   - PB5 = default data pin for the SK6812MINI RGBW strip extension
+//     (TIM3_CH2 PWM+DMA or SPI1_MOSI DMA upgrade paths; bit-bang today)
+//   - PB4 = TIM3_CH1 (a second PWM/DMA-capable line)
+//   - PA5 = USART3_TX (aux serial) / ADC1_IN5 (analog input)
+// TIM3 is unused by the firmware, so both PWM channels are free; the ring
+// keeps TIM1_CH1 (PA8) — two independent DMA-driven LED streams possible.
+#define HW_EXP1_PIN                    PB4
+#define HW_EXP2_PIN                    PB5     // SK6812 RGBW extension data (default)
+#define HW_EXP3_PIN                    PA5
+
 #endif

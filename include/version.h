@@ -18,7 +18,7 @@
 // Firmware version, ddmmy encoding: dd=day, mm=month, y=last digit of year
 // (e.g. 17076 = 17/07/2026)
 #ifndef FW_VERSION
-#define FW_VERSION      17076
+#define FW_VERSION      4086
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run

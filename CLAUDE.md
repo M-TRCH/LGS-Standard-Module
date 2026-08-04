@@ -71,6 +71,23 @@ underflows and instantly expires delays / max-on-time).
   bad CRC, not a lost magic.
 - **Device identity is compile-time** (`include/version.h`: `DEVICE_TYPE`/`FW_VERSION`/`HW_VERSION`,
   overridable via `-D`). Reg 0–2 report these — never store them in EEPROM.
+- **The commissioning block is patched by a host tool, so it must survive the optimiser.**
+  `gCommissionBlock` (`svc/commission`) is `const volatile` with external linkage and `used`, and
+  `commissionRead()` copies it **byte-wise** — never `memcpy`, whose parameters are not volatile and
+  would hand the values back to constant folding, leaving a tool patching bytes nothing reads.
+  `tools/post_build_check.py` fails the build unless firmware.bin carries exactly one block that
+  passes version, size and CRC; that check is the actual guarantee, not the attributes. A
+  literal-pool canary was tried and removed — the compiler reaches the block with an immediate add
+  off a nearby literal, so it fired on correct builds. The proof that folding did not happen is the
+  hardware test: patch an ID, flash, confirm the board adopts it. Re-run it after any toolchain bump.
+- **The apply-once token lives outside `Settings`, at `COMMISSION_AT24_ADDR`.** Putting it in
+  `Settings` would let `settingsFactoryReset()` zero it, so the patched image still in flash would
+  re-apply its ID on the next boot — a factory reset that silently fails to reset the ID. Keeping it
+  separate also avoids a schema bump. Commissioning writes the **values first and the token last**,
+  mirroring "payload before magic": a tear then loses only the token, and a lost token means retry.
+- **Without the FORCE flag a patched image only fills in an ID on a board that has none** (`== 247`).
+  That is what stops a stray flash renumbering a cabinet in service, and it is why an OTA image —
+  which is never patched — can never disturb an ID.
 
 ## Add a feature (recipe)
 

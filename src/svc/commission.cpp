@@ -1,0 +1,243 @@
+#include "svc/commission.h"
+
+#include <Arduino.h>
+
+#include "config.h"
+#include "drivers/eeprom_at24.h"
+#include "svc/settings.h"
+
+// ---------------------------------------------------------------------------
+// The block itself
+// ---------------------------------------------------------------------------
+
+static_assert(sizeof(CommissionBlock) == COMMISSION_BLOCK_SIZE,
+              "CommissionBlock must stay 32 bytes: the host patches it by offset");
+
+/*  Defined here, read at runtime by commissionRead(), and never written.
+ *
+ *  Three things keep it in the binary where a host tool can find it:
+ *  external linkage stops LTO from internalising it, `used` stops it being
+ *  dropped as unreferenced, and `volatile` stops the values being folded into
+ *  the code that reads them (which would leave nothing to patch). None of
+ *  that is a guarantee across toolchain versions — tools/post_build_check.py
+ *  is, by failing the build if the block is not in firmware.bin exactly once.
+ *
+ *  crc is filled in by the host when it patches; as built it covers the
+ *  shipped values, so post_build_check can verify the block it finds.
+ */
+extern const volatile CommissionBlock gCommissionBlock;
+
+__attribute__((used))
+const volatile CommissionBlock gCommissionBlock =
+{
+    .magic      = COMMISSION_MAGIC,
+    .version    = COMMISSION_VERSION,
+    .size       = sizeof(CommissionBlock),
+    .tokenLo    = 0,                    // un-patched: nothing to apply
+    .tokenHi    = 0,
+    .applyMask  = 0,
+    .flags      = 0,
+    .identifier = DEFAULT_IDENTIFIER,
+    .crc        = 0x8168,               // over the values above; post_build_check.py
+                                        // recomputes it and prints the right
+                                        // constant if a default ever changes
+};
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+namespace {
+
+constexpr uint32_t RECORD_MAGIC   = 0x4C475350;  // 'LGSP'
+constexpr uint16_t RECORD_VERSION = 1;
+
+/*  Which patched image this board has already consumed. 16 bytes at a
+ *  32-aligned address, so at24Write lays it down in a single page write — a
+ *  power loss can only leave the whole record bad-CRC, never half of a new
+ *  token over half of an old one.
+ */
+struct ProvisioningRecord
+{
+    uint32_t magic;
+    uint16_t version;
+    uint16_t size;
+    uint32_t token;
+    uint16_t reserved;
+    uint16_t crc;           // CRC16-CCITT over the bytes above
+};
+
+static_assert(sizeof(ProvisioningRecord) == 16,
+              "record must stay 16 bytes to fit one AT24 page write");
+static_assert(STATS_AT24_ADDR + 128 <= COMMISSION_AT24_ADDR,
+              "the commissioning record must not overlap the statistics blob");
+
+// CRC16-CCITT, same parameters as the settings blob (poly 0x1021, init
+// 0xFFFF) so there is one checksum to reason about across the firmware.
+uint16_t crc16(const uint8_t *data, size_t len)
+{
+    uint16_t crc = 0xFFFF;
+    for (size_t i = 0; i < len; i++)
+    {
+        crc ^= (uint16_t)data[i] << 8;
+        for (uint8_t bit = 0; bit < 8; bit++)
+        {
+            crc = (crc & 0x8000) ? (uint16_t)((crc << 1) ^ 0x1021) : (uint16_t)(crc << 1);
+        }
+    }
+    return crc;
+}
+
+/*  @brief The token this board already consumed, or 0 if there is none.
+ *
+ *  A missing, unreadable or damaged record reads as "nothing consumed", so
+ *  commissioning retries rather than skips. Retrying is the safe direction:
+ *  the worst it can do is set an ID that is already set.
+ */
+uint32_t storedToken()
+{
+    ProvisioningRecord r;
+    if (!at24Read(COMMISSION_AT24_ADDR, (uint8_t *)&r, sizeof(r)))
+    {
+        return 0;
+    }
+    if (r.magic != RECORD_MAGIC || r.version != RECORD_VERSION || r.size != sizeof(r))
+    {
+        return 0;
+    }
+    if (r.crc != crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc)))
+    {
+        return 0;
+    }
+    return r.token;
+}
+
+bool writeToken(uint32_t token)
+{
+    ProvisioningRecord r;
+    memset(&r, 0, sizeof(r));
+    r.magic    = RECORD_MAGIC;
+    r.version  = RECORD_VERSION;
+    r.size     = sizeof(r);
+    r.token    = token;
+    r.crc      = crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc));
+    return at24Write(COMMISSION_AT24_ADDR, (const uint8_t *)&r, sizeof(r));
+}
+
+} // namespace
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+bool commissionRead(CommissionBlock *out)
+{
+    // Copy byte-wise through a volatile pointer, deliberately NOT with memcpy:
+    // memcpy's parameters are not volatile, so handing it the block would cast
+    // the qualifier away and hand the optimiser back the freedom to fold these
+    // values into the code — leaving the host tool patching bytes nothing
+    // actually reads. This loop is the whole reason the block is patchable.
+    CommissionBlock b;
+    const volatile uint8_t *src = (const volatile uint8_t *)&gCommissionBlock;
+    uint8_t *dst = (uint8_t *)&b;
+    for (size_t i = 0; i < sizeof(b); i++)
+    {
+        dst[i] = src[i];
+    }
+
+    if (memcmp(b.magic, COMMISSION_MAGIC, sizeof(COMMISSION_MAGIC)) != 0)
+    {
+        return false;
+    }
+    if (b.version != COMMISSION_VERSION || b.size != sizeof(CommissionBlock))
+    {
+        return false;
+    }
+    if (crc16((const uint8_t *)&b, COMMISSION_CRC_LEN) != b.crc)
+    {
+        return false;
+    }
+
+    *out = b;
+    return true;
+}
+
+uint32_t commissionToken(const CommissionBlock *b)
+{
+    return ((uint32_t)b->tokenHi << 16) | (uint32_t)b->tokenLo;
+}
+
+void commissionApplyAtBoot()
+{
+    // A board that cannot persist must not adopt an identity it will forget.
+    // On the "AT24 acks but reads fail" path the stored blob is still intact
+    // and will be used once I2C recovers, so changing the running address
+    // here would make the board answer at a different slave ID after a
+    // transient fault — worse than not commissioning at all.
+    if (!settingsStorageOk())
+    {
+        return;
+    }
+
+    CommissionBlock b;
+    if (!commissionRead(&b))
+    {
+        return;                     // ordinary build, or a damaged block
+    }
+
+    const uint32_t token = commissionToken(&b);
+    if (token == COMMISSION_TOKEN_NONE || token == COMMISSION_TOKEN_ERASED)
+    {
+        return;                     // nobody patched this image
+    }
+    if (!(b.applyMask & COMMISSION_APPLY_ID))
+    {
+        return;
+    }
+
+    // Apply once per patched image. Without this the block would re-apply on
+    // every boot, undoing an ID legitimately changed over Modbus afterwards —
+    // and a factory reset would silently come back up commissioned instead of
+    // unset, because the image demanding an ID is still sitting in flash.
+    if (token == storedToken())
+    {
+        return;
+    }
+
+    // Without FORCE, only ever fill in an ID the board does not have. 247 is
+    // what every path that ends without an identity produces — a virgin
+    // format, a factory reset, or a torn blob whose identifier could not be
+    // salvaged. That makes a patched image physically incapable of renumbering
+    // a live cabinet, which is the failure that would take a site down; FORCE
+    // is the operator saying, at the tool, that they mean it.
+    if (!(b.flags & COMMISSION_FLAG_FORCE) && settings().identifier != DEFAULT_IDENTIFIER)
+    {
+        return;
+    }
+
+    // 246 is the SET_ID switch mode's own address and 247 means "unset";
+    // neither is assignable.
+    if (b.identifier < 1 || b.identifier > 245)
+    {
+        return;
+    }
+
+    // Values first, token last — the same discipline as the settings blob's
+    // "payload first, magic last". A tear here loses only the token, and a
+    // lost token means the next boot retries; the reverse order would record
+    // "done" over an ID that was never written, with no retry.
+    if (b.identifier != settings().identifier)
+    {
+        settingsEdit().identifier = b.identifier;
+        if (!settingsSave())
+        {
+            // settingsSave() also returns false for "nothing changed", which
+            // is why the guard above only lets a real change reach it: here it
+            // can only mean the write failed. Leave the token unwritten so the
+            // next boot tries again.
+            return;
+        }
+    }
+
+    writeToken(token);
+}

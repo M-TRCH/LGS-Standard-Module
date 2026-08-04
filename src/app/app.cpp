@@ -17,6 +17,7 @@
 #include "drivers/temp_sensor.h"
 #include "drivers/oled.h"
 #include "svc/settings.h"
+#include "svc/commission.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
 
@@ -54,6 +55,9 @@ void appInit()
     // Load the persisted settings from the AT24 EEPROM (I2C1 bus up first).
     boardI2C1Init();
     settingsInit();
+    // Adopt an ID patched into the image over SWD, before anything below
+    // reads settings().identifier. No-op on a normal build (see svc/commission).
+    commissionApplyAtBoot();
     tempSensorInit();
 
     // Bring up the OLED (independent I2C2 bus) BEFORE the mode selector so it

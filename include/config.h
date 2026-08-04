@@ -74,6 +74,19 @@
 #define STATS_AT24_ADDR             128     // StatsBlob offset on the AT24C32D
 #define STATS_PERSIST_INTERVAL_MS   3600000UL // hourly, plus a flush before every commanded reset
 
+// --- Commissioning record (AT24) ---
+// Which ID-patched image this board has already consumed. Deliberately NOT a
+// Settings field: settingsFactoryReset() rewrites Settings from kDefaults, so
+// a token kept there would be zeroed and the patched image still in flash
+// would re-apply its ID on the next boot — a factory reset that silently
+// fails to reset the ID. Keeping it separate also avoids a schema bump and
+// the migration every fielded board would have to survive.
+//
+// 256 is clear of both neighbours (settings 0-95, stats 128-203) and is
+// 32-aligned, so the 16-byte record lands in a single AT24 page write: there
+// is no multi-chunk tear window inside the record at all.
+#define COMMISSION_AT24_ADDR        256
+
 // --- Watchdog ---
 // A single RTUServer.poll() can legitimately stall for hundreds of ms
 // (long response flush + libmodbus byte timeouts under bus noise), so the

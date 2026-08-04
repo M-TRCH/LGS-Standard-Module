@@ -64,9 +64,13 @@ def valid_blocks(image: bytes) -> list[int]:
 
 
 def fw_version() -> str:
+    """v<major>.<minor>.<patch> from the packed FW_VERSION in version.h."""
     text = (ROOT / "include" / "version.h").read_text(encoding="utf-8")
     m = re.search(r"#define\s+FW_VERSION\s+(\d+)", text)
-    return m.group(1) if m else "unknown"
+    if not m:
+        return "unknown"
+    n = int(m.group(1))
+    return f"v{n // 10000}.{(n // 100) % 100}.{n % 100}"
 
 
 def main() -> int:
@@ -109,8 +113,11 @@ def main() -> int:
 
     out = args.out
     if out is None:
+        # Version first, date as a plain suffix — matching the STM32F103
+        # assets, and keeping the date where it reads as a date rather than
+        # as something to compare.
         out = (ROOT / "assets" /
-               f"firmware_stm32g070_v{fw_version()}_factory_{date.today():%Y-%m-%d}.bin")
+               f"firmware_stm32g070_{fw_version()}_factory_{date.today():%Y-%m-%d}.bin")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(image)
 

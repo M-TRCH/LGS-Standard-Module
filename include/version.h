@@ -15,10 +15,17 @@
 #define DEVICE_TYPE     20
 #endif
 
-// Firmware version, ddmmy encoding: dd=day, mm=month, y=last digit of year
-// (e.g. 17076 = 17/07/2026)
+// Firmware version, semantic: major * 10000 + minor * 100 + patch.
+// 30100 = v3.1.0, 20002 = v2.0.2. Ranges are major 0-6, minor and patch 0-99,
+// which is what a uint16 holding register allows.
+//
+// Replaced a ddmmy date code, which could not be compared: 04/08/2026 encoded
+// as 4086, numerically *below* 17076 from three weeks earlier, because the
+// leading zero of a single-digit day is lost. Anything asking "is this newer"
+// got the wrong answer for a third of the days in a month. Release filenames
+// keep the date as a suffix, where it reads as a date and never as a number.
 #ifndef FW_VERSION
-#define FW_VERSION      4086
+#define FW_VERSION      30100
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run

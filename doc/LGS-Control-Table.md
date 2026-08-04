@@ -15,7 +15,7 @@
 | Addr | Data Name | Access | Initial | Range | Unit | R4.0 | R4.0.1 | R4.3 | R5.0 |
 |---:|---|---|---|---|---|:-:|:-:|:-:|:-:|
 | 0 | Device Type | R | - | 10:STANDARD, 20:NARCOTIC ¹ | - | ✓ | ✓ | | ✓ |
-| 1 | Firmware Version | R | - | - | - | ✓ | ✓ | | ✓ |
+| 1 | Firmware Version | R | - | major×10000 + minor×100 + patch ⁵ | - | ✓ | ✓ | | ✓ |
 | 2 | Hardware Version | R | - | - | - | ✓ | ✓ | | ✓ ² |
 | 3 | Baud Rate | R/W(F) | 9600 | 9600/19200/38400/57600 | bps | | | | ✓ ³ |
 | 4 | Modbus Slave ID | R/W(F) | 247 | 1-245, 247 (246:SPECIFIC ห้ามเขียน) | - | ✓ | ✓ | | ✓ ³ |
@@ -28,6 +28,7 @@
 
 ¹ firmware ปัจจุบันมีชนิดเพิ่ม: 30:LITE, 40:DELIVERY
 ² R5.0 รายงานค่า 500; ค่าเวอร์ชันบน R5.0 เป็น compile-time constant (ไม่ค้างใน EEPROM อีกต่อไป)
+⁵ ตั้งแต่ v3.1.0 เป็นต้นไป reg 1 เก็บเลขเวอร์ชันแบบ semantic: `major×10000 + minor×100 + patch` เช่น **30100 = v3.1.0** · ช่วงที่ใช้ได้คือ major 0-6, minor/patch 0-99 (ข้อจำกัดของ uint16) · **เทียบมากกว่า/น้อยกว่าได้ตรงตามลำดับเวอร์ชัน** ซึ่งรหัสวันที่ ddmmy แบบเดิมทำไม่ได้ (04/08/2026 = 4086 ซึ่งน้อยกว่า 17076 ของสามสัปดาห์ก่อนหน้า เพราะศูนย์นำหน้าของวันที่หลักเดียวหายไป) · วันที่ย้ายไปอยู่ท้ายชื่อไฟล์ release แทน
 ³ R5.0 **validate ตอน persist (coil 503)**: baud นอก whitelist หรือ ID นอกช่วง (รวม 246 ที่สงวนให้โหมด SET_ID) จะถูกปฏิเสธและ register สะท้อนค่าเดิมกลับ — ไม่มีการ persist ค่าที่ใช้ไม่ได้แล้ว fallback เงียบๆ อีก; โหมด SET_ID/FACTORY RESET ยังบังคับ 9600 เป็นช่องทางกู้คืน
 ᵈ กลุ่ม Diagnostics ใหม่ของ R5.0 (อ่านอย่างเดียว, refresh ทุก 1 วินาที): **Uptime** = วินาทีตั้งแต่บูต (จับการรีบูตผิดปกติ) · **Boot Counter** = จำนวนครั้งที่บูต (persist บน AT24, ล้างพร้อมสถิติ) · **Reset Cause** = bit0 IWDG watchdog / bit1 software / bit2 power-on / bit3 NRST pin / bit4 WWDG / bit5 low-power / bit6 option-byte (อ่านแล้วเคลียร์ — แต่ละ boot รายงานสาเหตุของตัวเอง) · **Health** = bit0 AT24 ok / bit1 OLED ok / bit2 room sensor ok / bit3 board sensor ok / bit4 กลอนล็อกอยู่ · **Function Mode** = 0 RUN / 1 DEMO / 2 SET_ID / 3 FACTORY_RESET · **Active Preset** = preset ที่วงแหวนติดอยู่ (0 = ดับ) ไม่ต้องไล่อ่าน coil 1001-1008
 

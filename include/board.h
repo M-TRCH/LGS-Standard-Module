@@ -29,8 +29,15 @@
 
 // Inputs / outputs
 #define HW_FUNCTION_SWITCH_PIN         PA7
+// R5.1 adds SW3 as a pure mirror of the function switch, for cabinets whose
+// front mask hides the main button. External 10k pull-up + 100nF on R5.1;
+// unrouted on R5.0 — firmware uses INPUT_PULLUP so one image runs on both.
+#define HW_FUNCTION_SWITCH2_PIN        PC13
 #define HW_LATCH_TRIGGER_PIN           PB3
 #define HW_LATCH_CHECK_PIN             PA3
+// INA180A4 (gain x200) across a 3 mOhm shunt on the 12V input -> 0.6 mV per
+// mA, into ADC1_IN6. Fitted since R5.0, first read by firmware v3.2.0.
+#define HW_CURRENT_SENSE_PIN           PA6
 
 // Reserved for future board functions
 #define HW_SERVO1_PIN                  PC6

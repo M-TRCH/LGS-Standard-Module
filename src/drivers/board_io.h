@@ -22,9 +22,15 @@ void boardI2C1Init();
 /*  @brief Drive the RUN status LED. */
 void boardSetRunLed(bool on);
 
-/*  @brief Read the function switch (active LOW).
- *  @return true while the switch is pressed */
+/*  @brief Read the function switch (active LOW). True if either button is
+ *         down — KEY1 (PA7) or its R5.1 mirror SW3 (PC13); they are one
+ *         logical switch and no caller distinguishes them. */
 bool boardFunctionSwitchPressed();
+
+/*  @brief Input current in mA from the INA180A4 stage on PA6 (single
+ *         12-bit sample, no filtering). Boards without the INA180 fitted
+ *         read noise — callers publish, they do not act on it. */
+uint16_t boardInputCurrentMa();
 
 /*  @brief Drive the latch MOSFET gate. true = energize (unlock). */
 void boardLatchMosfetSet(bool on);

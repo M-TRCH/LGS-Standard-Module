@@ -1,7 +1,7 @@
-# Firmware Architecture (R5.0)
+# Firmware Architecture (R5.x)
 
 โครงสร้าง firmware ของ LGS Standard Module บน STM32G070CBT6 (Arduino framework + PlatformIO)
-อัปเดตล่าสุด: 2026-07-13 (refactor ยกเครื่อง v3.0.0)
+อัปเดตล่าสุด: 2026-08-06 (v3.2.0 — SW3 mirror, ปุ่มยืนยันหยิบ reg 18/19, กระแสไฟเข้า reg 22, UID reg 12-17)
 
 ## เลเยอร์และกติกา dependency
 
@@ -150,6 +150,13 @@ board.h + vendor lib, ฟังก์ชัน prefix ชื่อ module
 | + LED presets 8 ช่อง + display | 6,156 B | 55,328 B |
 | **+ OTA (v16076): app** | **4,612 B** | **56,368 B / เพดาน 61,440** |
 | **+ OTA: bootloader (แยก)** | — | **932 B / slot 4,096** |
+| + commissioning block + semver (v3.1.0) | 4,788 B | 58,080 B |
+| + v3.2.0 (SW3 + input current + UID + ปุ่มยืนยันหยิบ) | 4,800 B | **61,040 B / เพดาน 61,440** ⚠ เหลือ 400 B |
+
+หมายเหตุ v3.2.0: ก้อนใหญ่คือ HAL ADC ที่ `analogRead()` ครั้งแรกลากเข้ามา (~2.5 KB
+รวม init+calibration) — ฟีเจอร์ถัดไปที่กิน flash ต้องพิจารณาย้าย ADC ไป LL/register
+โดยตรง (คืนได้ ~2 KB) หรือเริ่ม Tier ลดขนาดรอบใหม่ · slot จริงของ app คือ 63,488 B
+(0x1000–0x10800) — เพดาน 61,440 ของ linker เป็นกันชนที่ตั้งใจเผื่อไว้
 
 หมายเหตุ OTA era: ตัด legacy importer + EEPROM emulation คืน RAM 2,080B; ตัวเลข %
 ของ `pio run` ตอนนี้เทียบกับเพดาน 65,536 (boot 4K + image cap 60K) ไม่ใช่ 128K —

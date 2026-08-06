@@ -115,7 +115,7 @@ uint8_t scaledComponent(uint16_t component, uint16_t brightness)
 
 // Apply preset n's configured RGB (from its Modbus register block), scaled
 // by its brightness.
-void applyPresetColor(uint8_t n)
+uint32_t presetColorOf(uint8_t n)
 {
     uint16_t base = mbRegLedBase(n);
     uint16_t brightness = mbRegRead(base + 0);
@@ -123,10 +123,15 @@ void applyPresetColor(uint8_t n)
     {
         brightness = 100;
     }
-    ledSetAllPixels(0, ledColor(
+    return ledColor(
         scaledComponent(mbRegRead(base + 1), brightness),
         scaledComponent(mbRegRead(base + 2), brightness),
-        scaledComponent(mbRegRead(base + 3), brightness)));
+        scaledComponent(mbRegRead(base + 3), brightness));
+}
+
+void applyPresetColor(uint8_t n)
+{
+    ledSetAllPixels(0, presetColorOf(n));
 }
 
 // Close the active preset's on-interval and clear its state-coil mirrors
@@ -273,26 +278,43 @@ void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
 
 bool identifyActive = false;
 uint32_t identifyStartMs = 0;
+uint32_t identifyWindowMs = IDENTIFY_DURATION_MS;   // per-activation length
+// Color of the blink's ON phase, FROZEN at activation. Frozen on purpose:
+// the confirm ack races the master — a fast master clears the preset within
+// its next poll, mid-blink — and an ack that consults live state would
+// finish in the wrong color exactly when the system works best.
+uint32_t identifyOnColor = 0;
+bool identifyPhaseOn = false;
+uint32_t identifyLastToggleMs = 0;
+
+void identifyStart(uint32_t windowMs, uint32_t onColor)
+{
+    identifyActive = true;
+    identifyStartMs = millis();
+    identifyWindowMs = windowMs;
+    identifyOnColor = onColor;
+    // Reset the phase so the first visible half-period is the ON color —
+    // an ack that opens on a dark phase reads as a glitch, not an answer.
+    identifyPhaseOn = false;
+    identifyLastToggleMs = 0;
+}
 
 void onIdentifyCommand(uint16_t addr, uint16_t value)
 {
     (void)addr;
     (void)value;
     mbCoilWrite(MB_COIL_IDENTIFY, false);
-    identifyActive = true;
-    identifyStartMs = millis();
+    const uint8_t w = IDENTIFY_WHITE_LEVEL;
+    identifyStart(IDENTIFY_DURATION_MS, ledColor(w, w, w));
 }
 
 void identifyOverlayTick(uint32_t now)
 {
-    static bool phaseOn = false;
-    static uint32_t lastToggleMs = 0;
-
     if (!identifyActive)
     {
         return;
     }
-    if (now - identifyStartMs >= IDENTIFY_DURATION_MS)
+    if (now - identifyStartMs >= identifyWindowMs)
     {
         identifyActive = false;
         // Hand the ring back to the preset engine.
@@ -306,12 +328,13 @@ void identifyOverlayTick(uint32_t now)
         }
         return;
     }
-    if (now - lastToggleMs >= IDENTIFY_BLINK_MS)
+    if (identifyLastToggleMs == 0
+        || now - identifyLastToggleMs >= IDENTIFY_BLINK_MS)
     {
-        lastToggleMs = now;
-        phaseOn = !phaseOn;
-        uint8_t w = phaseOn ? IDENTIFY_WHITE_LEVEL : 0;
-        ledSetAllPixels(0, ledColor(w, w, w));
+        identifyLastToggleMs = now;
+        identifyPhaseOn = !identifyPhaseOn;
+        ledSetAllPixels(0, identifyPhaseOn ? identifyOnColor
+                                           : ledColor(0, 0, 0));
     }
 }
 
@@ -426,6 +449,20 @@ void ledControlClearStats()
         onSinceMs = millis(); // restart the in-flight interval from zero
     }
     statsPersistIfChanged();
+}
+
+void ledControlConfirmBlink()
+{
+    // The press-acknowledge is the identify overlay with a short window:
+    // same non-destructive machinery, so the ring returns to whatever the
+    // preset engine says when the blink ends. Blinks in the color of the
+    // preset lit AT THE MOMENT OF THE PRESS — captured here, because the
+    // master may clear that preset mid-blink (it usually does; that is the
+    // confirm loop working). No preset lit -> identify's white.
+    const uint8_t w = IDENTIFY_WHITE_LEVEL;
+    identifyStart(CONFIRM_BLINK_MS,
+                  activePreset != 0 ? presetColorOf(activePreset)
+                                    : ledColor(w, w, w));
 }
 
 bool ledControlChannelOn()

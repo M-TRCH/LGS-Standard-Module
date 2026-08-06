@@ -1,6 +1,30 @@
 # Firmware Version Note
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
-**ไฟล์:** firmware_stm32f103_*.bin (R4.x) / firmware_stm32g070_*.bin (R5.0)
+**ไฟล์:** firmware_stm32f103_*.bin (R4.x) / firmware_stm32g070_*.bin (R5.x)
+
+## v3.2.0 / FW 30200 (2026-08-06) — รองรับบอร์ด R5.1
+
+> factory image: `assets/firmware_stm32g070_v3.2.0_factory_2026-08-06.bin` (65,136 B, sha256 7972a50a…c2bb4d)
+> app 61,040 B (เพดาน linker 61,440 / slot จริง 63,488)
+
+### Compatibility
+- **image เดียวรันทั้ง R5.0 และ R5.1** — ปุ่ม SW3 (PC13) บน R5.0 ไม่เดินสาย firmware เปิด internal pull-up ให้เงียบสนิท
+- ไม่มีการเปลี่ยน settings schema → **OTA จาก v3.0.0/v3.1.0 ปลอดภัยทั้งบัส** ค่า ID/preset/baud เดิมอยู่ครบ
+- reg 2 (Hardware Version) เปลี่ยนจาก 500 → **510 บนทุกบอร์ด** (R5.0 ไม่เข้าสายการผลิตจริง)
+
+### New Features
+- **reg 18/19 วงจรยืนยันการหยิบยา** — คนจัดยากดปุ่มหน้าช่อง (KEY1/SW3) = "หยิบแล้ว" · reg 18 นับการกด (master ดูตัวนับเปลี่ยน — ทนต่อ poll ช้า/retry), reg 19 สถานะสด · โมดูลกะพริบแหวนรับทราบ ~0.6s **เป็นสีของ preset ที่ติดอยู่** (identify ยังกะพริบขาว — คนละความหมาย) แล้วคืนสี preset — ไฟดับเมื่อ master สั่งเท่านั้น · เฉพาะโหมด RUN
+- **SW3/PC13 mirror switch** — ปุ่มที่สองทำงานแทน KEY1 ได้ทุกจังหวะ (boot mode select / DEMO / SET_ID) สำหรับตู้ที่หน้ากากบังปุ่มใหญ่
+- **reg 22 Input Current (mA)** — กระแสขาเข้า 12V ผ่าน INA180A4 + shunt 3 mΩ (PA6), refresh 1 วินาทีในโหมด RUN · วงจรมีตั้งแต่ R5.0 แต่เพิ่งเริ่มอ่าน
+- **reg 12–17 Device UID** — UID 96 บิตของชิปเป็น 6 registers, ต่อ hex แล้วตรงกับ `device_uid` ใน commission_log.csv — ยืนยันตัวบอร์ดผ่านบัสได้โดยไม่ต้องเปิดตู้
+
+## v3.1.0 / FW 30100 (2026-08-04) — commissioning ผ่าน ST-Link ครั้งเดียวจบ
+
+> factory image: `assets/firmware_stm32g070_v3.1.0_factory_2026-08-04.bin` (62,380 B, sha256 e6aebd54…9f4579)
+
+- **commissioning block** ในภาพเฟิร์มแวร์: LGS Test Tool ปะ Modbus ID + token ลงไฟล์ก่อน flash ผ่าน ST-Link — บอร์ดตอบที่ ID นั้นตั้งแต่บูตแรกโดยไม่ต้องต่อ RS485 · apply-once ด้วย token บน AT24 (offset 256) · ไม่ติ๊ก overwrite จะไม่มีวันเปลี่ยน ID บอร์ดที่ตั้งค่าแล้ว
+- **reg 1 เปลี่ยนเป็น semantic version** (`major×10000+minor×100+patch`, 30100 = v3.1.0) แทนรหัสวันที่ ddmmy ที่เทียบมากน้อยไม่ได้
+- เพิ่ม `tools/post_build_check.py` (gate ตรวจ block ทุก build) และ `tools/make_factory_image.py` (ประกอบ boot+app)
 
 ## v3.0.0 / FW 17076 (2026-07-17) — release แรกของบอร์ด R5.0
 

@@ -70,6 +70,14 @@
 #define IDENTIFY_BLINK_MS           250     // blink half-period
 #define IDENTIFY_WHITE_LEVEL        80      // white brightness (kept moderate: 16 px supply draw)
 
+// --- Pick-confirm button (reg 18/19, RUN mode) ---
+// The front button is how the pharmacist says "picked this slot". A state
+// register alone would miss most presses (a master sweeping a full cabinet
+// polls each module every few seconds; a press lasts ~200 ms), so presses
+// are *counted* and the master watches the counter move.
+#define BTN_CONFIRM_DEBOUNCE_MS     40      // stable time before an edge is believed
+#define CONFIRM_BLINK_MS            600     // ring-blink acknowledge after a press
+
 // --- Statistics persistence (AT24; settings blob owns bytes 0-95) ---
 #define STATS_AT24_ADDR             128     // StatsBlob offset on the AT24C32D
 #define STATS_PERSIST_INTERVAL_MS   3600000UL // hourly, plus a flush before every commanded reset

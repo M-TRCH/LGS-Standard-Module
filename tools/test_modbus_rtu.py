@@ -83,8 +83,18 @@ def dec_device_type(raw, unit=""):
 
 
 def dec_fw(raw, unit=""):
-    s = str(raw).zfill(5)                       # ddmmy date code
-    return f"{raw}  (dd/mm/y = {s[0:2]}/{s[2:4]}/*{s[4]})"
+    """Semantic since v3.1.0: major*10000 + minor*100 + patch (30100 = v3.1.0).
+    Older builds report a ddmmy date code; minor/patch >= 50 cannot come from
+    the semantic scheme, so those fall back to the legacy rendering."""
+    major, minor, patch = raw // 10000, (raw // 100) % 100, raw % 100
+    if raw >= 10000 and minor < 50 and patch < 50:
+        return f"{raw}  (v{major}.{minor}.{patch})"
+    s = str(raw).zfill(5)                       # legacy ddmmy date code
+    return f"{raw}  (legacy date {s[0:2]}/{s[2:4]}/*{s[4]})"
+
+
+def dec_hex4(raw, unit=""):
+    return f"0x{raw:04X}"
 
 
 def dec_hw(raw, unit=""):
@@ -111,8 +121,17 @@ REGISTERS = [
     (9,   "Health Bits",          "",    dec_plain),
     (10,  "Function Mode",        "",    dec_plain),
     (11,  "Active Preset",        "",    dec_plain),
+    (12,  "UID 1/6",              "",    dec_hex4),
+    (13,  "UID 2/6",              "",    dec_hex4),
+    (14,  "UID 3/6",              "",    dec_hex4),
+    (15,  "UID 4/6",              "",    dec_hex4),
+    (16,  "UID 5/6",              "",    dec_hex4),
+    (17,  "UID 6/6",              "",    dec_hex4),
+    (18,  "Button Presses",       "",    dec_plain),
+    (19,  "Button Held",          "",    dec_plain),
     (20,  "Room Temp",            "C",   dec_temp),
     (21,  "Board Temp",           "C",   dec_temp),
+    (22,  "Input Current",        "mA",  dec_plain),
     (40,  "Time After Unlock",    "s",   dec_plain),
     (41,  "Latch Locked",         "",    dec_plain),
     (60,  "Display Number",       "",    dec_plain),

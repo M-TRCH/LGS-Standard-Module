@@ -295,6 +295,7 @@ static void runNormalMode()
     // Fast heartbeat signals a storage fault (AT24 absent -> nothing persists)
     static PeriodicTimer blinkTimer{settingsStorageOk() ? ROUTINE_BLINK_RUN_MS : STORAGE_FAULT_BLINK_MS};
     static PeriodicTimer sensorTimer{ROUTINE_SENSOR_READ_MS / 2};
+    static PeriodicTimer currentTimer{ROUTINE_SENSOR_READ_MS};
     static bool runLedOn = false;
     static bool readBoardNext = false;
 
@@ -329,6 +330,45 @@ static void runNormalMode()
             diagReportSensor(0, ok);
         }
         readBoardNext = !readBoardNext;
+    }
+
+    // Input current: a microsecond ADC sample, so it does not join the I2C
+    // round-robin above (that alternation exists to amortize ~10ms bus
+    // reads). The ADC cannot NAK — no ok-gate, no sentinel; boards without
+    // the INA180 fitted publish noise, which readers may ignore.
+    if (currentTimer.due(millis()))
+    {
+        mbRegWrite(MB_REG_INPUT_CURRENT, boardInputCurrentMa());
+    }
+
+    // Pick-confirm button (reg 18/19). RUN only, on purpose: in DEMO and
+    // SET_ID the same button already means something else, and counting
+    // those presses would let a bench session look like pharmacist activity.
+    // Sampled at loop rate; an edge is believed after it holds for
+    // BTN_CONFIRM_DEBOUNCE_MS, and each accepted press blinks the ring so
+    // the pharmacist knows the module heard them.
+    static bool btnStable = false;
+    static bool btnLastRaw = false;
+    static uint32_t btnEdgeMs = 0;
+    static uint16_t btnPresses = 0;
+
+    const bool btnRaw = boardFunctionSwitchPressed();
+    const uint32_t btnNow = millis();
+    if (btnRaw != btnLastRaw)
+    {
+        btnLastRaw = btnRaw;
+        btnEdgeMs = btnNow;
+    }
+    if (btnRaw != btnStable && (btnNow - btnEdgeMs) >= BTN_CONFIRM_DEBOUNCE_MS)
+    {
+        btnStable = btnRaw;
+        mbRegWrite(MB_REG_BUTTON_HELD, btnStable ? 1 : 0);
+        if (btnStable)
+        {
+            btnPresses++;
+            mbRegWrite(MB_REG_BUTTON_PRESSES, btnPresses);
+            ledControlConfirmBlink();
+        }
     }
 }
 

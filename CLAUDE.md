@@ -1,12 +1,14 @@
 # LGS Standard Module — Firmware
 
-Locker/cabinet control module. Board **R5.0** (STM32G070CBT6, 64 MHz, 128 KB flash / 36 KB RAM),
-Arduino framework + PlatformIO. Peripherals: WS2812B 16-pixel LED ring, electronic latch
-(MOSFET + sense pin), Modbus RTU slave over RS485, 0.96" SSD1306 OLED, two STS40 temperature
-sensors, external AT24C32D EEPROM, function switch, 2 reserved servo outputs.
+Locker/cabinet control module. Boards **R5.0 / R5.1** (STM32G070CBT6, 64 MHz, 128 KB flash / 36 KB RAM),
+Arduino framework + PlatformIO — one image serves both revisions. Peripherals: WS2812B 16-pixel LED
+ring, electronic latch (MOSFET + sense pin), Modbus RTU slave over RS485, 0.96" SSD1306 OLED, two
+STS40 temperature sensors, external AT24C32D EEPROM, function switch (KEY1/PA7, mirrored by SW3/PC13
+on R5.1; in RUN it is the pick-confirm button — reg 18), INA180A4 input-current sense (reg 22),
+2 reserved servo outputs.
 
 > Firmware for boards **older than R5.0** (R4.x / STM32F103) lives in `assets/*.bin` and is NOT
-> built from this tree. This source targets R5.0 only.
+> built from this tree. This source targets R5.x only.
 
 ## Build / flash
 

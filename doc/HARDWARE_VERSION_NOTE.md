@@ -1,5 +1,17 @@
 # Hardware Version Note
 
+## R5.1 (LGS-Standalone - 2026-08)
+
+### New Features
+- ปุ่ม **SW3 บน PC13** (tactile + pull-up 10k + 100nF) — **ตัวแทนของ function switch เดิม (KEY1/PA7)** สำหรับตู้ที่หน้ากากบังปุ่มใหญ่ · firmware อ่านสองปุ่มเป็นสวิตช์เดียว (OR) ตั้งแต่ v3.2.0
+- schematic แผ่น **MCU** และ **LED & OLED** ขยับเป็น rev 5.1 · แผ่น RS485 / Servo-Latch / Switching คงเดิมที่ rev 5.0
+
+### Notes
+- วงจรวัดกระแสขาเข้า INA180A4 (×200, shunt 3 mΩ → PA6) **มีมาตั้งแต่ R5.0** — firmware ≥ v3.2.0 เริ่มอ่านและรายงานที่ reg 22 (mA)
+- **firmware image เดียวใช้ทั้ง R5.0 และ R5.1** — PC13 บน R5.0 ไม่เดินสาย firmware เปิด internal pull-up ให้เงียบ · reg 2 รายงาน **510 บนทุกบอร์ด** เพราะ R5.0 ไม่เข้าสายการผลิตจริง
+
+---
+
 ## R5.0 (STM32G0 - 2026)
 
 ### New Features
@@ -97,18 +109,20 @@
 
 ### Supported Features by Revision
 
-| Feature | R4.0 | R4.0.1 | R4.1 | R4.2 | R4.3 | R5.0 |
-|---------|------|--------|------|------|------|------|
-| 12V Input Support | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
-| 8-Color RGB LEDs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Modbus RTU | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Latch Control | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Function Switch | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
-| RUN Status LED | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ |
-| Temp Sensor | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ (×2: ห้อง+บอร์ด) |
-| Surge Protection | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
-| External EEPROM (AT24C32D) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
-| Servo Outputs (reserved) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
+| Feature | R4.0 | R4.0.1 | R4.1 | R4.2 | R4.3 | R5.0 | R5.1 |
+|---------|------|--------|------|------|------|------|------|
+| 12V Input Support | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| 8-Color RGB LEDs | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Modbus RTU | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Latch Control | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Function Switch | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Second Function Switch (SW3/PC13) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
+| RUN Status LED | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Temp Sensor | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ (×2: ห้อง+บอร์ด) | ✓ (×2) |
+| Input Current Sense (INA180A4) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ (ไม่ถูกอ่าน) | ✓ (reg 22, FW ≥ v3.2.0) |
+| Surge Protection | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ |
+| External EEPROM (AT24C32D) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
+| Servo Outputs (reserved) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ✓ |
 
 ### Current Consumption (Typical @ 12V)
 

@@ -42,4 +42,9 @@ void ledControlPersistStats();
  *         factory reset use this. */
 void ledControlClearStats();
 
+/*  @brief Short white ring-blink acknowledging a pick-confirm button press.
+ *         Same non-destructive overlay as identify (coil 509), shorter
+ *         window; the ring returns to the active preset afterwards. */
+void ledControlConfirmBlink();
+
 #endif // APP_LED_CONTROL_H

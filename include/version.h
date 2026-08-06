@@ -25,13 +25,15 @@
 // got the wrong answer for a third of the days in a month. Release filenames
 // keep the date as a suffix, where it reads as a date and never as a number.
 #ifndef FW_VERSION
-#define FW_VERSION      30100
+#define FW_VERSION      30200
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run
-// 500 = board revision R5.0 (STM32G070CBT6)
+// 510 = board revision R5.1 (STM32G070CBT6). Every board reports R5.1:
+// R5.0 never reached production and runs this same image — the only
+// hardware difference (the SW3 mirror switch on PC13) is inert on R5.0.
 #ifndef HW_VERSION
-#define HW_VERSION      500
+#define HW_VERSION      510
 #endif
 
 #endif // VERSION_H

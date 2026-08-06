@@ -16,8 +16,8 @@
 
 // --- Device group (holding registers, read-only 0-2, R/W(F) 3-4) ---
 constexpr uint16_t MB_REG_DEVICE_TYPE       = 0;    // 10/20/30/40, compile-time
-constexpr uint16_t MB_REG_FW_VERSION        = 1;    // ddmmy, compile-time
-constexpr uint16_t MB_REG_HW_VERSION        = 2;    // mnp, compile-time (500 = R5.0)
+constexpr uint16_t MB_REG_FW_VERSION        = 1;    // semver major*10000+minor*100+patch, compile-time
+constexpr uint16_t MB_REG_HW_VERSION        = 2;    // mnp, compile-time (510 = R5.1)
 constexpr uint16_t MB_REG_BAUD_RATE         = 3;    // bps, whitelist, (F)
 constexpr uint16_t MB_REG_IDENTIFIER        = 4;    // slave ID 1-245/247, 246 reserved, (F)
 
@@ -29,10 +29,23 @@ constexpr uint16_t MB_REG_RESET_CAUSE       = 8;    // bit0 IWDG, 1 SW, 2 PWR, 3
 constexpr uint16_t MB_REG_HEALTH            = 9;    // bit0 AT24, 1 OLED, 2 room sens, 3 board sens, 4 latch locked
 constexpr uint16_t MB_REG_FUNCTION_MODE     = 10;   // 0 RUN / 1 DEMO / 2 SET_ID / 3 FACTORY_RESET
 constexpr uint16_t MB_REG_ACTIVE_PRESET     = 11;   // 0 = ring off, 1-8 = active color preset
+// 96-bit silicon UID as 6 registers, hi word first within each 32-bit word,
+// so "%04X" over regs 12..17 equals the serial the commissioning bench logs
+// from SWD (v3.2.0). Written once at boot; constant for the life of the chip.
+constexpr uint16_t MB_REG_UID_BASE          = 12;
+constexpr uint16_t MB_REG_UID_COUNT         = 6;
+// The pick-confirm loop (v3.2.0): the pharmacist presses the front button
+// (KEY1 or its R5.1 mirror SW3) to say "picked this slot". Presses are
+// counted, not just reported live — a master sweeping a whole cabinet polls
+// each module every few seconds while a press lasts ~200 ms, so only the
+// moving counter is reliable. u16, wraps, resets to 0 on boot, RUN mode only.
+constexpr uint16_t MB_REG_BUTTON_PRESSES    = 18;   // debounced presses since boot
+constexpr uint16_t MB_REG_BUTTON_HELD       = 19;   // 1 while the button is held
 
 // --- Sensor group (holding registers, read-only) ---
 constexpr uint16_t MB_REG_ROOM_TEMP         = 20;   // STS40-CD1B, deg C x100; 0x8000 = sensor fault
 constexpr uint16_t MB_REG_BOARD_TEMP        = 21;   // STS40-AD1B, deg C x100; 0x8000 = sensor fault
+constexpr uint16_t MB_REG_INPUT_CURRENT     = 22;   // input current mA (INA180A4/3mOhm on PA6), v3.2.0
 constexpr uint16_t MB_REG_TIME_AFTER_UNLOCK = 40;   // seconds since last unlock
 constexpr uint16_t MB_REG_LATCH_LOCKED      = 41;   // 1 = latch reads locked (debounced), R5.0-new
 
@@ -122,6 +135,11 @@ constexpr uint16_t MB_COIL_LED_1_LATCH      = 1021; // = mbCoilLedLatch(1)
 // Freeze the wire contract: these values are what deployed masters and the
 // control table agree on. Any edit here must be a deliberate map change.
 static_assert(MB_REG_IDENTIFIER == 4,            "wire contract");
+static_assert(MB_REG_UID_BASE == 12,             "wire contract");
+static_assert(MB_REG_UID_BASE + MB_REG_UID_COUNT - 1 == 17, "wire contract");
+static_assert(MB_REG_BUTTON_PRESSES == 18,       "wire contract");
+static_assert(MB_REG_BUTTON_HELD == 19,          "wire contract");
+static_assert(MB_REG_INPUT_CURRENT == 22,        "wire contract");
 static_assert(MB_REG_UPTIME_HI == 5,             "wire contract");
 static_assert(MB_REG_ACTIVE_PRESET == 11,        "wire contract");
 static_assert(MB_REG_LATCH_LOCKED == 41,         "wire contract");

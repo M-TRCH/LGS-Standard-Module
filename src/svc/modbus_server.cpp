@@ -180,11 +180,24 @@ void mbCoilWrite(uint16_t addr, bool value)
 
 void mbSettingsToRegisters()
 {
-    // Identity registers come from compile-time constants so they always
-    // reflect the running build (never stale EEPROM copies).
+    // Identity registers come from compile-time constants and the
+    // silicon-burned UID so they always reflect the running device
+    // (never stale EEPROM copies).
     RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, DEVICE_TYPE);
     RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, FW_VERSION);
     RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, HW_VERSION);
+
+    // Hi word first per 32-bit UID word: hex-concatenating regs 12..17
+    // reproduces exactly the serial the commissioning bench reads over SWD
+    // and records in commission_log.csv — one number, both transports.
+    const uint32_t uidWords[3] = { HAL_GetUIDw0(), HAL_GetUIDw1(), HAL_GetUIDw2() };
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        RTUServer.holdingRegisterWrite(MB_REG_UID_BASE + 2 * i,
+                                       (uint16_t)(uidWords[i] >> 16));
+        RTUServer.holdingRegisterWrite(MB_REG_UID_BASE + 2 * i + 1,
+                                       (uint16_t)uidWords[i]);
+    }
 
     const Settings &s = settings();
     for (const PersistRow &row : kPersistRows)

@@ -14,6 +14,7 @@
 #include "drivers/board_io.h"
 #include "drivers/rs485_port.h"
 #include "drivers/led_ring.h"
+#include "drivers/led_mask.h"
 #include "drivers/temp_sensor.h"
 #include "drivers/oled.h"
 #include "svc/settings.h"
@@ -51,6 +52,7 @@ void appInit()
     // line is never left floating during the (possibly long) blocking switch
     // check below — otherwise the first pixel latches noise and stays green.
     ledInit();
+    maskInit();     // LED-8-Index accessory on PB5; no-op wiring if unfitted
 
     // Load the persisted settings from the AT24 EEPROM (I2C1 bus up first).
     boardI2C1Init();

@@ -21,6 +21,25 @@ bool commissionRead(CommissionBlock *out);
 /*  @brief The block's 32-bit apply-once token, reassembled from its halves. */
 uint32_t commissionToken(const CommissionBlock *b);
 
+/*  @brief The device type this board was commissioned as, or 0 if it never
+ *         was — callers fall back to the compile-time DEVICE_TYPE then.
+ *
+ *  Lives in the AT24 provisioning record, not in Settings: it describes what
+ *  the factory fitted (LED mask vs ring + OLED + big button), so it is set
+ *  once at commissioning and is not a value the bus should be able to change.
+ */
+uint16_t commissionDeviceType();
+
+/*  @brief The type this board actually is: the commissioned one, or the
+ *         compile-time DEVICE_TYPE when it was never commissioned with one.
+ *
+ *  This is what reg 0 reports and what decides which display the board
+ *  drives — a STANDARD cabinet is built with the 8-LED index mask and no
+ *  ring, OLED or big button, so it must not also light a ring that is not
+ *  there (and, on a bench board that has one, must not mirror onto it).
+ */
+uint16_t deviceTypeEffective();
+
 /*  @brief Adopt the ID a host tool patched into the image, if it applies.
  *
  *  Call once at boot, right after settingsInit() and before anything reads

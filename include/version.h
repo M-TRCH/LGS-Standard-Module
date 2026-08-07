@@ -11,8 +11,17 @@
  */
 
 // Device type: 10=STANDARD, 20=NARCOTIC, 30=LITE, 40=DELIVERY
+// Compile-time default only — the real value is set at commissioning and
+// kept in the AT24 provisioning record (see svc/commission.h). It decides
+// which display the board drives, so it has to describe the hardware the
+// factory fitted rather than whatever the image happened to be built with.
+#define DEVICE_TYPE_STANDARD    10
+#define DEVICE_TYPE_NARCOTIC    20
+#define DEVICE_TYPE_LITE        30
+#define DEVICE_TYPE_DELIVERY    40
+
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE     20
+#define DEVICE_TYPE     DEVICE_TYPE_NARCOTIC
 #endif
 
 // Firmware version, semantic: major * 10000 + minor * 100 + patch.
@@ -25,7 +34,7 @@
 // got the wrong answer for a third of the days in a month. Release filenames
 // keep the date as a suffix, where it reads as a date and never as a number.
 #ifndef FW_VERSION
-#define FW_VERSION      30200
+#define FW_VERSION      30300
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include "config.h"
+#include "version.h"
 #include "drivers/eeprom_at24.h"
 #include "svc/settings.h"
 
@@ -38,7 +39,9 @@ const volatile CommissionBlock gCommissionBlock =
     .applyMask  = 0,
     .flags      = 0,
     .identifier = DEFAULT_IDENTIFIER,
-    .crc        = 0x8168,               // over the values above; post_build_check.py
+    .deviceType = DEVICE_TYPE,
+    .reserved   = 0,
+    .crc        = 0xC8B0,               // over the values above; post_build_check.py
                                         // recomputes it and prints the right
                                         // constant if a default ever changes
 };
@@ -63,7 +66,11 @@ struct ProvisioningRecord
     uint16_t version;
     uint16_t size;
     uint32_t token;
-    uint16_t reserved;
+    // Was `reserved`, always written 0 by the memset in writeToken(), so
+    // every board commissioned before this field existed already reads 0 —
+    // which is not a valid device type and therefore means "not recorded,
+    // use the compile-time default". No record version bump, no migration.
+    uint16_t deviceType;
     uint16_t crc;           // CRC16-CCITT over the bytes above
 };
 
@@ -94,33 +101,35 @@ uint16_t crc16(const uint8_t *data, size_t len)
  *  commissioning retries rather than skips. Retrying is the safe direction:
  *  the worst it can do is set an ID that is already set.
  */
-uint32_t storedToken()
+bool readRecord(ProvisioningRecord &r)
 {
-    ProvisioningRecord r;
     if (!at24Read(COMMISSION_AT24_ADDR, (uint8_t *)&r, sizeof(r)))
     {
-        return 0;
+        return false;
     }
     if (r.magic != RECORD_MAGIC || r.version != RECORD_VERSION || r.size != sizeof(r))
     {
-        return 0;
+        return false;
     }
-    if (r.crc != crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc)))
-    {
-        return 0;
-    }
-    return r.token;
+    return r.crc == crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc));
 }
 
-bool writeToken(uint32_t token)
+uint32_t storedToken()
+{
+    ProvisioningRecord r;
+    return readRecord(r) ? r.token : 0;
+}
+
+bool writeRecord(uint32_t token, uint16_t deviceType)
 {
     ProvisioningRecord r;
     memset(&r, 0, sizeof(r));
-    r.magic    = RECORD_MAGIC;
-    r.version  = RECORD_VERSION;
-    r.size     = sizeof(r);
-    r.token    = token;
-    r.crc      = crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc));
+    r.magic      = RECORD_MAGIC;
+    r.version    = RECORD_VERSION;
+    r.size       = sizeof(r);
+    r.token      = token;
+    r.deviceType = deviceType;
+    r.crc        = crc16((const uint8_t *)&r, offsetof(ProvisioningRecord, crc));
     return at24Write(COMMISSION_AT24_ADDR, (const uint8_t *)&r, sizeof(r));
 }
 
@@ -149,6 +158,26 @@ bool commissionRead(CommissionBlock *out)
     {
         return false;
     }
+    // v1 images (32 bytes, ID only) stay valid: their crc sits where v2 keeps
+    // deviceType, so the shorter block is re-read into the right fields and
+    // deviceType left 0 = "not specified". A tool that only knows v1 must
+    // keep working — some of those images are already in the field.
+    if (b.version == 1 && b.size == COMMISSION_BLOCK_SIZE_V1)
+    {
+        CommissionBlock v1;
+        memset(&v1, 0, sizeof(v1));
+        memcpy(&v1, &b, COMMISSION_BLOCK_SIZE_V1);
+        const uint16_t crc = *(const uint16_t *)((const uint8_t *)&b
+                                                 + COMMISSION_BLOCK_SIZE_V1 - 2);
+        if (crc16((const uint8_t *)&b, COMMISSION_BLOCK_SIZE_V1 - 2) != crc)
+        {
+            return false;
+        }
+        v1.deviceType = 0;
+        v1.crc = crc;
+        *out = v1;
+        return true;
+    }
     if (b.version != COMMISSION_VERSION || b.size != sizeof(CommissionBlock))
     {
         return false;
@@ -160,6 +189,26 @@ bool commissionRead(CommissionBlock *out)
 
     *out = b;
     return true;
+}
+
+uint16_t deviceTypeEffective()
+{
+    const uint16_t t = commissionDeviceType();
+    return t ? t : (uint16_t)DEVICE_TYPE;
+}
+
+uint16_t commissionDeviceType()
+{
+    // The commissioned type, or 0 when this board was never told one — the
+    // caller falls back to the compile-time DEVICE_TYPE then. Read straight
+    // from the AT24 record rather than cached in Settings, because it
+    // describes what the factory fitted, not something the bus may change.
+    if (!settingsStorageOk())
+    {
+        return 0;
+    }
+    ProvisioningRecord r;
+    return readRecord(r) ? r.deviceType : 0;
 }
 
 uint32_t commissionToken(const CommissionBlock *b)
@@ -190,7 +239,7 @@ void commissionApplyAtBoot()
     {
         return;                     // nobody patched this image
     }
-    if (!(b.applyMask & COMMISSION_APPLY_ID))
+    if (!(b.applyMask & (COMMISSION_APPLY_ID | COMMISSION_APPLY_DEVICE_TYPE)))
     {
         return;
     }
@@ -210,14 +259,20 @@ void commissionApplyAtBoot()
     // salvaged. That makes a patched image physically incapable of renumbering
     // a live cabinet, which is the failure that would take a site down; FORCE
     // is the operator saying, at the tool, that they mean it.
+    //
+    // This guards the ID only. The device type describes what the factory
+    // fitted, so re-flashing a board that already has an address must still be
+    // able to correct it — gating both behind one flag would mean the only way
+    // to fix a wrong type is to also authorise renumbering a live cabinet.
+    bool wantId = (b.applyMask & COMMISSION_APPLY_ID) != 0;
     if (!(b.flags & COMMISSION_FLAG_FORCE) && settings().identifier != DEFAULT_IDENTIFIER)
     {
-        return;
+        wantId = false;
     }
 
     // 246 is the SET_ID switch mode's own address and 247 means "unset";
     // neither is assignable.
-    if (b.identifier < 1 || b.identifier > 245)
+    if (wantId && (b.identifier < 1 || b.identifier > 245))
     {
         return;
     }
@@ -226,7 +281,7 @@ void commissionApplyAtBoot()
     // "payload first, magic last". A tear here loses only the token, and a
     // lost token means the next boot retries; the reverse order would record
     // "done" over an ID that was never written, with no retry.
-    if (b.identifier != settings().identifier)
+    if (wantId && b.identifier != settings().identifier)
     {
         settingsEdit().identifier = b.identifier;
         if (!settingsSave())
@@ -239,5 +294,21 @@ void commissionApplyAtBoot()
         }
     }
 
-    writeToken(token);
+    // The device type rides in the same record as the token, so it lands in
+    // the very write that marks this image consumed — one page write, no
+    // window where the board is numbered but has forgotten what it is.
+    uint16_t type = 0;
+    if (b.applyMask & COMMISSION_APPLY_DEVICE_TYPE)
+    {
+        type = b.deviceType;
+    }
+    else
+    {
+        ProvisioningRecord existing;      // keep whatever it already knew
+        if (readRecord(existing))
+        {
+            type = existing.deviceType;
+        }
+    }
+    writeRecord(token, type);
 }

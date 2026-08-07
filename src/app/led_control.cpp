@@ -4,6 +4,9 @@
 #include "app/display_control.h"
 #include "app/diag_control.h"
 #include "drivers/led_ring.h"
+#include "drivers/led_mask.h"
+#include "svc/commission.h"
+#include "version.h"
 #include "drivers/eeprom_at24.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
@@ -115,6 +118,34 @@ uint8_t scaledComponent(uint16_t component, uint16_t brightness)
 
 // Apply preset n's configured RGB (from its Modbus register block), scaled
 // by its brightness.
+// A board has one display or the other, never both: STANDARD cabinets are
+// built with the 8-LED index mask and no ring (nor OLED, nor big button),
+// every other type with the ring. Set once at init from the commissioned
+// device type, so a bench board carrying both does not mirror onto the ring
+// a production board will not have.
+bool useMask = false;
+
+// Every display update goes through here, so there is one copy of the rule
+// rather than two device-specific paths through the preset engine. @p index
+// selects which mask pixel (1-8 = that preset's index, 0 = the whole mask,
+// used when there is no preset to point at — identify, or going dark).
+void paintRing(uint32_t color, uint8_t index)
+{
+    if (!useMask)
+    {
+        ledSetAllPixels(0, color);
+        return;
+    }
+    if (index >= 1 && index <= HW_LED_MASK_PIXEL_COUNT)
+    {
+        maskShowIndex(index, color);
+    }
+    else
+    {
+        maskSetAll(color);
+    }
+}
+
 uint32_t presetColorOf(uint8_t n)
 {
     uint16_t base = mbRegLedBase(n);
@@ -131,7 +162,7 @@ uint32_t presetColorOf(uint8_t n)
 
 void applyPresetColor(uint8_t n)
 {
-    ledSetAllPixels(0, presetColorOf(n));
+    paintRing(presetColorOf(n), n);
 }
 
 // Close the active preset's on-interval and clear its state-coil mirrors
@@ -177,7 +208,7 @@ void activatePreset(uint8_t n)
 // Ring off (from the active preset's coil, max-on-time, or a combo-off).
 void deactivate()
 {
-    ledSetAllPixels(0, ledColor(0, 0, 0));
+    paintRing(ledColor(0, 0, 0), 0);
     closeActivePreset();
 }
 
@@ -284,15 +315,17 @@ uint32_t identifyWindowMs = IDENTIFY_DURATION_MS;   // per-activation length
 // its next poll, mid-blink — and an ack that consults live state would
 // finish in the wrong color exactly when the system works best.
 uint32_t identifyOnColor = 0;
+uint8_t identifyMaskIndex = 0;      // frozen with the color, same reason
 bool identifyPhaseOn = false;
 uint32_t identifyLastToggleMs = 0;
 
-void identifyStart(uint32_t windowMs, uint32_t onColor)
+void identifyStart(uint32_t windowMs, uint32_t onColor, uint8_t maskIndex)
 {
     identifyActive = true;
     identifyStartMs = millis();
     identifyWindowMs = windowMs;
     identifyOnColor = onColor;
+    identifyMaskIndex = maskIndex;
     // Reset the phase so the first visible half-period is the ON color —
     // an ack that opens on a dark phase reads as a glitch, not an answer.
     identifyPhaseOn = false;
@@ -305,7 +338,9 @@ void onIdentifyCommand(uint16_t addr, uint16_t value)
     (void)value;
     mbCoilWrite(MB_COIL_IDENTIFY, false);
     const uint8_t w = IDENTIFY_WHITE_LEVEL;
-    identifyStart(IDENTIFY_DURATION_MS, ledColor(w, w, w));
+    // Index 0: "find this module" is about the whole unit, so the mask
+    // blinks entire rather than pointing at one slot.
+    identifyStart(IDENTIFY_DURATION_MS, ledColor(w, w, w), 0);
 }
 
 void identifyOverlayTick(uint32_t now)
@@ -324,7 +359,7 @@ void identifyOverlayTick(uint32_t now)
         }
         else
         {
-            ledSetAllPixels(0, ledColor(0, 0, 0));
+            paintRing(ledColor(0, 0, 0), 0);
         }
         return;
     }
@@ -333,8 +368,8 @@ void identifyOverlayTick(uint32_t now)
     {
         identifyLastToggleMs = now;
         identifyPhaseOn = !identifyPhaseOn;
-        ledSetAllPixels(0, identifyPhaseOn ? identifyOnColor
-                                           : ledColor(0, 0, 0));
+        paintRing(identifyPhaseOn ? identifyOnColor : ledColor(0, 0, 0),
+                  identifyMaskIndex);
     }
 }
 
@@ -408,6 +443,11 @@ uint16_t clampToU16(uint32_t value)
 
 void ledControlInit()
 {
+    // Which display this board has. Read once: it is a fact about the
+    // hardware the factory fitted, settled at commissioning, and re-reading
+    // it per frame would put an EEPROM transaction in the render path.
+    useMask = (deviceTypeEffective() == DEVICE_TYPE_STANDARD);
+
     statsLoad(); // counters + boot count from the AT24 (zeros when blank)
 
     for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
@@ -462,7 +502,8 @@ void ledControlConfirmBlink()
     const uint8_t w = IDENTIFY_WHITE_LEVEL;
     identifyStart(CONFIRM_BLINK_MS,
                   activePreset != 0 ? presetColorOf(activePreset)
-                                    : ledColor(w, w, w));
+                                    : ledColor(w, w, w),
+                  activePreset);
 }
 
 bool ledControlChannelOn()

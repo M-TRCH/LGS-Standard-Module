@@ -28,7 +28,8 @@ BOOT_SLOT = 0x1000                      # app links at this offset (flash_layout
 PAD = 0xFF                              # erased flash
 
 MAGIC = b"LGS-COMMISSION"
-BLOCK_SIZE = 32
+LAYOUTS = {1: 32, 2: 36}                # block version -> size (v2 added deviceType)
+BLOCK_SIZE = LAYOUTS[2]
 RAM_START, RAM_END = 0x20000000, 0x20009000
 APP_ADDR = 0x08001000
 
@@ -54,12 +55,17 @@ def valid_blocks(image: bytes) -> list[int]:
         if i < 0:
             return out
         start = i + 1
-        block = image[i:i + BLOCK_SIZE]
-        if len(block) < BLOCK_SIZE:
+        head = image[i:i + 20]
+        if len(head) < 20:
             continue
-        version, size = struct.unpack_from("<2H", block, 16)
-        crc = struct.unpack_from("<H", block, 30)[0]
-        if version == 1 and size == BLOCK_SIZE and crc16_ccitt(block[:30]) == crc:
+        version, size = struct.unpack_from("<2H", head, 16)
+        if LAYOUTS.get(version) != size:
+            continue
+        block = image[i:i + size]
+        if len(block) < size:
+            continue
+        crc = struct.unpack_from("<H", block, size - 2)[0]
+        if crc16_ccitt(block[:size - 2]) == crc:
             out.append(i)
 
 

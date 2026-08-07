@@ -2,6 +2,7 @@
 #include <ModbusRTUServer.h>
 #include "svc/modbus_map.h"
 #include "svc/settings.h"
+#include "svc/commission.h"
 #include "drivers/rs485_port.h"
 #include "version.h"
 
@@ -183,7 +184,13 @@ void mbSettingsToRegisters()
     // Identity registers come from compile-time constants and the
     // silicon-burned UID so they always reflect the running device
     // (never stale EEPROM copies).
-    RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, DEVICE_TYPE);
+    //
+    // Device type is the one exception, and deliberately so: one image now
+    // serves cabinets the factory builds differently (LED mask, no ring/OLED
+    // /big button vs the full build), and only commissioning knows which
+    // board it is holding. A board never commissioned with a type reports
+    // the compile-time default, so nothing already deployed changes.
+    RTUServer.holdingRegisterWrite(MB_REG_DEVICE_TYPE, deviceTypeEffective());
     RTUServer.holdingRegisterWrite(MB_REG_FW_VERSION, FW_VERSION);
     RTUServer.holdingRegisterWrite(MB_REG_HW_VERSION, HW_VERSION);
 

@@ -56,4 +56,11 @@
 #define HW_EXP2_PIN                    PB5     // SK6812 RGBW extension data (default)
 #define HW_EXP3_PIN                    PA5
 
+// LED-8-Index mask (accessory, 2026-08): 8x SK6812MINI RGBW chained on the
+// expansion header, data on PB5 exactly as reserved above. Worn over the
+// OLED position on Standard-type cabinets; mirrors the active preset
+// (preset n = index n in the preset's color). Harmless to drive unfitted.
+#define HW_LED_MASK_PIN                HW_EXP2_PIN
+#define HW_LED_MASK_PIXEL_COUNT        8
+
 #endif

@@ -32,10 +32,11 @@
 
 #define COMMISSION_MAGIC        "LGS-COMMISSION"    /* 14 chars, stored in char[16] */
 #define COMMISSION_MAGIC_LEN    16
-#define COMMISSION_VERSION      1
+#define COMMISSION_VERSION      2   /* v1 was 32 bytes, no deviceType */
 
 /* applyMask — which values the firmware should adopt. */
-#define COMMISSION_APPLY_ID     0x0001u
+#define COMMISSION_APPLY_ID          0x0001u
+#define COMMISSION_APPLY_DEVICE_TYPE 0x0002u
 
 /* flags */
 #define COMMISSION_FLAG_FORCE   0x0001u  /* also renumber a board that already
@@ -56,10 +57,17 @@ typedef struct
     uint16_t applyMask;     /* COMMISSION_APPLY_* */
     uint16_t flags;         /* COMMISSION_FLAG_* */
     uint16_t identifier;    /* Modbus slave ID to adopt */
+    uint16_t deviceType;    /* v2: 10/20/30/40 — the cabinet variant this
+                             * board was built as. Set at commissioning
+                             * because it describes hardware the factory
+                             * fitted (mask vs ring+OLED), not a preference
+                             * anyone should change over the bus later. */
+    uint16_t reserved;      /* v2: keeps the block even and leaves one slot */
     uint16_t crc;           /* CRC16-CCITT over every byte above */
 } CommissionBlock;
 
-#define COMMISSION_BLOCK_SIZE   32
+#define COMMISSION_BLOCK_SIZE   36
+#define COMMISSION_BLOCK_SIZE_V1 32     /* still accepted: ID-only images */
 #define COMMISSION_CRC_LEN      (COMMISSION_BLOCK_SIZE - 2)  /* all but crc */
 
 /*  0 and 0xFFFFFFFF are reserved: an un-patched image reads 0, and erased

@@ -20,9 +20,11 @@ import sys
 from pathlib import Path
 
 MAGIC_TEXT = b"LGS-COMMISSION"         # the block stores it NUL-padded in char[16]
-BLOCK_SIZE = 32
-CRC_LEN = BLOCK_SIZE - 2               # every byte except the trailing crc
-VERSION = 1
+# v2 added deviceType; v1 images (ID only) are still valid and still flashed,
+# so both layouts are accepted here and by src/svc/commission.cpp.
+LAYOUTS = {1: 32, 2: 36}               # block version -> size in bytes
+BLOCK_SIZE = LAYOUTS[2]
+VERSION = 2
 
 
 def crc16_ccitt(data: bytes) -> int:
@@ -64,15 +66,19 @@ def check(source, target, env):  # noqa: ARG001 — SCons signature
         if i < 0:
             break
         start = i + 1
-        block = data[i:i + BLOCK_SIZE]
-        if len(block) < BLOCK_SIZE:
+        head = data[i:i + 20]
+        if len(head) < 20:
             continue
-        version, size = struct.unpack_from("<2H", block, 16)
-        crc = struct.unpack_from("<H", block, 30)[0]
-        if version != VERSION or size != BLOCK_SIZE:
+        version, size = struct.unpack_from("<2H", head, 16)
+        if LAYOUTS.get(version) != size:
             continue
-        if crc16_ccitt(block[:CRC_LEN]) != crc:
-            near_misses.append((i, crc, crc16_ccitt(block[:CRC_LEN])))
+        block = data[i:i + size]
+        if len(block) < size:
+            continue
+        crc = struct.unpack_from("<H", block, size - 2)[0]
+        want = crc16_ccitt(block[:size - 2])
+        if want != crc:
+            near_misses.append((i, crc, want))
             continue
         candidates.append((i, block))
 
@@ -98,8 +104,10 @@ def check(source, target, env):  # noqa: ARG001 — SCons signature
              "definition moved into a header.")
 
     offset, block = candidates[0]
-    version, size, token_lo, token_hi, apply_mask, flags, identifier, crc = \
-        struct.unpack_from("<8H", block, 16)
+    version, size, token_lo, token_hi, apply_mask, flags, identifier = \
+        struct.unpack_from("<7H", block, 16)
+    device_type = struct.unpack_from("<H", block, 30)[0] if version >= 2 else 0
+    crc = struct.unpack_from("<H", block, size - 2)[0]
     token = (token_hi << 16) | token_lo
 
     if token != 0:
@@ -122,7 +130,7 @@ def check(source, target, env):  # noqa: ARG001 — SCons signature
     # bump, alongside the boot/ISR check platformio.ini already calls for.
     flash_addr = 0x08001000 + offset
     print(f"commissioning block: ok at 0x{offset:06X} (flash 0x{flash_addr:08X}), "
-          f"id={identifier}, crc=0x{crc:04X}")
+          f"v{version}, id={identifier}, type={device_type}, crc=0x{crc:04X}")
 
 
 env.AddPostAction("$BUILD_DIR/firmware.bin", check)  # noqa: F821

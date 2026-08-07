@@ -117,21 +117,32 @@ def main() -> int:
 
     image = boot + bytes([PAD]) * (BOOT_SLOT - len(boot)) + app
 
-    out = args.out
-    if out is None:
-        # Version first, date as a plain suffix — matching the STM32F103
-        # assets, and keeping the date where it reads as a date rather than
-        # as something to compare.
-        out = (ROOT / "assets" /
-               f"firmware_stm32g070_{fw_version()}_factory_{date.today():%Y-%m-%d}.bin")
+    # Version first, date as a plain suffix — matching the STM32F103 assets,
+    # and keeping the date where it reads as a date rather than as something
+    # to compare.
+    stamp = f"{fw_version()}_{date.today():%Y-%m-%d}"
+    out = args.out or (ROOT / "assets" /
+                       f"firmware_stm32g070_{fw_version()}_factory_"
+                       f"{date.today():%Y-%m-%d}.bin")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(image)
+
+    # A release needs BOTH images and they are easy to confuse, so this
+    # writes both rather than leaving the second to whoever remembers.
+    # v3.1.0 and v3.2.0 shipped with only the factory image and no way to
+    # OTA them at all — the gap went unnoticed until someone needed it.
+    ota_out = out.parent / f"firmware_stm32g070_{stamp}.bin"
+    ota_out.write_bytes(app)
 
     print(f"boot {len(boot):>6} B  (padded to {BOOT_SLOT})")
     print(f"app  {len(app):>6} B  (commissioning block at 0x{blocks[0]:05X})")
     print(f"->   {len(image):>6} B  {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out}")
-    print(f"sha256 {hashlib.sha256(image).hexdigest()}")
-    print("Flash at 0x08000000.")
+    print(f"     sha256 {hashlib.sha256(image).hexdigest()}")
+    print(f"     first install over ST-Link, flash at 0x08000000")
+    print(f"->   {len(app):>6} B  {ota_out.relative_to(ROOT) if ota_out.is_relative_to(ROOT) else ota_out}")
+    print(f"     sha256 {hashlib.sha256(app).hexdigest()}")
+    print(f"     OTA over RS485 (tools/ota_sender.py, Test Tool Firmware tab)")
+    print("Attach both to the release.")
     return 0
 
 

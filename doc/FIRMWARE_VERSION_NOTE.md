@@ -4,8 +4,9 @@
 
 ## v3.2.0 / FW 30200 (2026-08-06) — รองรับบอร์ด R5.1
 
-> factory image: `assets/firmware_stm32g070_v3.2.0_factory_2026-08-06.bin` (65,136 B, sha256 7972a50a…c2bb4d)
-> app 61,040 B (เพดาน linker 61,440 / slot จริง 63,488)
+> ติดตั้งครั้งแรกผ่าน ST-Link (flash 0x08000000): `assets/firmware_stm32g070_v3.2.0_factory_2026-08-06.bin` (65,136 B, sha256 7972a50a…c2bb4d)
+> **OTA ผ่าน RS485**: `assets/firmware_stm32g070_v3.2.0_2026-08-06.bin` (61,040 B, sha256 d0a27512…4b38) — app ล้วน ลิงก์ที่ 0x1000
+> เพดาน linker 61,440 / slot จริง 63,488
 
 ### Compatibility
 - **image เดียวรันทั้ง R5.0 และ R5.1** — ปุ่ม SW3 (PC13) บน R5.0 ไม่เดินสาย firmware เปิด internal pull-up ให้เงียบสนิท
@@ -20,7 +21,8 @@
 
 ## v3.1.0 / FW 30100 (2026-08-04) — commissioning ผ่าน ST-Link ครั้งเดียวจบ
 
-> factory image: `assets/firmware_stm32g070_v3.1.0_factory_2026-08-04.bin` (62,380 B, sha256 e6aebd54…9f4579)
+> ติดตั้งครั้งแรกผ่าน ST-Link: `assets/firmware_stm32g070_v3.1.0_factory_2026-08-04.bin` (62,380 B, sha256 e6aebd54…9f4579)
+> **OTA ผ่าน RS485**: `assets/firmware_stm32g070_v3.1.0_2026-08-04.bin` (58,284 B, sha256 aa10c47c…5a79)
 
 - **commissioning block** ในภาพเฟิร์มแวร์: LGS Test Tool ปะ Modbus ID + token ลงไฟล์ก่อน flash ผ่าน ST-Link — บอร์ดตอบที่ ID นั้นตั้งแต่บูตแรกโดยไม่ต้องต่อ RS485 · apply-once ด้วย token บน AT24 (offset 256) · ไม่ติ๊ก overwrite จะไม่มีวันเปลี่ยน ID บอร์ดที่ตั้งค่าแล้ว
 - **reg 1 เปลี่ยนเป็น semantic version** (`major×10000+minor×100+patch`, 30100 = v3.1.0) แทนรหัสวันที่ ddmmy ที่เทียบมากน้อยไม่ได้

@@ -21,6 +21,7 @@
 #include "svc/commission.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
+#include "svc/stats.h"
 
 // ---------------------------------------------------------------------------
 // Internal helpers (module-private)
@@ -60,6 +61,10 @@ void appInit()
     // Adopt an ID patched into the image over SWD, before anything below
     // reads settings().identifier. No-op on a normal build (see svc/commission).
     commissionApplyAtBoot();
+    // Load the lifetime statistics (no writes — EEPROM or registers — here:
+    // this boot is counted later by statsBootCommit, once the reset cause
+    // is known and the Modbus registers exist).
+    statsInit();
     tempSensorInit();
 
     // Bring up the OLED (independent I2C2 bus) BEFORE the mode selector so it
@@ -98,6 +103,10 @@ void appInit()
     servoControlInit();
     otaControlInit();
     diagControlInit(oledReady, (uint8_t)functionMode);
+    // Count this boot in ONE EEPROM write, now that diagControlInit has
+    // reported the reset cause (IWDG boots ride the same write) and the
+    // registers exist for the count to land in.
+    diagSetBootCount(statsBootCommit());
     mbWatchSeedShadows();
 
     // Start the independent watchdog LAST — after the (up to 15s) blocking
@@ -369,6 +378,7 @@ static void runNormalMode()
         {
             btnPresses++;
             mbRegWrite(MB_REG_BUTTON_PRESSES, btnPresses);
+            statsNotePress(); // lifetime counter, RUN-mode presses only
             ledControlConfirmBlink();
         }
     }

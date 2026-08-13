@@ -152,10 +152,12 @@ board.h + vendor lib, ฟังก์ชัน prefix ชื่อ module
 | **+ OTA: bootloader (แยก)** | — | **932 B / slot 4,096** |
 | + commissioning block + semver (v3.1.0) | 4,788 B | 58,080 B |
 | + v3.2.0 (SW3 + input current + UID + ปุ่มยืนยันหยิบ) | 4,800 B | **61,040 B / เพดาน 61,440** ⚠ เหลือ 400 B |
+| + bare-metal ADC + device type + LED-8 mask (WIP v3.3.0) | 4,840 B | 59,656 B — ADC→CMSIS คืนพื้นที่ ~2.5 KB ตามแผนด้านล่าง |
+| + svc/stats: ตัวนับใหม่ + Statistics v2 (400-451) | 4,880 B | **59,996 B / เพดาน 61,440** เหลือ 1,444 B |
 
 หมายเหตุ v3.2.0: ก้อนใหญ่คือ HAL ADC ที่ `analogRead()` ครั้งแรกลากเข้ามา (~2.5 KB
-รวม init+calibration) — ฟีเจอร์ถัดไปที่กิน flash ต้องพิจารณาย้าย ADC ไป LL/register
-โดยตรง (คืนได้ ~2 KB) หรือเริ่ม Tier ลดขนาดรอบใหม่ · slot จริงของ app คือ 63,488 B
+รวม init+calibration) — **แลกไปแล้วใน WIP v3.3.0** (`board_io.cpp` คุย ADC ตรงผ่าน
+CMSIS register) · slot จริงของ app คือ 63,488 B
 (0x1000–0x10800) — เพดาน 61,440 ของ linker เป็นกันชนที่ตั้งใจเผื่อไว้
 
 หมายเหตุ OTA era: ตัด legacy importer + EEPROM emulation คืน RAM 2,080B; ตัวเลข %

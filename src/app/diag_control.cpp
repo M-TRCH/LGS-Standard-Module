@@ -6,6 +6,7 @@
 #include "svc/settings.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
+#include "svc/stats.h"
 
 namespace {
 
@@ -46,6 +47,7 @@ void diagControlInit(bool oledPresent, uint8_t functionMode)
     if (csr & RCC_CSR_OBLRSTF)  cause |= 1u << 6;
     RCC->CSR |= RCC_CSR_RMVF;
     mbRegWrite(MB_REG_RESET_CAUSE, cause);
+    statsNoteResetCause(cause); // IWDG boots feed the lifetime counter
 
     mbRegWrite(MB_REG_FUNCTION_MODE, functionMode);
     publishHealth();

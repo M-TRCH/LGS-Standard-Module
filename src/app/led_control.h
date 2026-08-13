@@ -8,8 +8,9 @@
  *         radio switching, Modbus enable/latch coil families, per-preset
  *         config application, max-on-time enforcement and statistics.
  *
- *  Owns all LED runtime state (active preset, counters, on-time
- *  accumulators). The pixel-level work is delegated to drivers/led_ring.
+ *  Owns the LED runtime state (active preset, in-flight on-interval).
+ *  Counter storage and register publication live in svc/stats; the
+ *  pixel-level work is delegated to drivers/led_ring.
  */
 
 /*  @brief Register the Modbus handlers (enable coils 1001-1008, LED-latch

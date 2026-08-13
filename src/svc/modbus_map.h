@@ -98,6 +98,23 @@ constexpr uint16_t MB_REG_OTA_COMMIT         = 357; // W: tx-counter commit (fir
 constexpr uint16_t MB_REG_OTA_BITMAP_FIRST   = 360; // RO: received bitmap, 30 regs = 480 bits
 constexpr uint16_t MB_REG_OTA_BITMAP_LAST    = 389;
 
+// --- Statistics v2 (holding registers, read-only, fw >= v3.3.0) ---
+// True u32 values of the lifetime counters, hi word first within each pair
+// (uptime/UID convention) — the legacy group 200-281 stays clamped at 65535
+// for old masters. Older firmware answers reads here with exception 02
+// (ILLEGAL DATA ADDRESS): that is the "unsupported" signal the Test Tool
+// keys on, so this block must be read as its own transaction.
+constexpr uint16_t MB_REG_S2_TOTAL_ON_CNT_HI  = 400;  // 401 = lo
+constexpr uint16_t MB_REG_S2_TOTAL_ON_TIME_HI = 402;  // 403 = lo, seconds
+constexpr uint16_t MB_REG_S2_LATCH_FIRES_HI   = 404;  // 405 = lo, solenoid energizations
+constexpr uint16_t MB_REG_S2_BTN_PRESSES_HI   = 406;  // 407 = lo, lifetime RUN-mode presses
+constexpr uint16_t MB_REG_S2_OP_SECONDS_HI    = 408;  // 409 = lo, lifetime operating seconds
+constexpr uint16_t MB_REG_S2_IWDG_RESETS      = 410;  // u16, saturating
+// 411-419 reserved (read as 0)
+constexpr uint16_t mbRegS2OnCounterHi(uint16_t n) { return 420 + 4 * (n - 1); } // n=1..8, +1 = lo
+constexpr uint16_t mbRegS2OnTimeHi(uint16_t n)    { return 422 + 4 * (n - 1); } // +1 = lo
+constexpr uint16_t MB_REG_S2_LAST             = 451;
+
 // --- Operation group (coils) ---
 constexpr uint16_t MB_COIL_FACTORY_RESET                 = 500;
 constexpr uint16_t MB_COIL_APPLY_FACTORY_RESET_EXCEPT_ID = 501;
@@ -161,6 +178,12 @@ static_assert(MB_REG_OTA_STATE == 282,           "wire contract");
 static_assert(MB_REG_OTA_DATA_LAST - MB_REG_OTA_DATA_FIRST + 1 == 64, "128-byte chunk window");
 static_assert(MB_REG_OTA_COMMIT == 357,          "wire contract");
 static_assert(MB_REG_OTA_BITMAP_LAST == 389,     "wire contract");
+static_assert(MB_REG_S2_TOTAL_ON_CNT_HI == 400,  "wire contract");
+static_assert(MB_REG_S2_IWDG_RESETS == 410,      "wire contract");
+static_assert(mbRegS2OnCounterHi(1) == 420,      "wire contract");
+static_assert(mbRegS2OnCounterHi(8) == 448,      "wire contract");
+static_assert(mbRegS2OnTimeHi(8) == 450,         "wire contract");
+static_assert(MB_REG_S2_LAST == 451,             "wire contract");
 static_assert(MB_COIL_WRITE_TO_EEPROM == 503,    "wire contract");
 static_assert(MB_COIL_OTA_ENTER == 505,          "wire contract (legacy OTA coil)");
 static_assert(MB_COIL_OTA_ABORT == 508,          "wire contract");

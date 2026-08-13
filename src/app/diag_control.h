@@ -30,7 +30,8 @@ void diagControlTick(uint32_t now);
  *         drops; one success recovers both. */
 void diagReportSensor(uint8_t idx, bool ok);
 
-/*  @brief Boot counter feed (owned by the stats blob in led_control). */
+/*  @brief Boot counter feed (owned by svc/stats; appInit routes
+ *         statsBootCommit()'s return value here). */
 void diagSetBootCount(uint16_t count);
 
 #endif // APP_DIAG_CONTROL_H

@@ -90,7 +90,7 @@
 // fails to reset the ID. Keeping it separate also avoids a schema bump and
 // the migration every fielded board would have to survive.
 //
-// 256 is clear of both neighbours (settings 0-95, stats 128-203) and is
+// 256 is clear of both neighbours (settings 0-95, stats 128-219) and is
 // 32-aligned, so the 16-byte record lands in a single AT24 page write: there
 // is no multi-chunk tear window inside the record at all.
 #define COMMISSION_AT24_ADDR        256

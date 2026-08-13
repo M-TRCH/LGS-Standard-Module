@@ -150,6 +150,23 @@ for _n in range(1, 9):
         REGISTERS.append((100 + 10 * _n + _k, f"Preset {_n} {_fname}", _funit, dec_plain))
     REGISTERS.append((200 + 10 * _n, f"Preset {_n} On Count", "", dec_plain))
     REGISTERS.append((201 + 10 * _n, f"Preset {_n} On Time", "s", dec_plain))
+
+# Statistics v2 (400-451, fw >= v3.3.0): true u32 pairs, hi word first.
+# Older firmware answers exception 02 here - the sweep records that as the
+# expected "unsupported" signal, not a failure.
+for _addr, _sname, _sunit in [
+    (400, "S2 Total On Count", ""), (402, "S2 Total On Time", "s"),
+    (404, "S2 Latch Fires", ""), (406, "S2 Button Presses", ""),
+    (408, "S2 Operating Seconds", "s"),
+]:
+    REGISTERS.append((_addr, f"{_sname} (hi)", _sunit, dec_plain))
+    REGISTERS.append((_addr + 1, f"{_sname} (lo)", _sunit, dec_plain))
+REGISTERS.append((410, "S2 IWDG Reset Count", "", dec_plain))
+for _n in range(1, 9):
+    REGISTERS.append((420 + 4 * (_n - 1), f"S2 Preset {_n} On Count (hi)", "", dec_plain))
+    REGISTERS.append((421 + 4 * (_n - 1), f"S2 Preset {_n} On Count (lo)", "", dec_plain))
+    REGISTERS.append((422 + 4 * (_n - 1), f"S2 Preset {_n} On Time (hi)", "s", dec_plain))
+    REGISTERS.append((423 + 4 * (_n - 1), f"S2 Preset {_n} On Time (lo)", "s", dec_plain))
 REGISTERS.sort(key=lambda r: r[0])
 
 # Coils (FC01 read / FC05 write). danger: excluded from every write path.
@@ -499,13 +516,31 @@ def phase_validate(client, unit, loop, writer, stats):
     _check(c509 == 0, "coil 509 Identify accepted + self-cleared (ring blinks WHITE ~5s)",
            writer, loop, "VALIDATE", 1, 509, "Identify", c509, 0, stats)
 
-    # -- coil 510 Clear Statistics: counters read zero afterwards
+    # -- coil 510 Clear Statistics: counters read zero afterwards.
+    #    On fw >= v3.3.0 the v2 block (latch fires 404/405, presses 406/407,
+    #    per-preset 420+) must clear too while Boot Count (reg 7) survives.
+    boots_before = _read_reg_val(client, 7, unit)
     write_coil(client, 510, 1, unit); time.sleep(0.5)
     rb210 = _read_reg_val(client, 210, unit)
     rb200 = _read_reg_val(client, 200, unit)
     _check(rb210 == 0 and rb200 == 0,
            f"coil 510 cleared the statistics (210={rb210}, 200={rb200})",
            writer, loop, "VALIDATE", 3, 210, "LED 1 On Count", rb210, 0, stats)
+    rb404 = _read_reg_val(client, 404, unit)
+    rb405 = _read_reg_val(client, 405, unit)
+    rb406 = _read_reg_val(client, 406, unit)
+    rb407 = _read_reg_val(client, 407, unit)
+    rb420 = _read_reg_val(client, 420, unit)
+    boots_after = _read_reg_val(client, 7, unit)
+    if rb404 is None:
+        print("  (fw < v3.3.0: no Statistics v2 block - exception 02 as expected, skipping)")
+    else:
+        _check(rb404 == 0 and rb405 == 0 and rb406 == 0 and rb407 == 0 and rb420 == 0,
+               f"coil 510 cleared Statistics v2 (404/405={rb404}/{rb405}, 406/407={rb406}/{rb407}, 420={rb420})",
+               writer, loop, "VALIDATE", 3, 404, "S2 Latch Fires", rb404, 0, stats)
+        _check(boots_after == boots_before,
+               f"coil 510 kept Boot Count (before={boots_before}, after={boots_after})",
+               writer, loop, "VALIDATE", 3, 7, "Boot Count", boots_after, boots_before, stats)
 
     # -- persist-path validation (reg 3 garbage, reg 4=246, preset clamp):
     #    needs coil 503 = persist + REBOOT. Two reboots total (test + restore).

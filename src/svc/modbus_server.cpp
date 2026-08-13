@@ -13,11 +13,12 @@
 namespace {
 
 // R5.0 map: coils end at the latch+display combos (1031-1038), registers at
-// the per-preset stats (281) plus documented reserve. Addresses outside the
-// model raise Modbus exceptions.
+// the Statistics-v2 block (451). Addresses outside the model raise Modbus
+// exceptions — which is exactly how a v3.2.0 master learns this firmware
+// has no 400+ block, so the ceiling is part of the wire contract.
 constexpr uint16_t COIL_NUM             = 1040;
 constexpr uint16_t DISCRETE_INPUT_NUM   = 1;
-constexpr uint16_t HOLDING_REGISTER_NUM = 400;
+constexpr uint16_t HOLDING_REGISTER_NUM = MB_REG_S2_LAST + 1;   // = 452
 constexpr uint16_t INPUT_REGISTER_NUM   = 1;
 
 ModbusRTUServerClass RTUServer;

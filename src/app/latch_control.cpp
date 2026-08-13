@@ -4,6 +4,7 @@
 #include "drivers/board_io.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
+#include "svc/stats.h"
 
 // ---------------------------------------------------------------------------
 // Pulse state machine
@@ -169,6 +170,8 @@ void latchControlTick(uint32_t now)
                 {
                     pulseStartMs = now;
                     boardLatchMosfetSet(true);
+                    statsNoteLatchFire(); // the one true-energize point
+
                     // Hardware backstop: a timer ISR forces the MOSFET low at
                     // the hard cap even if the loop stalls inside a long Modbus
                     // poll — the 500ms solenoid limit must not depend on tick

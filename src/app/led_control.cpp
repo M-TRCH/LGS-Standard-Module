@@ -2,14 +2,13 @@
 #include "config.h"
 #include "app/latch_control.h"
 #include "app/display_control.h"
-#include "app/diag_control.h"
 #include "drivers/led_ring.h"
 #include "drivers/led_mask.h"
 #include "svc/commission.h"
 #include "version.h"
-#include "drivers/eeprom_at24.h"
 #include "svc/modbus_map.h"
 #include "svc/modbus_server.h"
+#include "svc/stats.h"
 #include "util/periodic_timer.h"
 #include <string.h>
 
@@ -28,82 +27,11 @@ namespace {
 
 uint8_t activePreset = 0;                       // 0 = off, 1-8 = active preset
 uint32_t onSinceMs = 0;                         // millis() when the ring turned on (0 = off)
-uint32_t onCount[MB_LED_PRESET_COUNT] = {};     // per-preset on transitions
-uint32_t onTimeS[MB_LED_PRESET_COUNT] = {};     // per-preset accumulated on-time (whole seconds)
 uint16_t onTimeMsFrac[MB_LED_PRESET_COUNT] = {}; // sub-second remainder (<1000 ms)
 
-// --- Persistent statistics (AT24 @ STATS_AT24_ADDR) -----------------------
-// Survives reboots/OTA; flushed hourly and before every commanded reset.
-// A missing/corrupt blob just starts the counters (and boot count) at zero.
-
-struct StatsBlob
-{
-    uint32_t magic;                             // 'LGSS'
-    uint16_t bootCount;
-    uint16_t reserved;
-    uint32_t onCount[MB_LED_PRESET_COUNT];
-    uint32_t onTimeS[MB_LED_PRESET_COUNT];
-    uint16_t crc;                               // CRC16-CCITT over magic..onTimeS
-};
-constexpr uint32_t STATS_MAGIC = 0x4C475353;    // 'LGSS'
-
-uint16_t bootCount = 0;
-StatsBlob persistedStats = {};                  // change-detection cache
-
-uint16_t statsCrc16(const uint8_t *p, size_t len)
-{
-    uint16_t crc = 0xFFFF;
-    while (len--)
-    {
-        crc ^= (uint16_t)(*p++) << 8;
-        for (uint8_t bit = 0; bit < 8; bit++)
-        {
-            crc = (crc & 0x8000) ? (uint16_t)((crc << 1) ^ 0x1021) : (uint16_t)(crc << 1);
-        }
-    }
-    return crc;
-}
-
-void statsFill(StatsBlob &b)
-{
-    b.magic = STATS_MAGIC;
-    b.bootCount = bootCount;
-    b.reserved = 0;
-    memcpy(b.onCount, onCount, sizeof(onCount));
-    memcpy(b.onTimeS, onTimeS, sizeof(onTimeS));
-    b.crc = statsCrc16((const uint8_t *)&b, offsetof(StatsBlob, crc));
-}
-
-void statsPersistIfChanged()
-{
-    StatsBlob b;
-    statsFill(b);
-    if (memcmp(&b, &persistedStats, sizeof(b)) == 0)
-    {
-        return; // unchanged: spare the EEPROM the write cycle
-    }
-    if (at24Write(STATS_AT24_ADDR, (const uint8_t *)&b, sizeof(b)))
-    {
-        persistedStats = b;
-    }
-}
-
-void statsLoad()
-{
-    StatsBlob b;
-    if (at24Read(STATS_AT24_ADDR, (uint8_t *)&b, sizeof(b)) &&
-        b.magic == STATS_MAGIC &&
-        b.crc == statsCrc16((const uint8_t *)&b, offsetof(StatsBlob, crc)))
-    {
-        bootCount = b.bootCount;
-        memcpy(onCount, b.onCount, sizeof(onCount));
-        memcpy(onTimeS, b.onTimeS, sizeof(onTimeS));
-    }
-    // Count this boot and persist right away (one small write per boot).
-    bootCount++;
-    diagSetBootCount(bootCount);
-    statsPersistIfChanged();
-}
+// Storage and publication of the counters moved to svc/stats (v3.3.0): this
+// module keeps only the in-flight interval state above and reports whole
+// seconds / on-transitions into the stats service as they happen.
 
 // Scale a color component register (0-255) by the brightness register
 // (0-100 percent), clamping out-of-range register values.
@@ -178,7 +106,7 @@ void closeActivePreset()
         // Accumulate in whole seconds + a <1s remainder, so lifetime totals
         // never overflow the way a u32 millisecond sum would (~49.7 days).
         uint32_t deltaMs = (millis() - onSinceMs) + onTimeMsFrac[activePreset - 1];
-        onTimeS[activePreset - 1] += deltaMs / 1000;
+        statsAddOnTime(activePreset, deltaMs / 1000);
         onTimeMsFrac[activePreset - 1] = (uint16_t)(deltaMs % 1000);
         onSinceMs = 0;
     }
@@ -201,7 +129,7 @@ void activatePreset(uint8_t n)
     closeActivePreset();
     applyPresetColor(n);
     activePreset = n;
-    onCount[n - 1]++;
+    statsNoteLedOn(n);
     onSinceMs = millis();
 }
 
@@ -430,11 +358,6 @@ void onGlobalMaxOnTimeChange(uint16_t addr, uint16_t value)
     }
 }
 
-uint16_t clampToU16(uint32_t value)
-{
-    return (value > 65535) ? 65535 : (uint16_t)value;
-}
-
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -447,8 +370,6 @@ void ledControlInit()
     // hardware the factory fitted, settled at commissioning, and re-reading
     // it per frame would put an EEPROM transaction in the render path.
     useMask = (deviceTypeEffective() == DEVICE_TYPE_STANDARD);
-
-    statsLoad(); // counters + boot count from the AT24 (zeros when blank)
 
     for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
     {
@@ -472,7 +393,7 @@ void ledControlPersistStats()
     {
         uint32_t nowMs = millis();
         uint32_t deltaMs = (nowMs - onSinceMs) + onTimeMsFrac[activePreset - 1];
-        onTimeS[activePreset - 1] += deltaMs / 1000;
+        statsAddOnTime(activePreset, deltaMs / 1000);
         onTimeMsFrac[activePreset - 1] = (uint16_t)(deltaMs % 1000);
         onSinceMs = nowMs;
     }
@@ -481,14 +402,12 @@ void ledControlPersistStats()
 
 void ledControlClearStats()
 {
-    memset(onCount, 0, sizeof(onCount));
-    memset(onTimeS, 0, sizeof(onTimeS));
     memset(onTimeMsFrac, 0, sizeof(onTimeMsFrac));
     if (onSinceMs != 0)
     {
         onSinceMs = millis(); // restart the in-flight interval from zero
     }
-    statsPersistIfChanged();
+    statsClearUsage();
 }
 
 void ledControlConfirmBlink()
@@ -533,19 +452,8 @@ void ledControlTick(uint32_t now)
         }
     }
 
-    // Publish statistics (clamped to uint16 range, seconds truncated)
-    uint32_t totalCount = 0;
-    uint32_t totalTimeS = 0;
-    for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
-    {
-        uint32_t timeS = onTimeS[n - 1];
-        mbRegWrite(mbRegLedOnCounter(n), clampToU16(onCount[n - 1]));
-        mbRegWrite(mbRegLedOnTime(n), clampToU16(timeS));
-        totalCount += onCount[n - 1];
-        totalTimeS += timeS;
-    }
-    mbRegWrite(MB_REG_TOTAL_LED_ON_CNT, clampToU16(totalCount));
-    mbRegWrite(MB_REG_TOTAL_LED_ON_TIME, clampToU16(totalTimeS));
+    // Publish statistics: legacy clamped 200-281 + Statistics-v2 400-451.
+    statsPublishRegisters(now);
 
     // Hourly flush to the AT24 (writes only when something changed); a
     // flush also runs before every commanded reset via opsSystemReset.

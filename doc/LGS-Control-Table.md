@@ -125,6 +125,25 @@
 | 290 | Display On Count | R | 0 | 0-65535 | times | | | | ✗ |
 | 291 | Display Runtime | R | 0 | 0-65535 | sec | | | | ✗ |
 
+## Statistics v2 (Holding Registers 400–451, u32 hi/lo — fw ≥ v3.3.0, R5.0 เท่านั้น)
+
+ค่าจริงแบบ u32 ของตัวนับสะสมตลอดชีพ (กลุ่ม 200–281 ยัง clamp ที่ 65535 เพื่อ master เก่า) —
+ทุกคู่เรียง **hi word ก่อน** ตามธรรมเนียม uptime/UID. เฟิร์มแวร์เก่ากว่า v3.3.0 ตอบการอ่านช่วงนี้ด้วย
+exception 02 (ILLEGAL DATA ADDRESS) — เป็นสัญญาณ "ไม่รองรับ" ที่เครื่องมือใช้ตรวจ ดังนั้นต้องอ่านบล็อกนี้
+แยก transaction จากกลุ่มอื่น (FC03 @400 count 52 อ่านได้ครบในครั้งเดียว)
+
+| Addr | Data Name | Access | Unit | ความหมาย |
+|---:|---|---|---|---|
+| 400–401 | Total Light On Count (u32) | R | times | รวมทุก preset |
+| 402–403 | Total Light Runtime (u32) | R | sec | รวมทุก preset |
+| 404–405 | Latch Fire Count (u32) | R | times | จำนวนจ่ายไฟโซลินอยด์จริง (นับที่จุด MOSFET on — คำขอที่ถูก Safety ปฏิเสธไม่นับ; pulse ในโหมด DEMO นับด้วย เพราะเป็น odometer การสึก) |
+| 406–407 | Button Press Count (u32) | R | times | ยอดกดปุ่ม pick-confirm สะสมตลอดชีพ (นับเฉพาะโหมด RUN เหมือน reg 18; reg 18 ยังเป็นตัวนับตั้งแต่บูตเช่นเดิม) |
+| 408–409 | Operating Seconds (u32) | R | sec | เวลาทำงานสะสมตลอดชีพ (เลขไมล์ของบอร์ด) |
+| 410 | IWDG Reset Count | R | times | จำนวนบูตที่เกิดจาก watchdog (saturate ที่ 65535) |
+| 411–419 | *(สำรอง)* | R | | อ่านได้ 0 |
+| 420–423 | Light 1 On Count / Runtime (u32×2) | R | | preset 1: count hi/lo, runtime hi/lo |
+| 424–451 | Light 2–8 On Count / Runtime | R | | preset n: 420+4(n−1) … — สูตรเดียวกันทุกตัว |
+
 ## Control (Coils, 1 bit)
 
 | Addr | Data Name | Access | Initial | Range | R4.0 | R4.0.1 | R4.3 | R5.0 |
@@ -162,7 +181,7 @@ Flow: metadata → coil 505 (erase staging ~1s) → stream chunks (broadcast, �
 
 - **Validation บน wire**: reg 80 เกิน 8000 → clamp เป็น 8000 + สะท้อนทันที; reg 190 เกิน 100 → clamp เป็น 100 + fan-out ค่าที่ clamp; config preset (110-184) ถูก clamp เข้าช่วง (brightness ≤100, RGB ≤255) ตอน persist และ register สะท้อนค่า clamp; **coil 500 ที่เขียนโดยไม่มี 501/502 จะถูกเคลียร์ทิ้ง** (ไม่ค้างเป็นคำสั่งติดอาวุธ)
 - **Sensor fault**: reg 20/21 แสดง **0x8000** เมื่ออ่านเซนเซอร์ล้มเหลวติดกัน ≥3 ครั้ง (แทนการค้างค่าสุดท้ายเงียบๆ) — กลับปกติเมื่ออ่านสำเร็จ
-- **สถิติ (200-281) persist แล้ว**: เก็บบน AT24 — flush รายชั่วโมง + ก่อน reset ที่สั่งผ่านบัสทุกแบบ (ไฟดับกะทันหันเสียแค่เศษชั่วโมงสุดท้าย); ล้างด้วย coil 510 หรือ factory reset
+- **สถิติ persist แล้ว (200-281 + 400-451, blob v2 ตั้งแต่ fw v3.3.0)**: เก็บบน AT24 — flush รายชั่วโมง (ตั้งแต่ v3.3.0 เขียนทุกชั่วโมงเสมอเพราะ Operating Seconds เดินตลอด — ~9k ครั้ง/ปี เทียบความทน 1M รอบ) + ก่อน reset ที่สั่งผ่านบัสทุกแบบ (ไฟดับกะทันหันเสียแค่เศษชั่วโมงสุดท้าย); อัปเกรดจาก v3.2.0 คงตัวเลขเดิมอัตโนมัติ (import blob v1); **coil 510 / factory reset ล้างตัวนับการใช้งานทั้งหมดรวม 400-451 และ IWDG count — เหลือเฉพาะ Boot Count (reg 7)**
 
 - **Trig Latch (1019/1020/1021–1028/1031–1038)**: การปลดล็อกเป็นแบบ non-blocking — ระหว่าง pulse บัส Modbus ยังตอบสนอง และ coil อ่านค่า 1 จนกว่า pulse จะเสร็จจึงถูกเคลียร์; คำขอที่ถูกปฏิเสธ (ยังอยู่ในช่วง cooldown 2000ms) coil ถูกเคลียร์ทันที
 - **ข้อจำกัดความปลอดภัยกลอน (ใช้กับทั้ง Force และ Safety)**: pulse สูงสุด 500ms (เพดานถูกบังคับซ้ำด้วย hardware timer guard), ระยะห่างระหว่างการปลดล็อกขั้นต่ำ 2000ms (นับจากจุดเริ่ม pulse), delay ก่อนปลดล็อกตาม reg 80

@@ -34,10 +34,11 @@ void rs485PortBegin(uint32_t baud)
     // master (a module answers again within a second) but every lit slot
     // went dark, which is a pick disappearing under the pharmacist's hand.
     //
-    // The timeout must still exceed the wire time of the LARGEST legitimate
-    // frame, or full-size frames (the 145-byte OTA chunks) would be
-    // abandoned half-read: max ADU 256 B = 2560 bits, plus half again as
-    // margin and a fixed 50 ms for scheduling.
-    const uint32_t wireMs = (256UL * 10UL * 1000UL) / baud;
-    rs485.setTimeout(wireMs + (wireMs / 2) + 50UL);
+    // Since modbusServerTick() only polls after the RTU frame gap, every
+    // byte of a complete frame is already in the ring when the library
+    // reads — so this timeout is no longer the assembly budget, only a
+    // backstop for the wreckage of a cut frame. Keep it just wide enough
+    // to cover a few characters of scheduling jitter.
+    const uint32_t charMs = (8UL * 10UL * 1000UL + baud - 1) / baud;
+    rs485.setTimeout(charMs + 20UL);
 }

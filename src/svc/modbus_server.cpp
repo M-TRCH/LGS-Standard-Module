@@ -23,6 +23,14 @@ constexpr uint16_t INPUT_REGISTER_NUM   = 1;
 
 ModbusRTUServerClass RTUServer;
 
+// Frame-gap state for modbusServerTick(): how long the line must be quiet
+// before a frame counts as complete, what the ring held at the last look,
+// when it last changed, and how many gaps a leftover has survived.
+uint16_t _frameGapMs = 4;
+int      _rxSeen = 0;
+uint32_t _rxSince = 0;
+uint8_t  _rxStale = 0;
+
 // --- Persist table: R/W(F) register <-> Settings field ---
 struct PersistRow
 {
@@ -117,14 +125,75 @@ void modbusServerInit(uint16_t slaveId, uint32_t baud)
     RTUServer.configureDiscreteInputs(0x00, DISCRETE_INPUT_NUM);
     RTUServer.configureHoldingRegisters(0x00, HOLDING_REGISTER_NUM);
     RTUServer.configureInputRegisters(0x00, INPUT_REGISTER_NUM);
+
+    // 3.5 character times, the silence that ends an RTU frame: 8N1 is 10
+    // bits per character, so 35 bit-times, rounded up and never below 2 ms
+    // (the tick samples in whole milliseconds).
+    _frameGapMs = (uint16_t)((35000UL + baud - 1) / baud) + 1;
+    if (_frameGapMs < 2) _frameGapMs = 2;
+    _rxSeen = 0;
+    _rxSince = 0;
+    _rxStale = 0;
 }
 
 void modbusServerTick()
 {
-    if (RTUServer.poll())
+    // A Modbus RTU frame is delimited by SILENCE, not by length — so wait
+    // for that silence before handing the buffer to the library.
+    //
+    // This is not pedantry: ArduinoModbus receives with a BLOCKING
+    // Stream::readBytes, so a frame that arrives incomplete leaves the
+    // module sitting inside poll() until the 4 s watchdog reboots it. The
+    // RS485 switch hub cuts a frame in half every time it changes channel,
+    // which on the bench cost every module of the crossed channel ~10
+    // reboots per 15 cabinet passes — invisible to the master (the module
+    // answers again within a second) but every lit slot went dark, which
+    // is a pick vanishing under the pharmacist's hand.
+    //
+    // Gating on the frame gap means that when poll() finally runs, every
+    // byte of the frame is already in the ring (256 B, sized for the
+    // largest ADU) and no read inside it can block on the wire.
+    const int have = rs485.available();
+    if (have <= 0)
+    {
+        _rxSeen = 0;
+        _rxStale = 0;
+        return;
+    }
+
+    const uint32_t now = millis();
+    if (have != _rxSeen)
+    {
+        _rxSeen = have;             // still arriving: restart the gap
+        _rxSince = now;
+        return;
+    }
+    if (now - _rxSince < _frameGapMs)
+    {
+        return;                     // quiet, but not for long enough yet
+    }
+
+    const bool served = (RTUServer.poll() != 0);
+    if (served)
     {
         watchScan();
+        _rxStale = 0;
     }
+    else if (++_rxStale >= 2)
+    {
+        // Bytes that survived a poll across two gaps are the wreckage of a
+        // cut frame (or noise). Drop them: leaving them in front of the
+        // next real request would corrupt that one too. Two gaps, not one,
+        // so back-to-back frames — the OTA stream — are never thrown away
+        // half-consumed.
+        while (rs485.available())
+        {
+            rs485.read();
+        }
+        _rxStale = 0;
+    }
+    _rxSeen = rs485.available();
+    _rxSince = millis();
 }
 
 void mbRegisterHandler(MbWatchKind kind, uint16_t addr, MbWatchHandler handler)

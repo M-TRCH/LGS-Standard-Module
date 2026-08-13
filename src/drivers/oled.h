@@ -49,4 +49,13 @@ void oledPrintTitledNumber(const char *title, uint16_t value);
  */
 void oledPrintCentered2(const char *line1, const char *line2, uint8_t textSize);
 
+/*  @brief The firmware-update screen: a caption, the percentage in plain
+ *         digits, and the chunk count underneath.
+ *
+ *  Deliberately NOT the big number font: a lone giant number is the slot
+ *  number this display shows every other minute of its life, so an OTA in
+ *  progress read as a module lit for a pick. The caption is the whole point.
+ */
+void oledPrintOtaProgress(uint8_t percent, uint16_t done, uint16_t total);
+
 #endif // DRIVERS_OLED_H

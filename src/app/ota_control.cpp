@@ -99,20 +99,20 @@ void resetSession()
 
 void showProgress()
 {
-    // OTA progress reuses the display feature: percent 0-99 as the big
-    // number. Rendered only when the percent changes (~100 renders/session)
-    // — a 20ms OLED transfer between chunks; the 256B RX ring buffers the
-    // next broadcast frame meanwhile.
+    // The update gets its own face — caption, percent in plain digits, chunk
+    // count — instead of borrowing the slot-number display, where a lone big
+    // number said nothing about what was happening. Rendered only when the
+    // percent changes (~100 renders/session): a 20 ms OLED transfer between
+    // chunks, with the 256 B RX ring buffering the next broadcast frame.
     uint8_t percent = (uint8_t)(((uint32_t)chunksReceived * 100u) / totalChunks);
-    if (percent > 99)
+    if (percent > 100)
     {
-        percent = 99;
+        percent = 100;
     }
     if (percent != lastShownPercent)
     {
         lastShownPercent = percent;
-        displayControlShowNumber(percent);
-        displayControlSetEnabled(true);
+        displayControlShowOta(percent, chunksReceived, totalChunks);
     }
 }
 

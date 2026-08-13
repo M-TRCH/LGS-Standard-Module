@@ -27,7 +27,14 @@ void displayControlSetEnabled(bool on);
 
 /*  @brief Firmware-driven number update: write reg 60 and re-render if the
  *         display is enabled (bus writes go through the reg-60 handler; this
- *         is for internal producers like the OTA progress percent). */
+ *         is for internal producers). */
 void displayControlShowNumber(uint16_t value);
+
+/*  @brief Take the screen over with the firmware-update face (caption +
+ *         percent + chunk count). Does NOT touch reg 60 or coil 1010: an
+ *         update in progress is not a slot lit for a pick, and the two used
+ *         to be indistinguishable both on the glass and on the wire.
+ *         displayControlSetEnabled(false) hands the screen back. */
+void displayControlShowOta(uint8_t percent, uint16_t done, uint16_t total);
 
 #endif // APP_DISPLAY_CONTROL_H

@@ -34,7 +34,7 @@ static void runFactoryResetMode();
 static void runNormalMode();
 
 static void updateOledCounter(uint8_t value);
-static void updateOledSetId(uint16_t id);
+static void updateOledSetId(uint16_t id, uint16_t secsLeft);
 static void updateOledFactoryCountdown(uint16_t secs);
 
 static bool oledReady = false;
@@ -188,7 +188,15 @@ static void runDemoMode()
 }
 
 // Set ID mode: blink blue for identification, show the ID on the OLED, and
-// let the operator assign it with the function switch (tap = +1, hold = save).
+// let the operator assign it with the function switch.
+//
+// One button does everything: a tap adds 1, holding repeats that (the grid
+// runs to 108, and nobody should tap a hundred times), and the value SAVES
+// ITSELF once it has been left alone for SETID_AUTOSAVE_MS — with the
+// remaining seconds on screen, so the reboot is never a surprise. A value
+// equal to the stored one is not dirty and never triggers a save, which is
+// what keeps this mode usable as a plain "which board is this" blinker.
+//
 // The device still enumerates at the special Modbus ID 246 so a master can
 // discover and assign it too — the button is an additional path, not a
 // replacement.
@@ -200,7 +208,10 @@ static void runSetIdMode()
     static uint16_t selectedId = SETID_ID_MIN;
     static bool lastPressed = false;
     static uint32_t pressStart = 0;
-    static bool saveTriggered = false;
+    static uint32_t lastRepeatMs = 0;
+    static uint32_t lastActivityMs = 0;
+    static uint16_t shownId = 0xFFFF;
+    static uint16_t shownSecs = 0xFFFF;
 
     uint32_t now = millis();
 
@@ -210,10 +221,10 @@ static void runSetIdMode()
         selectedId = settings().identifier;
         if (selectedId < SETID_ID_MIN || selectedId > SETID_ID_MAX)
         {
-            selectedId = SETID_ID_MIN; // fresh device (247) or a Modbus-set ID > 99
+            selectedId = SETID_ID_MIN; // fresh device (247) or an out-of-range ID
         }
         lastPressed = boardFunctionSwitchPressed(); // don't count the mode-select hold as a tap
-        updateOledSetId(selectedId);
+        lastActivityMs = now;
     }
 
     // Blue identification blink (unchanged)
@@ -226,18 +237,49 @@ static void runSetIdMode()
         }
     }
 
-    // Single-button interaction: tap = +1 (wrap), hold = save & reboot.
-    bool pressed = boardFunctionSwitchPressed();
+    const bool pressed = boardFunctionSwitchPressed();
+    bool bumped = false;
 
     if (pressed && !lastPressed)
     {
         pressStart = now;
-        saveTriggered = false;
+        lastRepeatMs = now;
     }
 
-    if (pressed && !saveTriggered && (now - pressStart >= SETID_SAVE_HOLD_MS))
+    // Hold: the same +1, repeating, once the hold outlasts a tap.
+    if (pressed && (now - pressStart >= SETID_REPEAT_DELAY_MS)
+        && (now - lastRepeatMs >= SETID_REPEAT_MS))
     {
-        saveTriggered = true; // fire once
+        lastRepeatMs = now;
+        bumped = true;
+    }
+
+    // Release: a tap counts only if the repeat never took over.
+    if (!pressed && lastPressed)
+    {
+        const uint32_t duration = now - pressStart;
+        if (duration >= SETID_TAP_MIN_MS && duration < SETID_REPEAT_DELAY_MS)
+        {
+            bumped = true;
+        }
+    }
+    lastPressed = pressed;
+
+    if (bumped)
+    {
+        selectedId++;
+        if (selectedId > SETID_ID_MAX)
+        {
+            selectedId = SETID_ID_MIN;
+        }
+        lastActivityMs = now;
+    }
+
+    // Commit on quiet — but only when there is something to commit.
+    const bool dirty = (selectedId != settings().identifier);
+    const uint32_t idleMs = now - lastActivityMs;
+    if (dirty && !pressed && idleMs >= SETID_AUTOSAVE_MS)
+    {
         if (oledReady)
         {
             oledPrint("SAVED", 3);
@@ -247,21 +289,18 @@ static void runSetIdMode()
         opsSystemReset(); // reboots into RUN at the new ID (forces MOSFET low first)
     }
 
-    if (!pressed && lastPressed)
+    // Redraw only when the number or the countdown changes: each redraw is a
+    // ~20 ms OLED transfer.
+    const uint16_t secsLeft = dirty
+        ? (uint16_t)((SETID_AUTOSAVE_MS - (idleMs > SETID_AUTOSAVE_MS ? SETID_AUTOSAVE_MS : idleMs)
+                      + 999) / 1000)
+        : 0;
+    if (selectedId != shownId || secsLeft != shownSecs)
     {
-        uint32_t duration = now - pressStart;
-        if (!saveTriggered && duration >= SETID_TAP_MIN_MS && duration < SETID_SAVE_HOLD_MS)
-        {
-            selectedId++;
-            if (selectedId > SETID_ID_MAX)
-            {
-                selectedId = SETID_ID_MIN;
-            }
-            updateOledSetId(selectedId);
-        }
+        shownId = selectedId;
+        shownSecs = secsLeft;
+        updateOledSetId(selectedId, secsLeft);
     }
-
-    lastPressed = pressed;
 }
 
 // Factory reset mode: solid red on all LEDs for 5 seconds, then reset.
@@ -398,14 +437,24 @@ static void updateOledCounter(uint8_t value)
     oledPrintLargeNumber(value);
 }
 
-static void updateOledSetId(uint16_t id)
+// `secsLeft` = 0 while the shown ID still matches the stored one (nothing to
+// save); otherwise the caption counts the auto-save down so the operator can
+// see the reboot coming and keep tapping to postpone it.
+static void updateOledSetId(uint16_t id, uint16_t secsLeft)
 {
     if (!oledReady)
     {
         return;
     }
 
-    oledPrintTitledNumber("SET ID", id);
+    if (secsLeft == 0)
+    {
+        oledPrintTitledNumber("SET ID", id);
+        return;
+    }
+    char caption[16];
+    sniprintf(caption, sizeof(caption), "SAVING IN %u", (unsigned)secsLeft);
+    oledPrintTitledNumber(caption, id);
 }
 
 static void updateOledFactoryCountdown(uint16_t secs)

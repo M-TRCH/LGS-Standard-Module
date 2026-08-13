@@ -113,6 +113,27 @@ void oledPrintTitledNumber(const char *title, uint16_t value)
     oled.display();
 }
 
+void oledPrintOtaProgress(uint8_t percent, uint16_t done, uint16_t total)
+{
+    char pct[8];
+    char chunks[20];
+    sniprintf(pct, sizeof(pct), "%u%%", (unsigned)percent);
+    sniprintf(chunks, sizeof(chunks), "%u/%u chunks", (unsigned)done, (unsigned)total);
+
+    oled.clearDisplay();
+    oled.setFont(nullptr);
+    oled.setTextColor(SSD1306_WHITE);
+
+    oled.setTextSize(1);
+    drawCentered("FIRMWARE UPDATE", 2);   // 8 px tall
+    oled.setTextSize(3);
+    drawCentered(pct, 20);                // 24 px tall, the thing being asked
+    oled.setTextSize(1);
+    drawCentered(chunks, 52);
+
+    oled.display();
+}
+
 void oledPrintCentered2(const char *line1, const char *line2, uint8_t textSize)
 {
     oled.clearDisplay();

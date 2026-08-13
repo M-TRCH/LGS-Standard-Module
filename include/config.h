@@ -43,10 +43,16 @@
 #define FACTORY_RESET_HOLD_MS       5000    // solid-red warning time before reset applies
 
 // --- SET_ID mode (manual ID assignment via the function switch) ---
-#define SETID_SAVE_HOLD_MS          2000    // hold the switch this long to save & reboot
+// One button, three behaviours: tap = +1, hold = the same +1 repeating (108
+// taps to cross the cabinet was not a user interface), and the value commits
+// ITSELF once it has been left alone — holding to save is gone, because the
+// hold now belongs to the repeat.
 #define SETID_TAP_MIN_MS            30      // minimum press to count as a tap (debounce)
+#define SETID_REPEAT_DELAY_MS       700     // hold this long before the repeat starts
+#define SETID_REPEAT_MS             120     // then +1 at this rate (~8/s)
+#define SETID_AUTOSAVE_MS           5000    // no activity this long -> save & reboot
 #define SETID_ID_MIN                1       // lowest ID settable by button (0 = broadcast, excluded)
-#define SETID_ID_MAX                99      // highest ID settable by button (2-digit range)
+#define SETID_ID_MAX                108     // highest ID settable by button (the LGS grid ends at 108)
 
 // --- Latch safety limits ---
 #define LATCH_PULSE_MS              300     // minimum unlock pulse (ms); extends while still locked

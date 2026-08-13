@@ -3,14 +3,27 @@ Adafruit GFXfont (oled_font_bignum.h) containing only glyphs '0'-'9'.
 
 Each glyph is trimmed to its ink bounding box and bit-packed contiguously
 (no per-row byte padding), which removes the blank columns of the fixed-cell
-format while keeping the EXACT same pixels -> identical sharpness. A built-in
-round-trip check asserts every generated glyph decodes back to the original
-ink region before the header is written.
+format. A built-in round-trip check asserts every generated glyph decodes
+back to the grid it was packed from before the header is written.
+
+The digits are also scaled down to CELL_HEIGHT. At the source's full 64 px
+they filled the panel top to bottom and the bezel over the glass cut the
+first and last rows — on the cabinet the digits read as clipped even though
+every pixel really was being drawn. The scale is PROPORTIONAL: width follows
+height, because digits squashed on one axis only look wrong long before you
+can say why.
+
+The resample is a 2-D box filter with a 50% threshold (an output pixel turns
+on when at least half the source area it covers was ink), which keeps
+strokes solid and gaps open — dropping rows and columns outright would thin
+some strokes away and fatten others.
 
 Usage:
-    <conda-python> tools/gen_oled_bignum.py
+    <python> tools/gen_oled_bignum.py               # CELL_HEIGHT
+    <python> tools/gen_oled_bignum.py --height 48
 """
 
+import argparse
 import os
 import re
 
@@ -19,7 +32,8 @@ SRC = os.path.normpath(os.path.join(HERE, "..", "src", "drivers", "oled_font_dig
 OUT = os.path.normpath(os.path.join(HERE, "..", "src", "drivers", "oled_font_bignum.h"))
 
 DIGITS = "0123456789"
-CELL_GAP = 6  # horizontal gap between tabular digit cells
+CELL_GAP = 6      # horizontal gap between tabular digit cells
+CELL_HEIGHT = 54  # 64 px source - 10: clear of the bezel, still the big face
 
 
 def parse_source():
@@ -47,6 +61,38 @@ def to_grid(data, width, height, stride):
     return grid
 
 
+def resize_grid(grid, src_w, src_h, dst_w, dst_h):
+    """Box-filter the grid to dst_w x dst_h, 50%-of-area threshold."""
+    if (dst_w, dst_h) == (src_w, src_h):
+        return grid
+    sx = src_w / dst_w
+    sy = src_h / dst_h
+    cell_area = sx * sy
+    out = []
+    for y in range(dst_h):
+        top = y * sy
+        bottom = (y + 1) * sy
+        row = [0] * dst_w
+        for x in range(dst_w):
+            left = x * sx
+            right = (x + 1) * sx
+            covered = 0.0
+            for syi in range(int(top), min(src_h, int(bottom - 1e-9) + 1)):
+                wy = min(syi + 1.0, bottom) - max(float(syi), top)
+                if wy <= 0:
+                    continue
+                srow = grid[syi]
+                for sxi in range(int(left), min(src_w, int(right - 1e-9) + 1)):
+                    if not srow[sxi]:
+                        continue
+                    wx = min(sxi + 1.0, right) - max(float(sxi), left)
+                    if wx > 0:
+                        covered += wx * wy
+            row[x] = 1 if covered >= cell_area / 2.0 else 0
+        out.append(row)
+    return out
+
+
 def bbox(grid, width, height):
     minx, miny, maxx, maxy = width, height, -1, -1
     for y in range(height):
@@ -58,11 +104,22 @@ def bbox(grid, width, height):
 
 
 def main():
-    width, height, stride, glyphs = parse_source()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--height", type=int, default=CELL_HEIGHT,
+                    help="cell height in pixels after the vertical squash")
+    args = ap.parse_args()
+
+    src_width, src_height, stride, glyphs = parse_source()
+    height = args.height
+    # Width follows height so the digits keep their proportions.
+    width = int(round(src_width * height / src_height))
+    print(f"cell: {src_width}x{src_height} source -> {width}x{height} "
+          f"({src_height - height} px shorter, scale {height / src_height:.3f})")
 
     trimmed = []   # (w, h, minx, miny, [packed bytes], grid_region)
     for data in glyphs:
-        grid = to_grid(data, width, height, stride)
+        grid = to_grid(data, src_width, src_height, stride)
+        grid = resize_grid(grid, src_width, src_height, width, height)
         minx, miny, maxx, maxy = bbox(grid, width, height)
         w = maxx - minx + 1
         h = maxy - miny + 1
@@ -96,7 +153,7 @@ def main():
                 bit = (byte >> (7 - (idx % 8))) & 1
                 assert bit == region[y][x], f"digit {i} mismatch at {x},{y}"
                 idx += 1
-    print("round-trip pixel check: OK (all 10 digits identical to source)")
+    print("round-trip pixel check: OK (all 10 digits decode back exactly)")
 
     cell_w = max(t[0] for t in trimmed)
     x_advance = cell_w + CELL_GAP
@@ -113,7 +170,7 @@ def main():
         y_offset = miny - height              # reproduce original vertical position
         glyph_rows.append((offsets[i], w, h, x_advance, x_offset, y_offset))
 
-    old_size = len(glyphs) * stride * height
+    old_size = len(glyphs) * stride * src_height   # the fixed-cell source
     new_size = len(bitmap) + len(trimmed) * 7 + 8  # bitmap + glyph table + GFXfont
     print(f"digit widths: {[t[0] for t in trimmed]}  cell={cell_w} advance={x_advance}")
     print(f"bitmap bytes: {len(bitmap)}  (glyph table {len(trimmed)*7} + struct ~8)")
@@ -127,8 +184,9 @@ def main():
     lines.append("#include <Adafruit_GFX.h>  // GFXfont / GFXglyph")
     lines.append("")
     lines.append("// Auto-generated by tools/gen_oled_bignum.py from oled_font_digits.h.")
-    lines.append("// Big tabular digits 0-9, trimmed + bit-packed (pixel-identical to the")
-    lines.append("// original 53x64 bitmaps). Render with oled.setFont(&OledBigNum).")
+    lines.append("// Big tabular digits 0-9, trimmed + bit-packed, scaled proportionally")
+    lines.append(f"// to a {width}x{height} cell (from {src_width}x{src_height}) so the bezel")
+    lines.append("// over the glass cannot crop them. Render with oled.setFont(&OledBigNum).")
     lines.append("")
     body = ", ".join(f"0x{b:02X}" for b in bitmap)
     lines.append(f"static const uint8_t OledBigNumBitmaps[] = {{ {body} }};")

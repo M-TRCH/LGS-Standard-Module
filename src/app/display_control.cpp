@@ -7,6 +7,7 @@ namespace {
 
 bool ownScreen = false;   // RUN mode + OLED present: this module may draw
 bool displayOn = false;   // logical display state (mirrors coil 1010)
+bool otaScreen = false;   // the firmware-update face is up, outside coil 1010
 
 void render()
 {
@@ -71,17 +72,31 @@ void displayControlShowNumber(uint16_t value)
     }
 }
 
+void displayControlShowOta(uint8_t percent, uint16_t done, uint16_t total)
+{
+    if (!ownScreen)
+    {
+        return;
+    }
+    otaScreen = true;
+    oledPrintOtaProgress(percent, done, total);
+}
+
 void displayControlSetEnabled(bool on)
 {
     // Mirror the enable coil first (idempotent; the shadow sync keeps this
     // from re-firing onDisplayEnableChange).
     mbCoilWrite(MB_COIL_DISPLAY_ENABLE, on);
 
-    if (on == displayOn)
+    // Switching off always runs when an update face is up, even though the
+    // logical state was already off: something has to wipe that screen when
+    // the transfer ends, and it never went through this flag on the way in.
+    if (on == displayOn && !(otaScreen && !on))
     {
         return;
     }
     displayOn = on;
+    otaScreen = false;
     if (on)
     {
         render();

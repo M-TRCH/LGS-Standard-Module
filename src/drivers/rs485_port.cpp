@@ -17,4 +17,27 @@ RS485Class rs485(SerialRS485, HW_UART_RS485_TX_PIN, -1, -1);
 void rs485PortBegin(uint32_t baud)
 {
     SerialRS485.begin(baud);
+
+    // Bound how long one Modbus read may block. ArduinoModbus receives with
+    // Stream::readBytes, which waits for the byte count it asked for or for
+    // the stream timeout — and nothing had ever set that timeout, so it was
+    // Arduino's 1000 ms default.
+    //
+    // That is fine for whole frames and disastrous for truncated ones: the
+    // RS485 switch hub cuts a frame in half every time it changes channel,
+    // and the modules on that channel then sat in readBytes across the
+    // receive state machine's three steps (~3 s) plus libmodbus's own
+    // recovery sleep — right at the 4 s watchdog. Measured on the bench
+    // (2026-08-13): polling the whole cabinet cost every module on a
+    // crossed channel ~0.6 watchdog resets per pass, while polling one
+    // channel alone cost exactly none. The reboots were invisible to the
+    // master (a module answers again within a second) but every lit slot
+    // went dark, which is a pick disappearing under the pharmacist's hand.
+    //
+    // The timeout must still exceed the wire time of the LARGEST legitimate
+    // frame, or full-size frames (the 145-byte OTA chunks) would be
+    // abandoned half-read: max ADU 256 B = 2560 bits, plus half again as
+    // margin and a fixed 50 ms for scheduling.
+    const uint32_t wireMs = (256UL * 10UL * 1000UL) / baud;
+    rs485.setTimeout(wireMs + (wireMs / 2) + 50UL);
 }

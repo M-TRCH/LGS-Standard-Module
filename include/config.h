@@ -86,6 +86,13 @@
 
 // --- Statistics persistence (AT24; settings blob owns bytes 0-95) ---
 #define STATS_AT24_ADDR             128     // StatsBlob offset on the AT24C32D
+// The SAME blob, written alternately to two slots so a power cut in the
+// middle of a write can never destroy the only copy. Before this, a torn
+// write left no valid blob and every lifetime counter silently restarted
+// from zero — on a site whose shelf loses power hundreds of times a month
+// that is a matter of when, not if. Slot B sits clear of the commissioning
+// record; the AT24 has 3.8 KB spare above it.
+#define STATS_AT24_ADDR_B           384
 #define STATS_PERSIST_INTERVAL_MS   3600000UL // hourly, plus a flush before every commanded reset
 
 // --- Commissioning record (AT24) ---

@@ -38,8 +38,8 @@ struct StatsBlobV2
     uint32_t buttonPresses;
     uint32_t opSeconds;
     uint16_t iwdgResets;                        // saturates at 0xFFFF
-    uint16_t reserved2;                         // = 0
-    uint16_t crc;                               // CRC16-CCITT over magic..reserved2
+    uint16_t seq;                               // A/B slot age; v3.3.0 wrote 0
+    uint16_t crc;                               // CRC16-CCITT over magic..seq
 };
 
 constexpr uint32_t STATS_MAGIC = 0x4C475353;    // 'LGSS'
@@ -49,6 +49,7 @@ static_assert(sizeof(StatsBlobV1) == 76, "v1 wire layout");
 static_assert(offsetof(StatsBlobV1, crc) == 72, "v1 crc position");
 static_assert(sizeof(StatsBlobV2) == 92, "v2 wire layout");
 static_assert(offsetof(StatsBlobV2, crc) == 88, "v2 crc position");
+static_assert(offsetof(StatsBlobV2, seq) == 86, "seq reuses v3.3.0's reserved2");
 static_assert(offsetof(StatsBlobV2, onCount) == 8, "counter arrays must not move");
 static_assert(offsetof(StatsBlobV2, latchFires) == 72, "v2-first validation depends on this");
 // <= 94 bytes keeps the write at 5 AT24 page cycles (30/2/30/2/30 chunking
@@ -72,6 +73,8 @@ uint32_t opStampMs = 0;                         // millis() of the last fold
 uint16_t opFracMs = 0;                          // sub-second remainder (<1000)
 
 StatsBlobV2 persistedStats = {};                // change-detection cache
+bool     liveSlotB = false;                     // which slot holds the newest
+uint16_t slotSeq = 0;                           // its sequence number
 
 uint16_t statsCrc16(const uint8_t *p, size_t len)
 {
@@ -99,7 +102,7 @@ void statsFill(StatsBlobV2 &b)
     b.buttonPresses = buttonPresses;
     b.opSeconds = opSeconds;
     b.iwdgResets = iwdgResets;
-    b.reserved2 = 0;
+    b.seq = slotSeq;            // the live sequence: only a real write bumps it
     b.crc = statsCrc16((const uint8_t *)&b, offsetof(StatsBlobV2, crc));
 }
 
@@ -132,13 +135,39 @@ void pub32(uint16_t addr, uint32_t value)
 // Public API
 // ---------------------------------------------------------------------------
 
+// True when `a` is the younger of two slot sequences, wrap included.
+static bool seqNewer(uint16_t a, uint16_t b)
+{
+    return (int16_t)(a - b) > 0;
+}
+
+static bool readSlot(uint16_t addr, StatsBlobV2 &out)
+{
+    return at24Read(addr, (uint8_t *)&out, sizeof(out)) &&
+           out.magic == STATS_MAGIC &&
+           out.version == STATS_VERSION &&
+           out.crc == statsCrc16((const uint8_t *)&out, offsetof(StatsBlobV2, crc));
+}
+
 void statsInit()
 {
-    StatsBlobV2 v2;
-    if (at24Read(STATS_AT24_ADDR, (uint8_t *)&v2, sizeof(v2)) &&
-        v2.magic == STATS_MAGIC &&
-        v2.version == STATS_VERSION &&
-        v2.crc == statsCrc16((const uint8_t *)&v2, offsetof(StatsBlobV2, crc)))
+    // Both slots, newest valid one wins. A torn write leaves its own slot
+    // invalid (or older); the other one is still whole, which is the whole
+    // point of writing them alternately.
+    StatsBlobV2 a, b, v2;
+    const bool okA = readSlot(STATS_AT24_ADDR, a);
+    const bool okB = readSlot(STATS_AT24_ADDR_B, b);
+    bool have = false;
+    if (okA && okB)
+    {
+        v2 = seqNewer(b.seq, a.seq) ? b : a;
+        liveSlotB = seqNewer(b.seq, a.seq);
+        have = true;
+    }
+    else if (okA) { v2 = a; liveSlotB = false; have = true; }
+    else if (okB) { v2 = b; liveSlotB = true;  have = true; }
+
+    if (have)
     {
         bootCount = v2.bootCount;
         memcpy(onCount, v2.onCount, sizeof(onCount));
@@ -147,6 +176,7 @@ void statsInit()
         buttonPresses = v2.buttonPresses;
         opSeconds = v2.opSeconds;
         iwdgResets = v2.iwdgResets;
+        slotSeq = v2.seq;
         persistedStats = v2;
     }
     else
@@ -227,8 +257,15 @@ void statsPersistIfChanged()
     {
         return; // unchanged: spare the EEPROM the write cycle
     }
-    if (at24Write(STATS_AT24_ADDR, (const uint8_t *)&b, sizeof(b)))
+    // Write the slot that is NOT live, then flip: until this write completes
+    // and validates, the previous copy is the one statsInit() would pick.
+    b.seq = (uint16_t)(slotSeq + 1);
+    b.crc = statsCrc16((const uint8_t *)&b, offsetof(StatsBlobV2, crc));
+    const uint16_t addr = liveSlotB ? STATS_AT24_ADDR : STATS_AT24_ADDR_B;
+    if (at24Write(addr, (const uint8_t *)&b, sizeof(b)))
     {
+        liveSlotB = !liveSlotB;
+        slotSeq = b.seq;
         persistedStats = b;
     }
 }

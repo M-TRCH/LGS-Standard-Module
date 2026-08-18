@@ -104,3 +104,7 @@ Cookbook in `doc/ARCHITECTURE.md`.
   flash/OTA budget, verification gates, cookbook
 - `doc/LGS-Control-Table.md` — Modbus map with the R5.0 support column
 - `doc/FIRMWARE_VERSION_NOTE.md` / `doc/HARDWARE_VERSION_NOTE.md` — release + board history
+
+
+- **The stats blob is written to two AT24 slots alternately** (128 and 384), newest sequence wins. A single slot meant a power cut during the hourly write left no valid blob and every lifetime counter silently restarted from zero — on a cabinet that loses power hundreds of times a month that is a matter of when. `seq` reuses v3.3.0's `reserved2` field, so the layout, the size and the 5-page write cost are unchanged and blobs already in the field migrate by being read as seq 0.
+- **`statsFill()` must stamp the CURRENT sequence**, not the next one: the change-detection `memcmp` compares the whole struct, so a sequence that moved on every call would write the EEPROM hourly for nothing.

@@ -152,7 +152,10 @@ void appRun()
 // Operating-mode handlers
 // ---------------------------------------------------------------------------
 
-// Demo mode: rainbow ripple + OLED counter stepped by the function switch
+// Demo mode: rainbow ripple on whichever display the board has (ring or
+// 8-LED mask) + OLED counter stepped by the function switch. On a Standard
+// board the counter has nowhere to go; the ripple and the latch pulse are
+// the whole of the mode there.
 static void runDemoMode()
 {
     static uint32_t lastDemoFrame = 0;
@@ -188,7 +191,7 @@ static void runDemoMode()
         rainbowPhase += 1;
 
         updateOledCounter(oledCounter);
-        ledShowRainbowRipple(rainbowPhase);
+        ledControlShowDemoFrame(rainbowPhase);
     }
 }
 

@@ -27,4 +27,13 @@ void maskSetAll(uint32_t color);
 /*  @brief All pixels dark. */
 void maskOff();
 
+/*  @brief One frame of the demo rainbow, @p phase advancing per frame.
+ *
+ *  The mask's counterpart to the ring's ledShowRainbowRipple: same hue
+ *  sweep and same brightness wave, spread over 8 windows instead of 16,
+ *  so a Standard cabinet in DEMO looks like the same product as a ring
+ *  one. The ripple travels in READING order, not chain order — a demo is
+ *  something a person watches. */
+void maskShowRainbow(uint16_t phase);
+
 #endif // DRIVERS_LED_MASK_H

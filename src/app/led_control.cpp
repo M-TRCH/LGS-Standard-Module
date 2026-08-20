@@ -385,6 +385,18 @@ void ledControlInit()
     mbRegisterHandler(MB_WATCH_COIL_COMMAND, MB_COIL_ALL_OFF, onAllOffCommand);
 }
 
+void ledControlShowDemoFrame(uint16_t phase)
+{
+    if (useMask)
+    {
+        maskShowRainbow(phase);
+    }
+    else
+    {
+        ledShowRainbowRipple(phase);
+    }
+}
+
 void ledControlPersistStats()
 {
     // Close the running interval into the accumulators first, so a flush

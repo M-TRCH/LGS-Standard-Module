@@ -21,6 +21,15 @@ void ledControlInit();
  *         Runs unconditionally every loop, before mode logic. */
 void ledControlTick(uint32_t now);
 
+/*  @brief One frame of the DEMO rainbow, on whichever display is fitted.
+ *
+ *  DEMO used to call the ring driver directly, which meant a Standard
+ *  cabinet — mask, no ring — showed nothing at all in the one mode built
+ *  for looking at a board. Routing it through here keeps "which display
+ *  does this board have" answered in exactly one place, the same place
+ *  the preset engine asks. */
+void ledControlShowDemoFrame(uint16_t phase);
+
 /*  @brief true while the channel is logically on (used by latch_control to
  *         decide whether completing an LED-latch request may sync the
  *         enable coil). */

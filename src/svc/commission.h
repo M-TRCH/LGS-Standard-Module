@@ -54,12 +54,11 @@ void deviceTypeResolveFromDisplay(bool oledFitted);
  *  ring, OLED or big button, so it must not also light a ring that is not
  *  there (and, on a bench board that has one, must not mirror onto it).
  *
- *  The rule is that an ACK is proof and silence is not: an OLED that answers
- *  means a ring board whatever the record claims, while an OLED that does not
- *  answer defers to the record, because a dead display must not be able to
- *  turn a ring board into a STANDARD one and put out its ring too. A board
- *  with no record at all is the only case silence decides, and that answer is
- *  written down immediately so it is never decided twice.
+ *  A recorded type always wins: it is set at the tool, with the board in
+ *  hand, the same way its ID is, and the probe never overrules it. The probe
+ *  only answers for a board nobody ever told — and that answer is written
+ *  down at once, so a display that dies later cannot change the board's mind
+ *  and turn a ring board into a STANDARD one with its ring put out.
  *
  *  A ring board whose display has failed therefore reports its ring type in
  *  reg 0 while health (reg 9) bit 1 stays clear — the pair says "should have

@@ -207,31 +207,28 @@ static uint16_t ringTypeDefault()
 
 uint16_t deviceTypeEffective()
 {
+    // A recorded type is somebody's decision, made at the tool with the board
+    // in hand, and it always wins. The probe never overrules it: a bench ring
+    // board deliberately commissioned as STANDARD to exercise the mask must
+    // stay STANDARD, and second-guessing the operator would make the setting
+    // useless exactly when it is being used on purpose.
     const uint16_t recorded = commissionDeviceType();
-
-    // An ACK is proof. Something answered at the OLED's address, so this
-    // board has a display, so it is a ring board — and a record that says
-    // STANDARD is simply wrong. Believing it would drive the 8-LED mask and
-    // leave the ring dark, which on the shelf cannot be told from a dead
-    // module.
-    if (displayFitted > 0)
-    {
-        return (recorded && recorded != DEVICE_TYPE_STANDARD) ? recorded
-                                                              : ringTypeDefault();
-    }
-
-    // Silence is NOT proof. A STANDARD board has no OLED — but neither does a
-    // ring board whose OLED has died, and treating the second as STANDARD
-    // would put out its ring as well, losing the whole module instead of just
-    // its display. So a recorded type always wins here, and the probe only
-    // answers the question nothing else can.
     if (recorded)
     {
         return recorded;
     }
+
+    // Nobody said. Then the hardware answers, because silence at the OLED's
+    // address on a board that was never told anything can only mean a
+    // STANDARD one — and this answer gets written down below, so a display
+    // that dies later never has to be interpreted.
     if (displayFitted == 0)
     {
         return DEVICE_TYPE_STANDARD;
+    }
+    if (displayFitted > 0)
+    {
+        return ringTypeDefault();
     }
     return (uint16_t)DEVICE_TYPE;   // never probed, never recorded
 }

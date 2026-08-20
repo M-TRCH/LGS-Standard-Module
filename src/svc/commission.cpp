@@ -191,39 +191,69 @@ bool commissionRead(CommissionBlock *out)
     return true;
 }
 
-// What the boot-time I2C2 probe found: -1 not probed yet, 0 no OLED, 1 an
-// OLED answered. Written once by deviceTypeNoteDisplay(), read only here.
+// What the boot-time I2C2 probe found: -1 not probed yet, 0 nothing answered,
+// 1 an OLED answered.
 static int8_t displayFitted = -1;
 
-void deviceTypeNoteDisplay(bool fitted)
+// The type to assume for a board that has a display but no recorded type.
+// It can only be a ring type, because a board with an OLED is by definition
+// not a STANDARD one, so a build defaulted to STANDARD is corrected here.
+static uint16_t ringTypeDefault()
 {
-    displayFitted = fitted ? 1 : 0;
+    return ((uint16_t)DEVICE_TYPE == DEVICE_TYPE_STANDARD)
+               ? (uint16_t)DEVICE_TYPE_NARCOTIC
+               : (uint16_t)DEVICE_TYPE;
 }
 
 uint16_t deviceTypeEffective()
 {
-    uint16_t t = commissionDeviceType();
-    if (!t)
+    const uint16_t recorded = commissionDeviceType();
+
+    // An ACK is proof. Something answered at the OLED's address, so this
+    // board has a display, so it is a ring board — and a record that says
+    // STANDARD is simply wrong. Believing it would drive the 8-LED mask and
+    // leave the ring dark, which on the shelf cannot be told from a dead
+    // module.
+    if (displayFitted > 0)
     {
-        t = (uint16_t)DEVICE_TYPE;
+        return (recorded && recorded != DEVICE_TYPE_STANDARD) ? recorded
+                                                              : ringTypeDefault();
     }
-    if (displayFitted < 0)
+
+    // Silence is NOT proof. A STANDARD board has no OLED — but neither does a
+    // ring board whose OLED has died, and treating the second as STANDARD
+    // would put out its ring as well, losing the whole module instead of just
+    // its display. So a recorded type always wins here, and the probe only
+    // answers the question nothing else can.
+    if (recorded)
     {
-        return t;   // asked before the probe ran: the record is all we have
+        return recorded;
     }
-    // What is fitted outranks what was recorded. The OLED sits alone on I2C2,
-    // so its ACK answers "which display does this board have" directly, and
-    // unlike the AT24 record it cannot be stale: a board swapped between
-    // cabinets, or one never commissioned with a type at all, still drives
-    // the display it physically has.
-    if (!displayFitted)
+    if (displayFitted == 0)
     {
         return DEVICE_TYPE_STANDARD;
     }
-    // A board that has an OLED is never a STANDARD one. Believing a record
-    // that says otherwise would drive the 8-LED mask and leave the ring dark,
-    // which on the shelf is indistinguishable from a dead module.
-    return (t == DEVICE_TYPE_STANDARD) ? DEVICE_TYPE_NARCOTIC : t;
+    return (uint16_t)DEVICE_TYPE;   // never probed, never recorded
+}
+
+void deviceTypeResolveFromDisplay(bool oledFitted)
+{
+    displayFitted = oledFitted ? 1 : 0;
+
+    // Then remember it, once, in the field the commissioning record already
+    // carries — so silence never has to be interpreted twice. From the next
+    // boot on there IS a recorded answer, which is what lets a ring board
+    // keep its ring on the day its OLED dies. One page write in a board's
+    // lifetime; skipped when it cannot be persisted, and when the answer is
+    // already there (including the one commissionApplyAtBoot just wrote).
+    if (!settingsStorageOk() || commissionDeviceType() != 0)
+    {
+        return;
+    }
+    // storedToken() is 0 when there is no record yet, which is exactly
+    // COMMISSION_TOKEN_NONE: preserving it leaves a patched image still
+    // waiting to be applied rather than marking it consumed.
+    writeRecord(storedToken(), deviceTypeEffective());
 }
 
 uint16_t commissionDeviceType()

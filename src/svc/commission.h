@@ -30,14 +30,20 @@ uint32_t commissionToken(const CommissionBlock *b);
  */
 uint16_t commissionDeviceType();
 
-/*  @brief Tell the type resolver what this board physically has.
+/*  @brief Settle what this board is from what the OLED probe found, and
+ *         record the answer if nothing had recorded one yet.
  *
  *  Call once at boot, immediately after the OLED probe and before anything
  *  reads deviceTypeEffective(). One firmware image serves both cabinets and
  *  works out which it is running on from the hardware rather than from a
  *  build flag or a commissioning step that can be skipped or get it wrong.
+ *
+ *  Writes the AT24 provisioning record at most once in a board's life (the
+ *  existing deviceType field, existing token preserved), so that afterwards
+ *  the board knows what it is from storage and a later display failure
+ *  cannot change its mind.
  */
-void deviceTypeNoteDisplay(bool fitted);
+void deviceTypeResolveFromDisplay(bool oledFitted);
 
 /*  @brief The type this board actually is: what the boot probe found fitted,
  *         falling back to the commissioned type and then to the compile-time
@@ -48,10 +54,17 @@ void deviceTypeNoteDisplay(bool fitted);
  *  ring, OLED or big button, so it must not also light a ring that is not
  *  there (and, on a bench board that has one, must not mirror onto it).
  *
- *  No OLED on I2C2 therefore means STANDARD, whatever the record says. The
- *  cost of that rule is that a ring board whose OLED has failed will also
- *  stop lighting its ring instead of just losing its display; the two parts
- *  are fitted together, so that is treated as one broken board, not two.
+ *  The rule is that an ACK is proof and silence is not: an OLED that answers
+ *  means a ring board whatever the record claims, while an OLED that does not
+ *  answer defers to the record, because a dead display must not be able to
+ *  turn a ring board into a STANDARD one and put out its ring too. A board
+ *  with no record at all is the only case silence decides, and that answer is
+ *  written down immediately so it is never decided twice.
+ *
+ *  A ring board whose display has failed therefore reports its ring type in
+ *  reg 0 while health (reg 9) bit 1 stays clear — the pair says "should have
+ *  a display, has not", which on a STANDARD board is instead the normal
+ *  reading of type 10 with bit 1 clear.
  */
 uint16_t deviceTypeEffective();
 

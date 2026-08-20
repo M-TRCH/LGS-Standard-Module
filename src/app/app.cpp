@@ -74,7 +74,7 @@ void appInit()
     // on I2C2 means a STANDARD board (8-LED index mask, no ring). Must come
     // before ledControlInit() and the first reg-0 write, both of which ask
     // deviceTypeEffective() for the answer.
-    deviceTypeNoteDisplay(oledReady);
+    deviceTypeResolveFromDisplay(oledReady);
     functionMode = checkFunctionSwitch(oledReady);
 
     // servoInit() deferred: the servo outputs (PC6/PC7) are a reserved seam,

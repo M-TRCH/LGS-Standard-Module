@@ -30,13 +30,28 @@ uint32_t commissionToken(const CommissionBlock *b);
  */
 uint16_t commissionDeviceType();
 
-/*  @brief The type this board actually is: the commissioned one, or the
- *         compile-time DEVICE_TYPE when it was never commissioned with one.
+/*  @brief Tell the type resolver what this board physically has.
+ *
+ *  Call once at boot, immediately after the OLED probe and before anything
+ *  reads deviceTypeEffective(). One firmware image serves both cabinets and
+ *  works out which it is running on from the hardware rather than from a
+ *  build flag or a commissioning step that can be skipped or get it wrong.
+ */
+void deviceTypeNoteDisplay(bool fitted);
+
+/*  @brief The type this board actually is: what the boot probe found fitted,
+ *         falling back to the commissioned type and then to the compile-time
+ *         DEVICE_TYPE.
  *
  *  This is what reg 0 reports and what decides which display the board
  *  drives — a STANDARD cabinet is built with the 8-LED index mask and no
  *  ring, OLED or big button, so it must not also light a ring that is not
  *  there (and, on a bench board that has one, must not mirror onto it).
+ *
+ *  No OLED on I2C2 therefore means STANDARD, whatever the record says. The
+ *  cost of that rule is that a ring board whose OLED has failed will also
+ *  stop lighting its ring instead of just losing its display; the two parts
+ *  are fitted together, so that is treated as one broken board, not two.
  */
 uint16_t deviceTypeEffective();
 

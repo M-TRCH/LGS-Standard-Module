@@ -70,6 +70,11 @@ void appInit()
     // Bring up the OLED (independent I2C2 bus) BEFORE the mode selector so it
     // can show the pending mode while the switch is held.
     oledReady = oledInit();
+    // The probe is also how this image knows which cabinet it is in: no OLED
+    // on I2C2 means a STANDARD board (8-LED index mask, no ring). Must come
+    // before ledControlInit() and the first reg-0 write, both of which ask
+    // deviceTypeEffective() for the answer.
+    deviceTypeNoteDisplay(oledReady);
     functionMode = checkFunctionSwitch(oledReady);
 
     // servoInit() deferred: the servo outputs (PC6/PC7) are a reserved seam,

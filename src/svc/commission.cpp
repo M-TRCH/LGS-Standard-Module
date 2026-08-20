@@ -191,10 +191,39 @@ bool commissionRead(CommissionBlock *out)
     return true;
 }
 
+// What the boot-time I2C2 probe found: -1 not probed yet, 0 no OLED, 1 an
+// OLED answered. Written once by deviceTypeNoteDisplay(), read only here.
+static int8_t displayFitted = -1;
+
+void deviceTypeNoteDisplay(bool fitted)
+{
+    displayFitted = fitted ? 1 : 0;
+}
+
 uint16_t deviceTypeEffective()
 {
-    const uint16_t t = commissionDeviceType();
-    return t ? t : (uint16_t)DEVICE_TYPE;
+    uint16_t t = commissionDeviceType();
+    if (!t)
+    {
+        t = (uint16_t)DEVICE_TYPE;
+    }
+    if (displayFitted < 0)
+    {
+        return t;   // asked before the probe ran: the record is all we have
+    }
+    // What is fitted outranks what was recorded. The OLED sits alone on I2C2,
+    // so its ACK answers "which display does this board have" directly, and
+    // unlike the AT24 record it cannot be stale: a board swapped between
+    // cabinets, or one never commissioned with a type at all, still drives
+    // the display it physically has.
+    if (!displayFitted)
+    {
+        return DEVICE_TYPE_STANDARD;
+    }
+    // A board that has an OLED is never a STANDARD one. Believing a record
+    // that says otherwise would drive the 8-LED mask and leave the ring dark,
+    // which on the shelf is indistinguishable from a dead module.
+    return (t == DEVICE_TYPE_STANDARD) ? DEVICE_TYPE_NARCOTIC : t;
 }
 
 uint16_t commissionDeviceType()

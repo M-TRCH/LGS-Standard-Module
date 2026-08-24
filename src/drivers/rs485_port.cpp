@@ -36,9 +36,28 @@ void rs485PortBegin(uint32_t baud)
     //
     // Since modbusServerTick() only polls after the RTU frame gap, every
     // byte of a complete frame is already in the ring when the library
-    // reads — so this timeout is no longer the assembly budget, only a
-    // backstop for the wreckage of a cut frame. Keep it just wide enough
-    // to cover a few characters of scheduling jitter.
-    const uint32_t charMs = (8UL * 10UL * 1000UL + baud - 1) / baud;
-    rs485.setTimeout(charMs + 20UL);
+    // reads — waiting for MORE bytes inside a read is never useful: bytes
+    // that arrive later belong to the next frame.
+    //
+    // And the timeout must be tiny, not merely "a few characters", because
+    // Stream::readBytes restarts it PER BYTE (timedRead resets _startMillis
+    // on every call). That is the hole the 2026-08-13 fix left open: one
+    // garbage byte parsed as a function code can make libmodbus ask for up
+    // to ~250 bytes (the max-ADU guard is the only cap), and a marginal
+    // line that dribbles noise bytes at intervals just under the timeout
+    // keeps every one of those 250 reads alive — 250 x 29 ms = 7 s of stall
+    // in ONE tick, sailing past the 4 s watchdog. That is the mechanism
+    // behind whole-channel IWDG resets on a noisy branch: every module
+    // hears the same dribble, each stalls past its own watchdog, and the
+    // per-chip UART sampling decides the stable order in which they fall
+    // (measured 2026-08-24: a marginal CH2 head contact reset all 32
+    // modules of rows 6-10 about once a minute while that channel was
+    // polled, and never once when only CH1 was driven).
+    //
+    // 2 ms covers interrupt/scheduling jitter for bytes already in flight
+    // into the ring; the worst garbage parse is now 250 x 2 ms = 0.5 s,
+    // bounded far below the watchdog. Line noise can still cost replies —
+    // no_reply and slow rows — but never a CPU hang.
+    (void)baud;
+    rs485.setTimeout(2);
 }

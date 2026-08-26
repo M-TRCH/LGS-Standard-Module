@@ -127,6 +127,8 @@
 
 ## Statistics v2 (Holding Registers 400–451, u32 hi/lo — fw ≥ v3.3.0, R5.0 เท่านั้น)
 
+> **fw ≥ v3.3.1**: blob ถูกเขียนสลับสองช่องบน AT24 (128 / 384) ไฟดับคาการเขียนจึงไม่ทำให้ตัวนับทั้งหมดกลับเป็นศูนย์อีก — layout เดิม ไม่ต้อง migrate
+
 ค่าจริงแบบ u32 ของตัวนับสะสมตลอดชีพ (กลุ่ม 200–281 ยัง clamp ที่ 65535 เพื่อ master เก่า) —
 ทุกคู่เรียง **hi word ก่อน** ตามธรรมเนียม uptime/UID. เฟิร์มแวร์เก่ากว่า v3.3.0 ตอบการอ่านช่วงนี้ด้วย
 exception 02 (ILLEGAL DATA ADDRESS) — เป็นสัญญาณ "ไม่รองรับ" ที่เครื่องมือใช้ตรวจ ดังนั้นต้องอ่านบล็อกนี้
@@ -139,7 +141,7 @@ exception 02 (ILLEGAL DATA ADDRESS) — เป็นสัญญาณ "ไม�
 | 404–405 | Latch Fire Count (u32) | R | times | จำนวนจ่ายไฟโซลินอยด์จริง (นับที่จุด MOSFET on — คำขอที่ถูก Safety ปฏิเสธไม่นับ; pulse ในโหมด DEMO นับด้วย เพราะเป็น odometer การสึก) |
 | 406–407 | Button Press Count (u32) | R | times | ยอดกดปุ่ม pick-confirm สะสมตลอดชีพ (นับเฉพาะโหมด RUN เหมือน reg 18; reg 18 ยังเป็นตัวนับตั้งแต่บูตเช่นเดิม) |
 | 408–409 | Operating Seconds (u32) | R | sec | เวลาทำงานสะสมตลอดชีพ (เลขไมล์ของบอร์ด) |
-| 410 | IWDG Reset Count | R | times | จำนวนบูตที่เกิดจาก watchdog (saturate ที่ 65535) |
+| 410 | IWDG Reset Count | R | times | จำนวนบูตที่เกิดจาก watchdog (saturate ที่ 65535) — ตัวนับสะสม **ต่างจาก reg 8** ที่บอกสาเหตุของ*บูตปัจจุบัน*เท่านั้น อ่านคู่กันจึงแยกได้ว่า "ไฟตกจน CPU ค้าง" (reg 8 = IWDG และ 410 ขยับ) กับ "ไฟดับจริง" (reg 8 = Power-on และ 410 นิ่ง) |
 | 411–419 | *(สำรอง)* | R | | อ่านได้ 0 |
 | 420–423 | Light 1 On Count / Runtime (u32×2) | R | | preset 1: count hi/lo, runtime hi/lo |
 | 424–451 | Light 2–8 On Count / Runtime | R | | preset n: 420+4(n−1) … — สูตรเดียวกันทุกตัว |

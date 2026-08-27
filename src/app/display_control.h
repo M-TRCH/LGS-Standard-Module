@@ -5,9 +5,11 @@
 
 /*  @file app/display_control.h
  *  @brief OLED display policy driven by Modbus: reg 60 (number) + coil 1010
- *         (enable). While enabled, the number renders as the big two-digit
- *         font (the DEMO face); R5.0 renders 0-99 — out-of-range writes to
- *         reg 60 clamp to 99 and the register reflects the clamped value.
+ *         (enable). While enabled, the number renders in the big digit
+ *         font (the DEMO face); fw >= v3.4.0 renders 0-999 (0-99 before) —
+ *         out-of-range writes to reg 60 clamp to 999 and the register
+ *         reflects the clamped value. Below 100 the familiar two-digit
+ *         face is kept ("45", not "045").
  *
  *  Rendering happens only when this module owns the screen: RUN mode with
  *  the OLED present. The combined light+display coils (1011-1018, 1031-1038)

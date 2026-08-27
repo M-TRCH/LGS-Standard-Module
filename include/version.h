@@ -34,7 +34,7 @@
 // got the wrong answer for a third of the days in a month. Release filenames
 // keep the date as a suffix, where it reads as a date and never as a number.
 #ifndef FW_VERSION
-#define FW_VERSION      30302
+#define FW_VERSION      30400
 #endif
 
 // Hardware version, mnp encoding: m=major, n=minor, p=production run

@@ -29,11 +29,13 @@ void oledClear();
  */
 void oledPrint(const char *text, uint8_t textSize = 2);
 
-/*  @brief Show a two-digit number centered using a large bitmap font.
+/*  @brief Show a number (up to three digits) centered using a large bitmap
+ *         font. Values below 100 keep the familiar two-digit face ("05");
+ *         100-999 grow a third digit at the same glyph size.
  *
- *  @param value Number to display. Values above 99 are wrapped by the caller.
+ *  @param value Number to display, clamped to 999.
  */
-void oledPrintLargeNumber(uint8_t value);
+void oledPrintLargeNumber(uint16_t value);
 
 /*  @brief Show a small centered title with a large centered number below it,
  *         using the standard GFX font (no bitmap digits).

@@ -13,12 +13,13 @@ void render()
 {
     if (ownScreen)
     {
-        oledPrintLargeNumber((uint8_t)mbRegRead(MB_REG_SET_NUM_DISPLAY));
+        oledPrintLargeNumber(mbRegRead(MB_REG_SET_NUM_DISPLAY));
     }
 }
 
-// Set the number on the display (reg 60). R5.0 renders 0-99: out-of-range
-// writes clamp to 99 and the register reflects the clamped value (mbRegWrite
+// Set the number on the display (reg 60). Renders 0-999 (fw >= v3.4.0;
+// 0-99 before): out-of-range writes clamp and the register reflects the
+// clamped value (mbRegWrite
 // syncs the CHANGE shadow, so the write-back cannot re-fire this handler).
 // While the display is enabled the new number renders immediately — the
 // handler runs after the Modbus response has been flushed, so the ~20 ms
@@ -26,9 +27,9 @@ void render()
 void onSetNumDisplayChange(uint16_t addr, uint16_t value)
 {
     (void)addr;
-    if (value > 99)
+    if (value > 999)
     {
-        mbRegWrite(MB_REG_SET_NUM_DISPLAY, 99);
+        mbRegWrite(MB_REG_SET_NUM_DISPLAY, 999);
     }
     if (displayOn)
     {
@@ -61,9 +62,9 @@ void displayControlInit(bool runScreenOwner)
 
 void displayControlShowNumber(uint16_t value)
 {
-    if (value > 99)
+    if (value > 999)
     {
-        value = 99;
+        value = 999;
     }
     mbRegWrite(MB_REG_SET_NUM_DISPLAY, value); // shadow-synced: handler won't re-fire
     if (displayOn)

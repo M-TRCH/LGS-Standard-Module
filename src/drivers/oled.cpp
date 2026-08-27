@@ -52,17 +52,23 @@ void oledPrint(const char *text, uint8_t textSize)
     oled.display();
 }
 
-void oledPrintLargeNumber(uint8_t value)
+void oledPrintLargeNumber(uint16_t value)
 {
+    if (value > 999)
+    {
+        value = 999;    // belt over the callers' clamp: buf holds 3 digits
+    }
     char buf[4];
-    sniprintf(buf, sizeof(buf), "%02u", (unsigned)(value % 100)); // two tabular digits
+    // Below 100 keep the familiar two-digit face ("05", "45"); from 100 the
+    // third digit appears. Same glyphs either way, so the size never jumps.
+    sniprintf(buf, sizeof(buf), value < 100 ? "%02u" : "%u", (unsigned)value);
 
     oled.clearDisplay();
     oled.setFont(&OledBigNum);
     oled.setTextColor(SSD1306_WHITE);
     oled.setTextSize(1);
 
-    // Centre the two big digits both axes via the font metrics.
+    // Centre the digits both axes via the font metrics.
     int16_t bx, by;
     uint16_t bw, bh;
     oled.getTextBounds(buf, 0, 0, &bx, &by, &bw, &bh);

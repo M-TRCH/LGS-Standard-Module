@@ -50,7 +50,7 @@ constexpr uint16_t MB_REG_TIME_AFTER_UNLOCK = 40;   // seconds since last unlock
 constexpr uint16_t MB_REG_LATCH_LOCKED      = 41;   // 1 = latch reads locked (debounced), R5.0-new
 
 // --- Configuration group (holding registers) ---
-constexpr uint16_t MB_REG_SET_NUM_DISPLAY   = 60;   // R5.0 renders 0-99 (clamped); legacy range 0-9999
+constexpr uint16_t MB_REG_SET_NUM_DISPLAY   = 60;   // renders 0-999 (clamped; 0-99 before fw 30400); legacy range 0-9999
 
 constexpr uint16_t MB_REG_UNLOCK_DELAY      = 80;   // milliseconds 0-8000, (F)
 

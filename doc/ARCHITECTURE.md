@@ -117,7 +117,7 @@ reg 60/coil 1010 volatile
 จอ SSD1306 บน I2C2 ขับจาก mode handler โดยตรง (เรนเดอร์เฉพาะตอนค่าที่แสดงเปลี่ยน — ไม่สแปม I2C):
 - **ตอนเลือกโหมด (`checkFunctionSwitch`, boot)**: `oledInit()` ถูกเรียก**ก่อน** mode selector ใน `appInit` เพื่อให้จอโชว์โหมดที่จะได้ถ้าปล่อยปุ่มตอนนี้ (RUN / DEMO / SET ID / FACTORY RESET) ควบคู่ไฟ RUN กะพริบ — ผู้ใช้ปล่อยปุ่มได้ตรงจังหวะโดยไม่ต้องนับไฟกะพริบ; ถ้า OLED ไม่พร้อม (ไม่มีจอ) กลับไปใช้ไฟกะพริบอย่างเดียว (`checkFunctionSwitch(oledReady)`). โหมดที่แสดงกับผลลัพธ์ที่คืนใช้ `classifyMode()` ตัวเดียวกัน จึงไม่มีวันไม่ตรงกัน
 - **RUN**: จอเป็นของ display_control — ถูกเคลียร์ตอน init แล้วขับด้วย Modbus (coil 1010 + reg 60, ดู section Display)
-- **DEMO**: ตัวนับ 0–99 เลขใหญ่ (`oledPrintLargeNumber` → GFXfont `OledBigNum`, เริ่มที่เลข ID) เพิ่มด้วยการแตะปุ่ม — ไว้ทดสอบจอก่อนเปิดใช้ RUN จริง; **แตะปุ่ม = ยิงทดสอบกลอน pulse 500ms (ignoreSense)** เพื่อทดสอบการขับ solenoid
+- **DEMO**: ตัวนับ 0–999 เลขใหญ่ (0–99 ก่อน v3.4.0) (`oledPrintLargeNumber` → GFXfont `OledBigNum`, เริ่มที่เลข ID) เพิ่มด้วยการแตะปุ่ม — ไว้ทดสอบจอก่อนเปิดใช้ RUN จริง; **แตะปุ่ม = ยิงทดสอบกลอน pulse 500ms (ignoreSense)** เพื่อทดสอบการขับ solenoid
 - **SET_ID**: `oledPrintTitledNumber("SET ID", id)` + ตั้ง ID ด้วยปุ่ม — แตะ = +1 (วน `SETID_ID_MIN..SETID_ID_MAX` = 1..99), กดค้าง ≥`SETID_SAVE_HOLD_MS` = save+reboot; ยังบูตที่ Modbus ID 246 ให้ master ค้นเจอได้ (ปุ่มเป็นทางเลือกเสริม). ค่า 0 ไม่ให้ตั้ง (= broadcast)
 - **FACTORY_RESET**: `oledPrintTitledNumber("FACTORY RESET", secsLeft)` นับถอยหลัง 5→1
 - helper เลขใหญ่ฟอนต์มาตรฐาน (`oledPrintTitledNumber`) อยู่ใน driver เพื่อ encapsulate object `oled`; ใช้ GFX built-in font (ไม่เพิ่มฟอนต์/flash)
@@ -175,7 +175,7 @@ Tier 3: เลขใหญ่ DEMO เปลี่ยนจาก bitmap 53×64 
 - Build flags: `-flto=auto` + `-D SSD1306_NO_SPLASH` (ดู platformio.ini) — หลังอัปเดต toolchain ให้ smoke test บนบอร์ดเสมอ
 - กติกา: ห้าม String/heap/float ใน runtime path; ตาราง const ใน flash; ไม่มี virtual dispatch
   (⚠️ lib ภายนอกอาจแอบดึง float — เช่น Sensirion `measureHighPrecision(float&)` เดิมดึง soft-float 7.5KB; ใช้ variant `...Ticks` แทน)
-- แยก flash รายหมวด (LTO รวมโค้ดเราไว้ใน `main`): HAL/core ~17KB · libc ~11KB · Arduino classes ~5.5KB · Modbus/RS485 ~4KB · rodata ฟอนต์ ~4.5KB (OledBigNum GFXfont ~3.2KB + GFX built-in font 1.3KB) · โค้ดเรา ~5.5KB
+- แยก flash รายหมวด (LTO รวมโค้ดเราไว้ใน `main`): HAL/core ~17KB · libc ~11KB · Arduino classes ~5.5KB · Modbus/RS485 ~4KB · rodata ฟอนต์ ~4.3KB (OledBigNum GFXfont ~2.0KB หลังลดเป็นสูง 51px ใน v3.4.0 + GFX built-in font 1.3KB) · โค้ดเรา ~5.5KB
 - Config อยู่บน AT24 แล้ว → MCU flash ใช้กับโค้ด + OTA ได้เต็ม
 
 ## OTA ผ่าน RS485 broadcast (ใช้งานจริงแล้ว — E2E ผ่านบนบอร์ด 16/07/2026)

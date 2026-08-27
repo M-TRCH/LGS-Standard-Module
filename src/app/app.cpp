@@ -33,7 +33,7 @@ static void runSetIdMode();
 static void runFactoryResetMode();
 static void runNormalMode();
 
-static void updateOledCounter(uint8_t value);
+static void updateOledCounter(uint16_t value);
 static void updateOledSetId(uint16_t id, uint16_t secsLeft);
 static void updateOledFactoryCountdown(uint16_t secs);
 
@@ -160,7 +160,7 @@ static void runDemoMode()
 {
     static uint32_t lastDemoFrame = 0;
     static uint16_t rainbowPhase = 0;
-    static uint8_t oledCounter = 0;
+    static uint16_t oledCounter = 0;
     static bool lastSwitchPressed = false;
     static uint32_t lastSwitchEdge = 0;
     static bool inited = false;
@@ -168,14 +168,14 @@ static void runDemoMode()
     if (!inited)
     {
         inited = true;
-        oledCounter = (uint8_t)(settings().identifier % 100); // start from the device ID
+        oledCounter = settings().identifier % 1000;   // start from the device ID (108 shows "108")
     }
 
     bool switchPressed = boardFunctionSwitchPressed();
     if (switchPressed && !lastSwitchPressed && (millis() - lastSwitchEdge >= DEMO_SWITCH_DEBOUNCE_MS))
     {
         lastSwitchEdge = millis();
-        oledCounter = (oledCounter + 1) % 100;
+        oledCounter = (oledCounter + 1) % 1000;
 
         // Latch bench test: each press fires a full 500ms pulse ignoring the
         // sense pin (always energizes, fixed max duration), so the solenoid
@@ -435,7 +435,7 @@ static void runNormalMode()
 // OLED helpers
 // ---------------------------------------------------------------------------
 
-static void updateOledCounter(uint8_t value)
+static void updateOledCounter(uint16_t value)
 {
     if (!oledReady)
     {

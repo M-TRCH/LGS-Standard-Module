@@ -4,7 +4,7 @@
 
 ## v3.4.0 / FW 30400 (2026-08-27) — จอเลขใหญ่แสดง 3 หลัก (0-999)
 
-> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,092 B, sha256 475fea87…) — **ติดตั้งครบ 64 ตัวบนตู้ทดสอบ (2026-08-27)** ด้วย OTA ทีละแชนแนล ~145 วิ/แชนแนล ไม่มี repair round (หลังแก้ pacing ฝั่ง tool, ดู LGS-Test-Tool `af7a90c`) · จอ 3 หลักผ่านการตรวจด้วยตาบนกระจกจริง · ยังไม่ตัด release
+> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,092 B, sha256 475fea87…) — **ติดตั้งครบ 64 ตัวบนตู้ทดสอบ (2026-08-27)** ด้วย OTA ทีละแชนแนล ~145 วิ/แชนแนล ไม่มี repair round (หลังแก้ pacing ฝั่ง tool, ดู LGS-Test-Tool `af7a90c`) · จอ 3 หลักผ่านการตรวจด้วยตาบนกระจกจริง · **RELEASED 2026-08-28** (github v3.4.0, factory sha256 17b73e04…)
 
 ### Compatibility
 - ไม่มีการเปลี่ยน settings/stats schema → OTA จาก v3.3.x ปลอดภัยทั้งบัส
@@ -25,7 +25,7 @@
 
 ## v3.3.2 / FW 30302 (2026-08-24) — ปิดช่องค้างยาวตอนสายมีสัญญาณรบกวน
 
-> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,360 B, sha256 12592dc5…) — ยังไม่ได้ทำ factory image และยังไม่ได้ตัด release
+> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,360 B, sha256 12592dc5…) — ไม่เคยตัด release แยก; ถูกพับรวมเข้า v3.4.0
 > ติดตั้งแล้วบนตู้ทดสอบครบ 64 ตัว (2026-08-24, OTA 115 วิ/แชนแนล ไม่มี repair round)
 
 ### Compatibility

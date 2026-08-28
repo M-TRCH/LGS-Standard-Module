@@ -107,9 +107,9 @@ preset 2–8 = palette default, เขียน payload ก่อน header (tor
 ## Display (app/display_control)
 
 จอ RUN เป็นของ display_control (one-shot clear ตอน `displayControlInit(ownScreen)`; โหมดอื่นเป็น
-เจ้าของจอของตัวเอง): coil 1010 = แสดง/ดับเลขใหญ่ 2 หลักจาก reg 60 (ฟอนต์ DEMO); เขียน reg 60
+เจ้าของจอของตัวเอง): coil 1010 = แสดง/ดับเลขใหญ่จาก reg 60 (ฟอนต์ DEMO); เขียน reg 60
 ขณะจอเปิด → เรนเดอร์ทันทีใน handler (Modbus ตอบ response ก่อนแล้ว ~20ms ของ OLED จึงแค่หน่วง
-poll ถัดไป); **ช่วงแสดง 0–99** — เกินถูก clamp เป็น 99 + เขียนกลับ (shadow sync กันลูป);
+poll ถัดไป); **ช่วงแสดง 0–999 ตั้งแต่ v3.4.0** (ก่อนหน้า 0–99; ต่ำกว่า 100 หน้าตา 2 หลักเดิม) — เกินถูก clamp เป็น 999 + เขียนกลับ (shadow sync กันลูป);
 reg 60/coil 1010 volatile
 
 ## OLED ต่อโหมด (app.cpp)
@@ -118,7 +118,7 @@ reg 60/coil 1010 volatile
 - **ตอนเลือกโหมด (`checkFunctionSwitch`, boot)**: `oledInit()` ถูกเรียก**ก่อน** mode selector ใน `appInit` เพื่อให้จอโชว์โหมดที่จะได้ถ้าปล่อยปุ่มตอนนี้ (RUN / DEMO / SET ID / FACTORY RESET) ควบคู่ไฟ RUN กะพริบ — ผู้ใช้ปล่อยปุ่มได้ตรงจังหวะโดยไม่ต้องนับไฟกะพริบ; ถ้า OLED ไม่พร้อม (ไม่มีจอ) กลับไปใช้ไฟกะพริบอย่างเดียว (`checkFunctionSwitch(oledReady)`). โหมดที่แสดงกับผลลัพธ์ที่คืนใช้ `classifyMode()` ตัวเดียวกัน จึงไม่มีวันไม่ตรงกัน
 - **RUN**: จอเป็นของ display_control — ถูกเคลียร์ตอน init แล้วขับด้วย Modbus (coil 1010 + reg 60, ดู section Display)
 - **DEMO**: ตัวนับ 0–999 เลขใหญ่ (0–99 ก่อน v3.4.0) (`oledPrintLargeNumber` → GFXfont `OledBigNum`, เริ่มที่เลข ID) เพิ่มด้วยการแตะปุ่ม — ไว้ทดสอบจอก่อนเปิดใช้ RUN จริง; **แตะปุ่ม = ยิงทดสอบกลอน pulse 500ms (ignoreSense)** เพื่อทดสอบการขับ solenoid
-- **SET_ID**: `oledPrintTitledNumber("SET ID", id)` + ตั้ง ID ด้วยปุ่ม — แตะ = +1 (วน `SETID_ID_MIN..SETID_ID_MAX` = 1..99), กดค้าง ≥`SETID_SAVE_HOLD_MS` = save+reboot; ยังบูตที่ Modbus ID 246 ให้ master ค้นเจอได้ (ปุ่มเป็นทางเลือกเสริม). ค่า 0 ไม่ให้ตั้ง (= broadcast)
+- **SET_ID**: `oledPrintTitledNumber("SET ID", id)` + ตั้ง ID ด้วยปุ่ม — แตะ = +1 (วน `SETID_ID_MIN..SETID_ID_MAX` = 1..108 ตั้งแต่ v3.3.0), กดค้าง ≥`SETID_SAVE_HOLD_MS` = save+reboot; ยังบูตที่ Modbus ID 246 ให้ master ค้นเจอได้ (ปุ่มเป็นทางเลือกเสริม). ค่า 0 ไม่ให้ตั้ง (= broadcast)
 - **FACTORY_RESET**: `oledPrintTitledNumber("FACTORY RESET", secsLeft)` นับถอยหลัง 5→1
 - helper เลขใหญ่ฟอนต์มาตรฐาน (`oledPrintTitledNumber`) อยู่ใน driver เพื่อ encapsulate object `oled`; ใช้ GFX built-in font (ไม่เพิ่มฟอนต์/flash)
 

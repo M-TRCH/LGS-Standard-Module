@@ -4,7 +4,7 @@
 
 ## v3.4.0 / FW 30400 (2026-08-27) — จอเลขใหญ่แสดง 3 หลัก (0-999)
 
-> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,092 B, sha256 475fea87…) — ยังไม่ได้แฟลชบอร์ดใด ยังไม่ตัด release
+> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,092 B, sha256 475fea87…) — **ติดตั้งครบ 64 ตัวบนตู้ทดสอบ (2026-08-27)** ด้วย OTA ทีละแชนแนล ~145 วิ/แชนแนล ไม่มี repair round (หลังแก้ pacing ฝั่ง tool, ดู LGS-Test-Tool `af7a90c`) · จอ 3 หลักผ่านการตรวจด้วยตาบนกระจกจริง · ยังไม่ตัด release
 
 ### Compatibility
 - ไม่มีการเปลี่ยน settings/stats schema → OTA จาก v3.3.x ปลอดภัยทั้งบัส

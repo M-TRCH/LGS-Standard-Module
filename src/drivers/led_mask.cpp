@@ -36,11 +36,19 @@ void maskInit()
 }
 
 // Index as read off the front of the mask (1-8) -> position in the data
-// chain. The chain does not run in reading order; the parts are placed for
-// the mask's layout and the data line snakes between them. Measured on the
-// board (commanding chain position 1 lights the 4th window, and so on), and
-// it lives here because it describes this accessory's wiring — the preset
-// engine should keep thinking in the numbers a person sees.
+// chain. The chain does not run in reading order; the data line snakes.
+// Verified against the PCB artwork (PCB_LGS-Mask-8-LED, 2026-09-04), not
+// just measured on a sample: the schematic netlist chains
+// DIN->LED1->...->LED8 in designator order, and the board places them in a
+// 2x4 grid — in ascending PCB-X the top row reads LED8,LED5,LED4,LED1 and
+// the bottom row LED7,LED6,LED3,LED2. The mask mounts rotated 180 degrees
+// from PCB coordinates, so a person reads each row in DESCENDING X, top
+// row first: LED1,LED4,LED5,LED8 / LED2,LED3,LED6,LED7 = chain positions
+// {0,3,4,7,1,2,5,6}. If a re-spin moves a part or flips the connector this
+// table is wrong on every module and nothing else will complain — re-derive
+// it from the new artwork before trusting a new mask lot. It lives here
+// because it describes this accessory's wiring; the engines above keep
+// thinking in the numbers a person sees.
 static const uint8_t kIndexToChain[HW_LED_MASK_PIXEL_COUNT] =
     { 0, 3, 4, 7, 1, 2, 5, 6 };
 
@@ -50,6 +58,19 @@ void maskShowIndex(uint8_t index, uint32_t color)
     if (index >= 1 && index <= HW_LED_MASK_PIXEL_COUNT)
     {
         mask.setPixelColor(kIndexToChain[index - 1], toMaskColor(color));
+    }
+    mask.show();
+}
+
+void maskShowSet(uint8_t litMask, const uint32_t colors[HW_LED_MASK_PIXEL_COUNT])
+{
+    mask.clear();
+    for (uint8_t pos = 0; pos < HW_LED_MASK_PIXEL_COUNT; pos++)
+    {
+        if (litMask & (1u << pos))
+        {
+            mask.setPixelColor(kIndexToChain[pos], toMaskColor(colors[pos]));
+        }
     }
     mask.show();
 }

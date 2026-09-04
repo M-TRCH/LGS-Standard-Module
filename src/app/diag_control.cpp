@@ -65,6 +65,7 @@ void diagControlTick(uint32_t now)
     mbRegWrite(MB_REG_UPTIME_HI, (uint16_t)(uptimeS >> 16));
     mbRegWrite(MB_REG_UPTIME_LO, (uint16_t)uptimeS);
     mbRegWrite(MB_REG_ACTIVE_PRESET, ledControlActivePreset());
+    mbRegWrite(MB_REG_LIT_WINDOWS, ledControlLitWindows());
     publishHealth();
 }
 

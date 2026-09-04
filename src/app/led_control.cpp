@@ -13,15 +13,27 @@
 #include <string.h>
 
 // ---------------------------------------------------------------------------
-// Preset engine: one physical ring, eight color presets (radio semantics)
+// Two engines behind one coil family, chosen once at init by the display
 // ---------------------------------------------------------------------------
 //
-// Coils 1001-1008 select which preset drives the ring. Exactly one preset is
-// active at a time: activating a new one switches the ring color immediately
-// and clears the outgoing preset's coils (radio behavior), so reading the
-// coils always shows the single active preset. Firmware coil writes go
-// through mbCoilWrite, which syncs the CHANGE shadows — radio-clears never
-// re-fire handlers.
+// RING boards (type 20 and every other ring type) — radio semantics.
+// Coils 1001-1008 select which preset drives the single ring. Exactly one
+// preset is active at a time: activating a new one switches the ring color
+// immediately and clears the outgoing preset's coils, so reading the coils
+// always shows the single active preset.
+//
+// MASK boards (type 10 STANDARD, v3.5.0) — independent windows. The eight
+// mask windows are eight separate lights: window n = person n, because the
+// product reason for eight colors is up to eight people's medications being
+// picked from ONE slot at the same time — the semantics the R4.x fleet has
+// run in the field since 2025 (eight strips, eight pins, no radio). So on a
+// mask board each coil switches its own window and any subset may be lit.
+// Radio code never executes on mask boards and window code never executes
+// on ring boards, which is what keeps this addition invisible to the
+// type-20 cabinets already in service.
+//
+// Firmware coil writes go through mbCoilWrite, which syncs the CHANGE
+// shadows — engine-made clears never re-fire handlers.
 
 namespace {
 
@@ -140,12 +152,88 @@ void deactivate()
     closeActivePreset();
 }
 
+// --- Window engine (mask boards only) ---------------------------------------
+
+uint8_t winLitMask = 0;                          // bit n-1 = window n lit
+uint8_t winLastCmd = 0;                          // last window commanded on
+uint32_t winOnSinceMs[MB_LED_PRESET_COUNT] = {}; // 0 = that window is off
+
+// Repaint the whole lit set from the preset registers. Always the full set,
+// one driver call: partial updates would keep stale colors on screen after
+// a color-register write to an already-lit window.
+void windowRepaint()
+{
+    uint32_t colors[MB_LED_PRESET_COUNT];
+    for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        colors[n - 1] = (winLitMask & (1u << (n - 1))) ? presetColorOf(n) : 0;
+    }
+    maskShowSet(winLitMask, colors);
+}
+
+// Fold window n's running on-interval into the statistics — the ring
+// engine's whole-seconds + sub-second-remainder scheme, sharing
+// onTimeMsFrac because only one engine ever runs on a given board.
+void windowFoldOnTime(uint8_t n, bool restart)
+{
+    if (winOnSinceMs[n - 1] == 0)
+    {
+        return;
+    }
+    uint32_t nowMs = millis();
+    uint32_t deltaMs = (nowMs - winOnSinceMs[n - 1]) + onTimeMsFrac[n - 1];
+    statsAddOnTime(n, deltaMs / 1000);
+    onTimeMsFrac[n - 1] = (uint16_t)(deltaMs % 1000);
+    winOnSinceMs[n - 1] = restart ? nowMs : 0;
+}
+
+void windowOn(uint8_t n)
+{
+    winLastCmd = n;
+    const uint8_t bit = (uint8_t)(1u << (n - 1));
+    if (!(winLitMask & bit))
+    {
+        winLitMask |= bit;
+        statsNoteLedOn(n);
+        winOnSinceMs[n - 1] = millis();
+    }
+    windowRepaint(); // a re-command refreshes the color, like the ring path
+}
+
+// Window n off: fold its on-time and clear ITS coil mirrors only — the
+// siblings keep shining, which is the point of this engine.
+void windowOff(uint8_t n)
+{
+    const uint8_t bit = (uint8_t)(1u << (n - 1));
+    if (!(winLitMask & bit))
+    {
+        return;
+    }
+    windowFoldOnTime(n, false);
+    winLitMask &= (uint8_t)~bit;
+    mbCoilWrite(mbCoilLedEnable(n), false);
+    mbCoilWrite(mbCoilLedDisplay(n), false);
+    windowRepaint();
+}
+
 // --- Modbus handlers ---
 
 // Enable coils (1001-1008): change-triggered preset select / off
 void onLedEnableChange(uint16_t addr, uint16_t value)
 {
     uint8_t n = (uint8_t)(addr - 1000);
+    if (useMask) // independent windows: this coil touches window n alone
+    {
+        if (value)
+        {
+            windowOn(n);
+        }
+        else
+        {
+            windowOff(n);
+        }
+        return;
+    }
     if (value)
     {
         activatePreset(n);
@@ -168,7 +256,14 @@ void onLedLatchCommand(uint16_t addr, uint16_t value)
     }
 
     uint8_t n = (uint8_t)(addr - 1020);
-    activatePreset(n);
+    if (useMask)
+    {
+        windowOn(n); // light this window; sibling windows stay lit
+    }
+    else
+    {
+        activatePreset(n);
+    }
 
     // Hand the unlock to the latch state machine; on completion it clears
     // this coil and syncs the preset's enable coil. When busy (another
@@ -188,6 +283,21 @@ void onLedLatchCommand(uint16_t addr, uint16_t value)
 void onLedDisplayChange(uint16_t addr, uint16_t value)
 {
     uint8_t n = (uint8_t)(addr - 1010);
+    if (useMask) // no OLED on a mask board; keep the coil semantics anyway
+    {
+        if (value)
+        {
+            windowOn(n);
+            mbCoilWrite(mbCoilLedEnable(n), true);
+            displayControlSetEnabled(true);
+        }
+        else if (winLitMask & (1u << (n - 1)))
+        {
+            windowOff(n);
+            displayControlSetEnabled(false);
+        }
+        return;
+    }
     if (value)
     {
         activatePreset(n);
@@ -216,7 +326,14 @@ void onLedLatchDisplayCommand(uint16_t addr, uint16_t value)
     }
 
     uint8_t n = (uint8_t)(addr - 1030);
-    activatePreset(n);
+    if (useMask)
+    {
+        windowOn(n);
+    }
+    else
+    {
+        activatePreset(n);
+    }
     displayControlSetEnabled(true);
     // Mirror the preset+display STATE coil right away (the display part is
     // already active), so one write of 101N=0 later shuts both the ring and
@@ -280,8 +397,12 @@ void identifyOverlayTick(uint32_t now)
     if (now - identifyStartMs >= identifyWindowMs)
     {
         identifyActive = false;
-        // Hand the ring back to the preset engine.
-        if (activePreset != 0)
+        // Hand the display back to whichever engine owns this board.
+        if (useMask)
+        {
+            windowRepaint(); // repaints the lit set; all-dark when none
+        }
+        else if (activePreset != 0)
         {
             applyPresetColor(activePreset);
         }
@@ -320,7 +441,18 @@ void onAllOffCommand(uint16_t addr, uint16_t value)
     (void)value;
     mbCoilWrite(MB_COIL_ALL_OFF, false);
 
-    deactivate(); // ring off + active preset's mirrors cleared
+    if (useMask)
+    {
+        for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+        {
+            windowOff(n); // folds stats + clears that window's mirrors
+        }
+        winLastCmd = 0;
+    }
+    else
+    {
+        deactivate(); // ring off + active preset's mirrors cleared
+    }
     displayControlSetEnabled(false);
     for (uint16_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
     {
@@ -399,9 +531,16 @@ void ledControlShowDemoFrame(uint16_t phase)
 
 void ledControlPersistStats()
 {
-    // Close the running interval into the accumulators first, so a flush
+    // Close the running interval(s) into the accumulators first, so a flush
     // right before a reset captures the in-flight on-time too.
-    if (activePreset != 0 && onSinceMs != 0)
+    if (useMask)
+    {
+        for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+        {
+            windowFoldOnTime(n, true); // lit intervals keep running
+        }
+    }
+    else if (activePreset != 0 && onSinceMs != 0)
     {
         uint32_t nowMs = millis();
         uint32_t deltaMs = (nowMs - onSinceMs) + onTimeMsFrac[activePreset - 1];
@@ -415,9 +554,17 @@ void ledControlPersistStats()
 void ledControlClearStats()
 {
     memset(onTimeMsFrac, 0, sizeof(onTimeMsFrac));
+    uint32_t nowMs = millis();
     if (onSinceMs != 0)
     {
-        onSinceMs = millis(); // restart the in-flight interval from zero
+        onSinceMs = nowMs; // restart the in-flight interval from zero
+    }
+    for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        if (winOnSinceMs[n - 1] != 0)
+        {
+            winOnSinceMs[n - 1] = nowMs; // same restart, per window
+        }
     }
     statsClearUsage();
 }
@@ -431,6 +578,28 @@ void ledControlConfirmBlink()
     // master may clear that preset mid-blink (it usually does; that is the
     // confirm loop working). No preset lit -> identify's white.
     const uint8_t w = IDENTIFY_WHITE_LEVEL;
+    if (useMask)
+    {
+        // Exactly one window lit -> point the ack at it in its color. Any
+        // other state (none lit, or several people's windows at once)
+        // blinks the whole mask white: singling one out would point at the
+        // wrong person's slot.
+        uint8_t only = 0;
+        if (winLitMask != 0 && (winLitMask & (uint8_t)(winLitMask - 1)) == 0)
+        {
+            for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+            {
+                if (winLitMask == (1u << (n - 1)))
+                {
+                    only = n;
+                }
+            }
+        }
+        identifyStart(CONFIRM_BLINK_MS,
+                      only != 0 ? presetColorOf(only) : ledColor(w, w, w),
+                      only);
+        return;
+    }
     identifyStart(CONFIRM_BLINK_MS,
                   activePreset != 0 ? presetColorOf(activePreset)
                                     : ledColor(w, w, w),
@@ -439,23 +608,85 @@ void ledControlConfirmBlink()
 
 bool ledControlChannelOn()
 {
-    return activePreset != 0;
+    return useMask ? (winLitMask != 0) : (activePreset != 0);
 }
 
-uint16_t ledControlActiveEnableCoil()
+bool ledControlEnableCoilOn(uint16_t coil)
 {
-    return (activePreset != 0) ? mbCoilLedEnable(activePreset) : 0;
+    if (useMask)
+    {
+        for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+        {
+            if ((winLitMask & (1u << (n - 1))) && mbCoilLedEnable(n) == coil)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    // Ring: exactly the comparison latch_control used to make inline.
+    return activePreset != 0 && mbCoilLedEnable(activePreset) == coil;
 }
 
 uint8_t ledControlActivePreset()
 {
-    return activePreset;
+    if (!useMask)
+    {
+        return activePreset;
+    }
+    // Mask boards, reg 11: with a single lit window this reads exactly like
+    // the ring (the window in use); with several, the last one commanded on
+    // while it is still lit, else the lowest lit. The complete truth is the
+    // reg-61 bitmask — this register stays for masters that read one value.
+    if (winLitMask == 0)
+    {
+        return 0;
+    }
+    if (winLastCmd != 0 && (winLitMask & (1u << (winLastCmd - 1))))
+    {
+        return winLastCmd;
+    }
+    for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+    {
+        if (winLitMask & (1u << (n - 1)))
+        {
+            return n;
+        }
+    }
+    return 0;
+}
+
+uint8_t ledControlLitWindows()
+{
+    if (useMask)
+    {
+        return winLitMask;
+    }
+    return (activePreset != 0) ? (uint8_t)(1u << (activePreset - 1)) : 0;
 }
 
 void ledControlTick(uint32_t now)
 {
-    // Enforce the ACTIVE preset's max-on-time limit (0 = unlimited)
-    if (activePreset != 0 && onSinceMs != 0)
+    // Enforce max-on-time (0 = unlimited). Per window on mask boards — pick
+    // confirmation lives on the server's tablet, so this timeout is the only
+    // thing that puts a forgotten window out. Single preset on ring boards,
+    // unchanged.
+    if (useMask)
+    {
+        for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
+        {
+            if ((winLitMask & (1u << (n - 1))) == 0 || winOnSinceMs[n - 1] == 0)
+            {
+                continue;
+            }
+            uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(n) + 4);
+            if (maxOnTimeS > 0 && now - winOnSinceMs[n - 1] > (uint32_t)maxOnTimeS * 1000)
+            {
+                windowOff(n);
+            }
+        }
+    }
+    else if (activePreset != 0 && onSinceMs != 0)
     {
         uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(activePreset) + 4);
         if (maxOnTimeS > 0 && now - onSinceMs > (uint32_t)maxOnTimeS * 1000)

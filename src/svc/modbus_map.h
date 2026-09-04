@@ -51,6 +51,11 @@ constexpr uint16_t MB_REG_LATCH_LOCKED      = 41;   // 1 = latch reads locked (d
 
 // --- Configuration group (holding registers) ---
 constexpr uint16_t MB_REG_SET_NUM_DISPLAY   = 60;   // renders 0-999 (clamped; 0-99 before fw 30400); legacy range 0-9999
+// Read-only bitmask of lit windows, bit n-1 = window/preset n (v3.5.0).
+// The multi-window truth on mask boards, where several of the eight can be
+// lit at once and reg 11's single value cannot say so; on ring boards it
+// mirrors the active preset (0 or exactly one bit). Was reserved space.
+constexpr uint16_t MB_REG_LIT_WINDOWS       = 61;
 
 constexpr uint16_t MB_REG_UNLOCK_DELAY      = 80;   // milliseconds 0-8000, (F)
 

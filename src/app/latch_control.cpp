@@ -37,17 +37,17 @@ uint32_t lastTimeLatchLocked = 0;
 
 // Resolve the in-flight request: clear its coil and sync the requested
 // preset-enable coil when the LED-latch command asked for it. The sync is
-// skipped unless that coil still names the ACTIVE preset — the LED may have
-// been turned off (max-on-time / bus write) or radio-switched to another
-// preset while the pulse was in flight; setting a stale coil would make it
-// read 1 with a different color on the ring.
+// skipped unless that coil's light is STILL lit — it may have been turned
+// off (max-on-time / bus write) or, on ring boards, radio-switched to
+// another preset while the pulse was in flight; setting a stale coil would
+// claim a light that is not there.
 void finishRequest()
 {
     if (pendingCoil != 0)
     {
         mbCoilWrite(pendingCoil, false);
     }
-    if (pendingEnableCoil != 0 && ledControlActiveEnableCoil() == pendingEnableCoil)
+    if (pendingEnableCoil != 0 && ledControlEnableCoilOn(pendingEnableCoil))
     {
         mbCoilWrite(pendingEnableCoil, true);
     }

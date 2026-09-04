@@ -4,13 +4,16 @@
 #include <Arduino.h>
 
 /*  @file app/led_control.h
- *  @brief LED preset policy: eight color presets on the single ring with
- *         radio switching, Modbus enable/latch coil families, per-preset
- *         config application, max-on-time enforcement and statistics.
+ *  @brief LED policy behind coils 1001-1038: eight color presets with radio
+ *         switching on ring boards, eight INDEPENDENT windows on mask
+ *         boards (type 10, v3.5.0 — window n = person n, several lit at
+ *         once). One engine or the other is chosen at init from the
+ *         commissioned device type; the coil family, per-preset config and
+ *         max-on-time registers are shared.
  *
- *  Owns the LED runtime state (active preset, in-flight on-interval).
- *  Counter storage and register publication live in svc/stats; the
- *  pixel-level work is delegated to drivers/led_ring.
+ *  Owns the LED runtime state (active preset / lit-window set, in-flight
+ *  on-intervals). Counter storage and register publication live in
+ *  svc/stats; pixel work is delegated to drivers/led_ring and led_mask.
  */
 
 /*  @brief Register the Modbus handlers (enable coils 1001-1008, LED-latch
@@ -35,13 +38,22 @@ void ledControlShowDemoFrame(uint16_t phase);
  *         enable coil). */
 bool ledControlChannelOn();
 
-/*  @brief Enable-coil address (1000+n) of the currently active preset, or 0
- *         when the ring is off. latch_control compares this against a
- *         combo's requested coil before syncing it on pulse completion. */
-uint16_t ledControlActiveEnableCoil();
+/*  @brief true when @p coil (1001-1008) belongs to a preset/window that is
+ *         lit right now. latch_control checks this before syncing a combo's
+ *         enable coil on pulse completion — on ring boards it is exactly
+ *         the old "is this the active preset's coil" comparison; on mask
+ *         boards any lit window qualifies. */
+bool ledControlEnableCoilOn(uint16_t coil);
 
-/*  @brief Active preset number (0 = ring off, 1-8). Published at reg 11. */
+/*  @brief Active preset number (0 = off, 1-8), published at reg 11. On mask
+ *         boards: the last window commanded on while it is still lit, else
+ *         the lowest lit — single-window use reads exactly like the ring;
+ *         the full multi-window truth is ledControlLitWindows(). */
 uint8_t ledControlActivePreset();
+
+/*  @brief Bitmask of lit windows (bit n-1 = preset/window n), published at
+ *         reg 61. On ring boards: the active preset's bit, or 0. */
+uint8_t ledControlLitWindows();
 
 /*  @brief Flush the statistics to the AT24 if they changed (folds the
  *         running on-interval in first). Called hourly from the tick and

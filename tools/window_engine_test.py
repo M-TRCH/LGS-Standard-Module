@@ -129,13 +129,25 @@ def main() -> int:
     check("reg 61", lit(want=0x05), 0x05)
     check("coils 1-3", coils(COIL_ENABLE + 1, 3), [1, 0, 1])
 
-    print("\n[4] re-command a lit window: no disturbance")
+    print("\n[4] writing 1 to an ALREADY-lit window's coil is a no-op")
+    # The enable coils are CHANGE watches, so a write that does not change
+    # the coil never reaches the handler: nothing repaints and winLastCmd
+    # does not move. Same semantics the ring engine has always had -- and
+    # the reason an earlier version of this test wrongly expected reg 11
+    # to follow a re-command.
     coil(COIL_ENABLE + 1, True)
-    time.sleep(1.2)
+    time.sleep(1.4)
     check("reg 61 unchanged", lit(), 0x05)
+    check("reg 11 unchanged", reg(REG_ACTIVE), 3)
 
-    print("\n[5] reg 11 = last commanded-on, while lit")
-    check("reg 11", reg(REG_ACTIVE), 1)
+    print("\n[5] reg 11 = last window actually commanded on, else lowest lit")
+    check("reg 11 = 3 (last real command, still lit)", reg(REG_ACTIVE), 3)
+    coil(COIL_ENABLE + 3, False)          # window 1 is now the only one lit
+    check("reg 61", lit(want=0x01), 0x01)
+    time.sleep(1.4)
+    check("reg 11 falls back to the lowest lit", reg(REG_ACTIVE), 1)
+    coil(COIL_ENABLE + 3, True)           # restore the pair for later steps
+    check("reg 61 back to windows 1+3", lit(want=0x05), 0x05)
 
     print("\n[6] max-on-time is per window")
     old = reg(REG_P2_MAX_ON)

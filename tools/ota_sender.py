@@ -76,21 +76,49 @@ def crc16_ccitt(data: bytes) -> int:
     return crc
 
 
+# Held quiet after a broadcast frame, on top of the frame's own wire time.
+# A broadcast is never answered, so nothing else paces the stream: without
+# this the next frame can tread on the tail of the one before it.
+BROADCAST_IDLE_S = 0.100
+
+
 class OtaSession:
-    def __init__(self, client, ids, gap_s):
+    def __init__(self, client, ids, gap_s, baud=9600):
         self.c = client
         self.ids = ids
         self.gap = gap_s
+        self.baud = max(1, baud)
         self.tx_counter = 0
+
+    def _hold(self, nbytes):
+        """Seconds to stay quiet after sending an nbytes broadcast frame.
+
+        A flat gap is wrong the moment this runs through a USB->RS485 BRIDGE
+        rather than a plain adapter. On an adapter, write() blocks until the
+        UART has drained, so the wire paces the sender for free. Through the
+        gateway's USB CDC the write returns instantly and nothing pushes
+        back, so frames pile into the bridge's buffer faster than 9600 baud
+        can empty it; the bridge then reads several of them as one oversized
+        frame, fails CRC, and drops the lot.
+
+        Measured on a type-10 board 2026-09-07: a 68-register chunk write is
+        145 bytes = 151 ms of wire at 9600, and the old flat 25 ms default
+        landed roughly one chunk in three -- 477 sent, 318 missing, each
+        repair round recovering another third and never converging. Pacing
+        by wire time instead gave 477/477 on the first pass with no repair
+        round at all. So wait for however long the bytes actually take, and
+        keep --gap as a floor for anyone who needs more.
+        """
+        return max(self.gap, nbytes * 10.0 / self.baud + BROADCAST_IDLE_S)
 
     # --- low-level helpers -------------------------------------------------
     def bcast_regs(self, addr, values):
         self.c.write_registers(addr, values, device_id=0, no_response_expected=True)
-        time.sleep(self.gap)
+        time.sleep(self._hold(9 + 2 * len(values)))   # FC16 framing + payload
 
     def bcast_coil(self, addr):
         self.c.write_coil(addr, True, device_id=0, no_response_expected=True)
-        time.sleep(self.gap)
+        time.sleep(self._hold(8))                     # FC05 is a fixed 8 bytes
 
     def read_regs(self, uid, addr, count):
         try:
@@ -171,8 +199,8 @@ def open_client(port, baud):
 # Actions (shared by CLI and the interactive menu)
 # ---------------------------------------------------------------------------
 
-def action_status(client, ids):
-    s = OtaSession(client, ids, 0.02)
+def action_status(client, ids, baud=9600):
+    s = OtaSession(client, ids, 0.02, baud)
     for uid in ids:
         st = s.state_of(uid)
         if st is None:
@@ -183,14 +211,14 @@ def action_status(client, ids):
     return 0
 
 
-def action_abort(client, gap_s):
-    OtaSession(client, [], gap_s).bcast_coil(COIL_ABORT)
+def action_abort(client, gap_s, baud=9600):
+    OtaSession(client, [], gap_s, baud).bcast_coil(COIL_ABORT)
     print("broadcast OTA abort sent")
     return 0
 
 
 def action_send(client, ids, image_path, *, gap_s, repair_rounds, broadcast_apply,
-                yes, drop_every=0):
+                yes, drop_every=0, baud=9600):
     try:
         image = open(image_path, "rb").read()
     except OSError as e:
@@ -200,7 +228,7 @@ def action_send(client, ids, image_path, *, gap_s, repair_rounds, broadcast_appl
         print(f"[ERR] image is {human(len(image))} B; OTA cap is {human(MAX_IMAGE_SIZE)} B")
         return 2
 
-    s = OtaSession(client, ids, gap_s)
+    s = OtaSession(client, ids, gap_s, baud)
     crc32 = zlib.crc32(image) & 0xFFFFFFFF
     total_chunks = (len(image) + CHUNK_SIZE - 1) // CHUNK_SIZE
     print(f"image: {image_path}")
@@ -412,11 +440,11 @@ def interactive_menu(args):
                 action_send(client, ids, path,
                             gap_s=args.gap / 1000.0, repair_rounds=args.repair_rounds,
                             broadcast_apply=args.broadcast_apply, yes=False,
-                            drop_every=args.drop_every)
+                            drop_every=args.drop_every, baud=baud)
             elif choice == "2":
-                action_status(client, ids)
+                action_status(client, ids, baud)
             else:
-                action_abort(client, args.gap / 1000.0)
+                action_abort(client, args.gap / 1000.0, baud)
         except KeyboardInterrupt:
             print("\n  interrupted - the device session times out by itself (~30s)")
         finally:
@@ -438,7 +466,9 @@ def main():
     ap.add_argument("-f", "--file", help="firmware .bin; omit to browse (CLI send) or use the menu")
     ap.add_argument("--ids", default="21",
                     help="comma-separated device IDs to verify/apply (e.g. 21,22,23)")
-    ap.add_argument("--gap", type=float, default=25.0, help="inter-frame gap in ms")
+    ap.add_argument("--gap", type=float, default=25.0,
+                    help="MINIMUM inter-frame gap in ms; the real hold is the "
+                         "frame's wire time at --baud plus 100 ms, whichever is larger")
     ap.add_argument("--repair-rounds", type=int, default=5, help="max bitmap repair rounds")
     ap.add_argument("--broadcast-apply", action="store_true",
                     help="apply with one broadcast instead of per-device unicast")
@@ -463,9 +493,9 @@ def main():
         return 2
     try:
         if args.abort:
-            return action_abort(client, args.gap / 1000.0)
+            return action_abort(client, args.gap / 1000.0, args.baud)
         if args.status:
-            return action_status(client, ids)
+            return action_status(client, ids, args.baud)
 
         path = args.file or pick_file()
         if not path:
@@ -474,7 +504,7 @@ def main():
         return action_send(client, ids, path,
                            gap_s=args.gap / 1000.0, repair_rounds=args.repair_rounds,
                            broadcast_apply=args.broadcast_apply, yes=args.yes,
-                           drop_every=args.drop_every)
+                           drop_every=args.drop_every, baud=args.baud)
     finally:
         client.close()
 

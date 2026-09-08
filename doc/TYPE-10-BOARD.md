@@ -2,7 +2,14 @@
 
 The reference for a STANDARD module: the R5.1 board built **without its
 bottom layer**, with the LED-8-Index mask plugged into CN4 instead of the
-ring. This is the module the LGS type 56 cabinet is made of.
+ring. This is the module the **LGS type 80** cabinet is made of — eight
+colours per slot, **no latch fitted**, confirmation on a tablet.
+
+It is the R5 continuation of the eight-light product already running on the
+33 R4.x cabinets at Nonthavej: window n means person n, and one slot can be
+holding several people's medications at once. Do not confuse it with the LGS
+type 56, which is a **type 20** cabinet — ring, OLED and latches, like the
+type 64 — that merely leaves its front button unused.
 
 Everything below was read off a live board on 2026-09-07 (id 247, fw 30500,
 hw 510) unless marked otherwise. Where a type 20 (NARCOTIC, ring + OLED)
@@ -21,7 +28,7 @@ both and decides which it is at boot.
 | STS40 room + board temperature sensors | **NEITHER IS FITTED** | `reg 20` and `reg 21` read **0x8000** (32768) forever; `reg 9` bits 2 and 3 always **0** |
 | AT24C32D EEPROM | fitted | `reg 9` bit0 = 1; settings and statistics persist |
 | INA180A4 current sense | fitted | `reg 22` in mA (reads ~5 mA with the mask dark) |
-| Servo latch | **per cabinet** — optional | `reg 40`/`reg 41` and the latch coils only mean something when one is wired |
+| Servo latch | **not fitted on the type 80** | `reg 41` reads 0 and `reg 9` bit4 stays clear; the latch coils are unused there. The combos still light their window when the latch part declines, so a stray 1021-1028 is harmless — but the server should drive 1001-1008 |
 | SW1 / SW3 function switches | on the board, **rear side** | technician-only (mode select at boot). NOT a user control — see §6 |
 
 > ### The one thing a monitoring server must be told
@@ -29,7 +36,7 @@ both and decides which it is at boot.
 > **`reg 20` = `reg 21` = 0x8000 and `reg 9` bits 1, 2, 3 = 0 is a HEALTHY
 > type-10 module.** 0x8000 is the firmware's "sensor did not answer" sentinel
 > and those health bits report parts this variant does not carry. A server
-> that alarms on them will alarm on all 56 modules, forever, on day one.
+> that alarms on them will alarm on all 80 modules, forever, on day one.
 >
 > On a type-10 board only **bit0 (AT24 ok)** is a real health signal, plus
 > **bit4 (latch locked)** where a latch is fitted.
@@ -55,7 +62,7 @@ medications at once, so any subset of the eight may be lit simultaneously.
 This is the R4.x fleet's behaviour, restored for the mask in **fw 3.5.0**.
 
 > **fw ≤ 3.4.0 on a mask board is RADIO** — one window at a time, each new
-> one closing the last. A type-56 cabinet must not ship on it.
+> one closing the last. A type-80 cabinet must not ship on it.
 
 A ring board (type 20) keeps radio semantics on the same firmware, because a
 ring can only show one colour at a time.
@@ -102,8 +109,8 @@ Two rendering details worth knowing:
 | 18-19 | button presses / held | **dormant in the field** (§6) |
 | 20-21 | room / board temperature | **always 0x8000 — not fitted** |
 | 22 | input current, mA | |
-| 40 | seconds since last unlock | latch cabinets only |
-| 41 | latch locked | latch cabinets only |
+| 40 | seconds since last unlock | **no latch on the type 80** — counts up from boot |
+| 41 | latch locked | **always 0 on the type 80** |
 | **60** | number for the display | **inert — no OLED** |
 | **61** | **lit-window bitmask, bit n-1 = window n** | **the multi-window truth; fw ≥ 3.5.0** |
 | 80 | delay before unlock, ms | |
@@ -126,8 +133,8 @@ truth reads `reg 61`.
 | Coils | Use on type 10 |
 |---|---|
 | **1001-1008** enable window 1-8 | **the primary command.** Independent: light any subset, clear one without touching its siblings |
-| 1021-1028 window + latch | latch cabinets: lights the window *and* unlocks, in one command |
-| 1019 / 1020 latch alone | 1020 is sense-aware (only fires while the latch reads locked); 1019 always fires |
+| 1021-1028 window + latch | pointless on the type 80 (no latch). Lights the window anyway when the latch part declines, so a stray write is harmless |
+| 1019 / 1020 latch alone | nothing to fire on the type 80. On a latch cabinet 1020 is sense-aware and 1019 always fires |
 | 1011-1018, 1031-1038 (+ display) | work, and keep correct window semantics, but the display half does nothing here |
 | 509 identify | whole mask blinks white ~5 s, then restores the lit set untouched |
 | 510 clear statistics | zeroes usage counters (not the boot count) |
@@ -180,11 +187,18 @@ tablet and the server clears the window. The module is a display.
 2. **Do not alarm on `reg 20`/`reg 21` = 0x8000 or on health bits 1-3.**
    That is a correctly built type-10 module.
 3. **Ignore `reg 60`.** The "register 60 now accepts 0-999" line from the
-   type-64 contract does not apply — there is no display to write to.
+   type-64 contract does not apply — there is no display to write to. (It
+   does apply to the type 56, which is a ring-and-OLED cabinet.)
 4. **Clear windows explicitly.** Nothing on the module does it for you until
-   max-on-time expires.
-5. Everything else carries over from the type-64 contract: **read timeout
-   ≥ 4 s and retry**, and one Modbus master on the RS485 bus at a time.
+   max-on-time expires — there is no latch and no button on this cabinet, so
+   the tablet confirm reaching the server is the only thing that ends a pick.
+5. **Use `1001-1008` only.** The latch combos exist but there is no latch to
+   fire, so they buy nothing and cost a state machine round trip.
+6. Everything else carries over from the type-64 contract: **read timeout
+   ≥ 4 s and retry**, and one Modbus master on the RS485 bus at a time. The
+   type 80 has ten rows on eight hub channels, so it inherits the type 64's
+   `bus.hub_map = 1,2,3,4,4,5,5,6,7,8` and every crossing cost that goes
+   with it.
 
 ---
 
@@ -196,7 +210,10 @@ simultaneously, per-window statistics isolated and surviving a reboot,
 per-window max-on-time expiry, all four coil families keeping siblings lit,
 identify restoring the set, and a 60-toggle churn leaving the bitmask exact.
 
-Still outstanding before v3.5.0 ships: the **ring regression** on a type 20
-board, since `app/led_control.cpp` serves both. And no type-10 hardware has
-been soaked yet — all long-run evidence in this project comes from ring
-boards.
+Ring regression on a type 20 board: **37/37**, same firmware, opposite
+semantics — `tools/ring_regression_test.py`. One-hour soak on a type-10
+board: 1,259 cycles, zero failures, zero reboots, zero watchdogs, and the
+lit-window bitmask never once disagreed with the commanded set.
+
+Still outstanding: no type-10 hardware has been soaked at CABINET scale. All
+multi-day evidence in this project comes from the 64's ring boards.

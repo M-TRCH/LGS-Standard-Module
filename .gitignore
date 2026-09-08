@@ -4,3 +4,6 @@
 .vscode/launch.json
 .vscode/ipch
 logs/
+
+# bench soak logs (tools/window_soak.py)
+windowsoak-*.csv

@@ -606,11 +606,6 @@ void ledControlConfirmBlink()
                   activePreset);
 }
 
-bool ledControlChannelOn()
-{
-    return useMask ? (winLitMask != 0) : (activePreset != 0);
-}
-
 bool ledControlEnableCoilOn(uint16_t coil)
 {
     if (useMask)

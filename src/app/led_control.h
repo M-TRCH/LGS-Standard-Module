@@ -33,11 +33,6 @@ void ledControlTick(uint32_t now);
  *  the preset engine asks. */
 void ledControlShowDemoFrame(uint16_t phase);
 
-/*  @brief true while the channel is logically on (used by latch_control to
- *         decide whether completing an LED-latch request may sync the
- *         enable coil). */
-bool ledControlChannelOn();
-
 /*  @brief true when @p coil (1001-1008) belongs to a preset/window that is
  *         lit right now. latch_control checks this before syncing a combo's
  *         enable coil on pulse completion — on ring boards it is exactly

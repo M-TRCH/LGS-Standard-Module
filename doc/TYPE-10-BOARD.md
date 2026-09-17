@@ -199,10 +199,65 @@ tablet and the server clears the window. The module is a display.
    type 80 has ten rows on eight hub channels, so it inherits the type 64's
    `bus.hub_map = 1,2,3,4,4,5,5,6,7,8` and every crossing cost that goes
    with it.
+7. **Budget two hub crossings per command that lands on a random slot**, and
+   do not expect more than a few thousand a day. See §8.
 
 ---
 
-## 8. Provenance
+## 8. How fast a server can actually command this cabinet
+
+Measured on the real cabinet, 2026-09-17, driving random (slot, window)
+picks while a full 80-module poll ran alongside — the shape a server
+produces in service:
+
+| | |
+|---|---|
+| crossings | **187 of 246 transactions (76%)** |
+| attributable to the 58 picks | ~2.9 crossings each |
+| sustained rate achieved | **1 command / 5.2 s ≈ 16,500/day** |
+| commands alone, no poll competing | ~1 / 2.3 s ≈ 37,000/day (derived) |
+
+The reason is the hub, not the modules. A command aimed at a random slot
+drags the hub off whatever channel the poll is walking (~2.2 s), and the
+next poll read drags it back — so a single coil write costs about 4.4 s of
+bus time, not the ~80 ms the frame itself takes. Nothing is faulty when
+this happens; it is what an eight-channel hub costs.
+
+**The product target is 2,000 picks/day, which leaves roughly 8× margin.**
+That is comfortable, and it is the number to hold the design to. What must
+not happen is a server that assumes a coil write is cheap and bursts —
+eighty writes to light a row will take about five minutes, and a server
+that times out at 1 s will call a perfectly healthy cabinet dead.
+
+Two consequences worth designing for:
+
+* **Group commands by row where the order is free.** Slots 11-18 are one
+  hub channel; lighting them costs one crossing, not eight.
+* **A burst and a poll compete for the same 2.2 s settle.** If a batch has
+  to go out quickly, pause the background poll for its duration.
+
+---
+
+## 9. A master that dies leaves this cabinet lit
+
+Proven accidentally on 2026-09-17: a simulation process was killed
+mid-run and three windows stayed on (id13 w6, id21 w2, id43 w1) until
+they were cleared by hand.
+
+There is **no latch and no button on the type 80**, so nothing on the
+cabinet ends a pick. The only backstop is each window's **max-on-time**,
+and the default is 3600 s — an hour of a slot showing a pick nobody is
+coming for, after a server restart.
+
+* Set max-on-time deliberately at commissioning (§6), to whatever "nobody
+  is coming back for this" means on the ward. It is the only safety net.
+* A server should send **coil 511 (all off) to every module on startup**,
+  before it trusts its own picture of what is lit. It is one write per
+  module and it makes a restart truthful.
+
+---
+
+## 10. Provenance
 
 Bench-verified on a type-10 board with a real mask, 2026-09-07:
 `tools/window_engine_test.py --deep` passes **59/59** — eight windows lit

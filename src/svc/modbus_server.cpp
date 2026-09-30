@@ -21,7 +21,41 @@ constexpr uint16_t DISCRETE_INPUT_NUM   = 1;
 constexpr uint16_t HOLDING_REGISTER_NUM = MB_REG_S2_LAST + 1;   // = 452
 constexpr uint16_t INPUT_REGISTER_NUM   = 1;
 
-ModbusRTUServerClass RTUServer;
+// The library's receive loop has TWO waits, and v3.3.2 bounded only one.
+// `Stream::readBytes` (2 ms per byte, set in rs485_port) is the inner one.
+// The outer one is libmodbus's own: `_modbus_receive_msg` re-arms
+// `byte_timeout` — 500 ms by default, never touched by ArduinoModbus — on
+// every step, and its Arduino `select` only gives up when the RX ring is
+// EMPTY at the deadline. So a frame whose byte-count field promises up to
+// ~245 bytes (a truncated FC16, a flipped bit) keeps the loop alive for as
+// long as the channel never falls silent for 500 ms — and ordinary bus
+// traffic, eight bytes every ~70 ms, is exactly what feeds it. Worst case
+// is ~245 x 500 ms; the realistic one on a polled channel is one to three
+// seconds, against a 4 s watchdog on an untrimmed LSI. The frame-gap gate
+// in modbusServerTick guarantees every byte of a real frame is already in
+// the ring before poll() runs, so waiting for MORE bytes is never useful:
+// the timeouts are set to the frame gap itself, and a phantom length now
+// costs at most one gap. `_mb` is protected in ModbusServer, hence the
+// subclass. `response_timeout` is bounded too: on the server side it is
+// only the length of `_sleep_response_timeout`, a blocking delay taken
+// before flushing on an illegal-value exception or an unknown function
+// code — 500 ms that a single broadcast could impose on every module.
+class LgsRtuServer : public ModbusRTUServerClass
+{
+public:
+    void boundTimeouts(uint32_t gapMs)
+    {
+        if (_mb == nullptr)
+        {
+            return;
+        }
+        const uint32_t us = gapMs * 1000UL;
+        modbus_set_byte_timeout(_mb, 0, us);
+        modbus_set_response_timeout(_mb, 0, us);   // must be non-zero
+    }
+};
+
+LgsRtuServer RTUServer;
 
 // Frame-gap state for modbusServerTick(): how long the line must be quiet
 // before a frame counts as complete, what the ring held at the last look,
@@ -134,6 +168,11 @@ void modbusServerInit(uint16_t slaveId, uint32_t baud)
     _rxSeen = 0;
     _rxSince = 0;
     _rxStale = 0;
+
+    // The same gap bounds the library's own waits (see LgsRtuServer): once
+    // the line has been quiet for a frame gap, whatever poll() is still
+    // waiting for belongs to the next frame, not this one.
+    RTUServer.boundTimeouts(_frameGapMs);
 }
 
 void modbusServerTick()

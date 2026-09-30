@@ -109,10 +109,12 @@
 #define COMMISSION_AT24_ADDR        256
 
 // --- Watchdog ---
-// A single RTUServer.poll() can legitimately stall for hundreds of ms
-// (long response flush + libmodbus byte timeouts under bus noise), so the
-// timeout must comfortably exceed the worst chained poll, not the typical
-// loop. The latch pulse clamp does not depend on this (hardware guard).
+// A single RTUServer.poll() can legitimately stall for hundreds of ms (a
+// long response flush; hourly stats write), so the timeout must comfortably
+// exceed the worst chained poll, not the typical loop. Since v3.5.1 both of
+// libmodbus's receive waits are bounded to the RTU frame gap (see
+// modbus_server.cpp), so bus noise can no longer stretch a tick towards this
+// value. The latch pulse clamp does not depend on this (hardware guard).
 #define WATCHDOG_TIMEOUT_MS         4000
 
 #endif // CONFIG_H

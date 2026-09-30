@@ -55,9 +55,14 @@ void rs485PortBegin(uint32_t baud)
     // polled, and never once when only CH1 was driven).
     //
     // 2 ms covers interrupt/scheduling jitter for bytes already in flight
-    // into the ring; the worst garbage parse is now 250 x 2 ms = 0.5 s,
-    // bounded far below the watchdog. Line noise can still cost replies —
-    // no_reply and slow rows — but never a CPU hang.
+    // into the ring. This bounds ONE of the library's two waits: readBytes.
+    // The other — libmodbus's own 500 ms byte_timeout, re-armed on every
+    // step of its receive loop and fed by ordinary bus traffic — was left
+    // open until v3.5.1 and is bounded in modbus_server.cpp (LgsRtuServer).
+    // The "worst case 0.5 s" this comment used to claim was therefore wrong:
+    // with both bounds in place a phantom frame length costs at most one
+    // frame gap. Line noise can still cost replies — no_reply and slow
+    // rows — but never a CPU hang.
     (void)baud;
     rs485.setTimeout(2);
 }

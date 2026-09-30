@@ -2,6 +2,38 @@
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
 **ไฟล์:** firmware_stm32f103_*.bin (R4.x) / firmware_stm32g070_*.bin (R5.x)
 
+## v3.5.1 / FW 30501 (2026-09-30) — ปิดครึ่งที่เหลือของช่องค้างยาวใน libmodbus
+
+> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (61,156 B, sha256 fc9d977f…) — เป้าหมายแรก: ตู้ Queen ทั้ง 64 ตัว (2026-09-30) พิสูจน์ก่อน/หลังด้วย `tools/stall_probe.py` บนโมดูล 101
+
+### Compatibility
+- ไม่มีการเปลี่ยน settings/stats schema หรือ register map → OTA จาก v3.4.x/v3.5.0 ปลอดภัยทั้งบัส
+- path ที่แก้เป็นของ Modbus server ที่ทุก type ใช้ร่วมกัน — ring (type 20) และ mask (type 10) ได้ผลเท่ากัน
+
+### Bug Fixes
+- **รัด `byte_timeout` และ `response_timeout` ของ libmodbus ให้เท่า RTU frame gap** (`LgsRtuServer::boundTimeouts`,
+  `svc/modbus_server.cpp`) — ค่า default ของไลบรารีคือ 500 ms และ ArduinoModbus ไม่เคยตั้ง
+  `_modbus_receive_msg` re-arm ค่านี้ทุกขั้นของลูปรับ และ `select` ฝั่ง Arduino เลิกรอก็ต่อเมื่อ
+  ring **ว่าง** ตอนครบเวลา → เฟรมที่ช่อง byte-count สัญญาไว้ถึง ~245 ไบต์ (FC16 ถูกตัด/บิตพลิก)
+  ทำให้โมดูลรออยู่ในลูปตราบใดที่บัสไม่เงียบเกิน 500 ms — และ traffic ปกติ (request 8 ไบต์ทุก ~70 ms)
+  คือสิ่งที่เลี้ยงมันไว้ ค้างจริงราว 1–3 วิต่อครั้ง เทียบ IWDG 4 วิบน LSI ที่ไม่ได้ trim
+  v3.3.2 รัดไว้แค่ `readBytes` (2 ms) ตัวเลข "แย่สุด 0.5 วิ" ที่เคยเขียนไว้จึงผิด — ประตู frame-gap
+  ใน `modbusServerTick` การันตีว่าเฟรมจริงอยู่ครบใน ring ก่อน `poll()` การรอไบต์เพิ่มจึงไม่มี
+  ประโยชน์เลย ตอนนี้ความยาวปลอมเสียเวลาได้แค่หนึ่ง frame gap (5 ms ที่ 9600)
+- `response_timeout` ฝั่ง server คือความยาวของ `_sleep_response_timeout` ก่อน flush เมื่อเจอ
+  illegal-value / unknown function code — 500 ms ที่ broadcast เฟรมเดียวบังคับทุกโมดูลได้ ลดลงด้วย
+- บริบทจาก census ทั้งฟลีต 2026-09-30: IWDG สะสม 11,519 ครั้ง อยู่ที่ Queen 11,465 (99.5%) บอร์ด mask
+  400 ตัวใน 8 ตู้แทบเป็นศูนย์ → ช่องโหว่มีทุกตู้เท่ากัน แต่กัดเฉพาะบัสที่มีไบต์ขยะ
+
+### Tools
+- `tools/stall_probe.py` — ยิงเฟรม FC16 byte-count 240 ผ่านเกตเวย์แล้วเลี้ยงบัส 6 วิ อ่าน boots/iwdg
+  ก่อน-หลัง: เฟิร์มแวร์เก่าต้องรีบูตด้วย IWDG, v3.5.1 ต้องไม่
+
+### ขนาด
+- Flash 61,156 B (93.0% ของ 64 KB; เหลือ 284 B ใต้เพดาน OTA 61,440) · RAM 4,948 B (13.4%)
+
+---
+
 ## v3.4.0 / FW 30400 (2026-08-27) — จอเลขใหญ่แสดง 3 หลัก (0-999)
 
 > **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (60,092 B, sha256 475fea87…) — **ติดตั้งครบ 64 ตัวบนตู้ทดสอบ (2026-08-27)** ด้วย OTA ทีละแชนแนล ~145 วิ/แชนแนล ไม่มี repair round (หลังแก้ pacing ฝั่ง tool, ดู LGS-Test-Tool `af7a90c`) · จอ 3 หลักผ่านการตรวจด้วยตาบนกระจกจริง · **RELEASED 2026-08-28** (github v3.4.0, factory sha256 17b73e04…)

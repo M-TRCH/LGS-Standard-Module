@@ -64,7 +64,14 @@
 #define STORAGE_FAULT_BLINK_MS      300     // fast RUN-LED blink when the AT24 EEPROM is absent
 
 // --- OTA over RS485 ---
-#define OTA_SESSION_TIMEOUT_MS      30000   // no bus activity this long -> session fails out
+// No OTA activity this long -> the session fails out. Was 30 s; on the Queen
+// (2026-09-30, 64 modules) a device that had its whole image sat idle while
+// the master read bitmaps and re-sent chunks for its neighbours, and 30 s
+// was not always enough: complete devices expired before FINALIZE reached
+// them. Only chunk commits and FINALIZE refresh the timer (bitmap and state
+// reads do not), so the budget has to cover a full repair round. An
+// abandoned session now shows the OTA screen 90 s instead of 30 -- harmless.
+#define OTA_SESSION_TIMEOUT_MS      90000
 
 // --- Diagnostics ---
 #define TEMP_SENTINEL               0x8000  // reg 20/21 value when a sensor is faulted (-327.68C)

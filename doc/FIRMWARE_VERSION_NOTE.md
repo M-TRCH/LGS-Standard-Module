@@ -2,6 +2,24 @@
 **แพลตฟอร์ม:** STM32F103 (≤ v2.x) / STM32G070 (≥ v3.0.0)
 **ไฟล์:** firmware_stm32f103_*.bin (R4.x) / firmware_stm32g070_*.bin (R5.x)
 
+## v3.5.2 / FW 30502 (2026-09-30) — session OTA อยู่ได้ 90 วิ
+
+> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` — ยังไม่ได้ติดตั้งที่ตู้ไหน (Queen อยู่ที่ v3.5.1 เพื่อพิสูจน์ F1 ก่อน)
+
+### Compatibility
+- ไม่มีการเปลี่ยน settings/stats schema หรือ register map → OTA จาก v3.4.x/v3.5.x ปลอดภัยทั้งบัส
+- แก้แค่ค่าคงที่ตัวเดียว ไม่แตะ path การทำงานปกติ
+
+### Improvements
+- **`OTA_SESSION_TIMEOUT_MS` 30 s → 90 s** (`include/config.h`) — ระหว่าง OTA ของ Queen (2026-09-30)
+  โมดูลที่รับ image ครบแล้วต้องนั่งรอเพื่อนร่วมแชนแนลระหว่างที่ master อ่าน bitmap + re-send chunk
+  ซ่อม (รอบซ่อม 43 chunk + อ่าน state 8 ตัว ≈ 31 วิ) แล้วหมดอายุ session ก่อนถึง FINALIZE
+  (`retry22` log: 102/103/105/106 "session timeout" ทั้งที่ image ครบ) ตัวจับเวลาถูกต่ออายุ
+  ด้วย chunk commit (รวม chunk ซ้ำ) และ FINALIZE เท่านั้น — การอ่าน bitmap/state ไม่ต่อ
+  งบ 90 วิครอบรอบซ่อมเต็มรอบ; session ที่ master ทิ้งค้างจะโชว์จอ OTA 90 วิแทน 30 แล้วกลับ idle เอง
+
+---
+
 ## v3.5.1 / FW 30501 (2026-09-30) — ปิดครึ่งที่เหลือของช่องค้างยาวใน libmodbus
 
 > **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` (61,156 B, sha256 fc9d977f…) — เป้าหมายแรก: ตู้ Queen ทั้ง 64 ตัว (2026-09-30) พิสูจน์ก่อน/หลังด้วย `tools/stall_probe.py` บนโมดูล 101

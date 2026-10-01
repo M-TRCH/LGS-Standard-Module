@@ -38,8 +38,15 @@
 namespace {
 
 uint8_t activePreset = 0;                       // 0 = off, 1-8 = active preset
-uint32_t onSinceMs = 0;                         // millis() when the ring turned on (0 = off)
+uint32_t onSinceMs = 0;                         // start of the on-interval being counted (0 = off)
 uint16_t onTimeMsFrac[MB_LED_PRESET_COUNT] = {}; // sub-second remainder (<1000 ms)
+// When the active preset was switched on — what max-on-time is measured
+// from, and NOTHING else may move it. Up to v3.5.2 max-on-time read
+// onSinceMs, which the hourly statistics flush restarts so the counters do
+// not lose an interval to a power cut: the timeout therefore began again
+// every hour and a 3600 s limit (the default) never fired at all. Found
+// 2026-10-01 by reading the code after nobody had ever seen it fire.
+uint32_t litSinceMs = 0;
 
 // Storage and publication of the counters moved to svc/stats (v3.3.0): this
 // module keeps only the in-flight interval state above and reports whole
@@ -125,6 +132,7 @@ void closeActivePreset()
     mbCoilWrite(mbCoilLedEnable(activePreset), false);
     mbCoilWrite(mbCoilLedDisplay(activePreset), false);
     activePreset = 0;
+    litSinceMs = 0;
 }
 
 // Radio activation: switch the ring to preset n (closing whichever preset
@@ -143,6 +151,7 @@ void activatePreset(uint8_t n)
     activePreset = n;
     statsNoteLedOn(n);
     onSinceMs = millis();
+    litSinceMs = onSinceMs;
 }
 
 // Ring off (from the active preset's coil, max-on-time, or a combo-off).
@@ -157,6 +166,11 @@ void deactivate()
 uint8_t winLitMask = 0;                          // bit n-1 = window n lit
 uint8_t winLastCmd = 0;                          // last window commanded on
 uint32_t winOnSinceMs[MB_LED_PRESET_COUNT] = {}; // 0 = that window is off
+// Per-window lit-since for max-on-time, kept apart from winOnSinceMs for the
+// same reason as litSinceMs: the hourly stats fold restarts winOnSinceMs.
+// On a type-10 cabinet this timeout is the ONLY thing that puts a forgotten
+// window out, so it mattered more here than on the ring.
+uint32_t winLitSinceMs[MB_LED_PRESET_COUNT] = {};
 
 // Repaint the whole lit set from the preset registers. Always the full set,
 // one driver call: partial updates would keep stale colors on screen after
@@ -196,6 +210,7 @@ void windowOn(uint8_t n)
         winLitMask |= bit;
         statsNoteLedOn(n);
         winOnSinceMs[n - 1] = millis();
+        winLitSinceMs[n - 1] = winOnSinceMs[n - 1];
     }
     windowRepaint(); // a re-command refreshes the color, like the ring path
 }
@@ -211,6 +226,7 @@ void windowOff(uint8_t n)
     }
     windowFoldOnTime(n, false);
     winLitMask &= (uint8_t)~bit;
+    winLitSinceMs[n - 1] = 0;
     mbCoilWrite(mbCoilLedEnable(n), false);
     mbCoilWrite(mbCoilLedDisplay(n), false);
     windowRepaint();
@@ -670,21 +686,23 @@ void ledControlTick(uint32_t now)
     {
         for (uint8_t n = 1; n <= MB_LED_PRESET_COUNT; n++)
         {
-            if ((winLitMask & (1u << (n - 1))) == 0 || winOnSinceMs[n - 1] == 0)
+            if ((winLitMask & (1u << (n - 1))) == 0 || winLitSinceMs[n - 1] == 0)
             {
                 continue;
             }
             uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(n) + 4);
-            if (maxOnTimeS > 0 && now - winOnSinceMs[n - 1] > (uint32_t)maxOnTimeS * 1000)
+            if (maxOnTimeS > 0 && now - winLitSinceMs[n - 1] > (uint32_t)maxOnTimeS * 1000)
             {
                 windowOff(n);
             }
         }
     }
-    else if (activePreset != 0 && onSinceMs != 0)
+    else if (activePreset != 0 && litSinceMs != 0)
     {
+        // litSinceMs, not onSinceMs: the statistics flush below restarts
+        // onSinceMs every hour, which used to restart this timeout with it.
         uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(activePreset) + 4);
-        if (maxOnTimeS > 0 && now - onSinceMs > (uint32_t)maxOnTimeS * 1000)
+        if (maxOnTimeS > 0 && now - litSinceMs > (uint32_t)maxOnTimeS * 1000)
         {
             deactivate(); // ring off + coil mirrors cleared (display state untouched)
         }

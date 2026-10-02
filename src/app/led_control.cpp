@@ -704,7 +704,11 @@ void ledControlTick(uint32_t now)
         uint16_t maxOnTimeS = mbRegRead(mbRegLedBase(activePreset) + 4);
         if (maxOnTimeS > 0 && now - litSinceMs > (uint32_t)maxOnTimeS * 1000)
         {
-            deactivate(); // ring off + coil mirrors cleared (display state untouched)
+            // A forgotten pick goes fully dark: the ring AND the count on the
+            // OLED, the same end state a 1010+p OFF leaves. Up to v3.5.3 only
+            // the ring went out and the number stayed on screen.
+            deactivate();
+            displayControlSetEnabled(false);
         }
     }
 

@@ -4,7 +4,7 @@
 
 ## v3.5.3 / FW 30503 (2026-10-01) — max-on-time ดับไฟได้จริง
 
-> **build เท่านั้น ยังไม่ติดตั้งที่ตู้ไหน ยังไม่ release** — image 61,076 B (pio) ใต้เพดาน OTA
+> **build เท่านั้น ยังไม่ติดตั้งที่ตู้ไหน ยังไม่ release** — OTA image `firmware.bin` 61,280 B (เหลือ 160 B ใต้เพดาน 61,440)
 
 ### Bug Fixes
 - **max-on-time ไม่เคยดับไฟที่ค่าเริ่มต้น 3600 วิ** (`app/led_control.cpp`) — ตัวจับเวลาวัดจาก `onSinceMs`
@@ -28,7 +28,10 @@
 
 ## v3.5.2 / FW 30502 (2026-09-30) — session OTA อยู่ได้ 90 วิ
 
-> **OTA ผ่าน RS485**: `.pio/build/LGS_STM32G070CBT6/firmware.bin` — ยังไม่ได้ติดตั้งที่ตู้ไหน (Queen อยู่ที่ v3.5.1 เพื่อพิสูจน์ F1 ก่อน)
+> **RELEASED 2026-10-02** (GitHub release `v3.5.2`, รวม v3.5.1 ที่ไม่เคย release แยก) · ติดตั้งแล้ว: Queen 64 ตัว (ส่งมอบ 2026-10-02),
+> Nar-01 56, Ref-12 40 (2026-10-01) · burn-in Queen 16 ชม. reads 299,860 fails 0 IWDG 0 · **validated เฉพาะบอร์ดวงแหวน
+> type 20** — บอร์ด mask (Ref-12 แถว 2 เงียบหลัง OTA) ยังสอบสวนอยู่ ตู้ mask อยู่ v3.5.0 ไปก่อน · known issue: max-on-time
+> ไม่ดับไฟ (แก้ใน v3.5.3)
 
 ### Compatibility
 - ไม่มีการเปลี่ยน settings/stats schema หรือ register map → OTA จาก v3.4.x/v3.5.x ปลอดภัยทั้งบัส

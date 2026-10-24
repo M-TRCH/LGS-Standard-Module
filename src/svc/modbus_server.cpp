@@ -6,6 +6,11 @@
 #include "drivers/rs485_port.h"
 #include "version.h"
 
+extern "C" {
+#include "libmodbus/modbus-private.h"
+}
+#include "libmodbus/modbus-rtu-private.h"
+
 // ---------------------------------------------------------------------------
 // Modbus data model
 // ---------------------------------------------------------------------------
@@ -52,6 +57,25 @@ public:
         const uint32_t us = gapMs * 1000UL;
         modbus_set_byte_timeout(_mb, 0, us);
         modbus_set_response_timeout(_mb, 0, us);   // must be non-zero
+    }
+
+    // libmodbus' RTU receive is written for a master that sees every
+    // request followed by a reply: after a frame for ANOTHER slave it sets
+    // `confirmation_to_ignore` and throws the NEXT frame away, whatever it
+    // is. On this bus any request that goes unanswered (a dead id, a
+    // stalled module, a frame the hub cut) leaves every other module one
+    // frame out of phase — each eats its OWN next request as the "reply"
+    // and stays silent, and the state is stable until a CRC error or a
+    // power cycle changes the parity. modbusServerTick hands poll() exactly
+    // one frame per call, and the address in every frame (a request or
+    // another slave's reply) is judged on its own, so the flag only ever
+    // does harm: drop it after each poll.
+    void judgeEveryFrame()
+    {
+        if (_mb != nullptr)
+        {
+            ((modbus_rtu_t *)_mb->backend_data)->confirmation_to_ignore = FALSE;
+        }
     }
 };
 
@@ -213,6 +237,7 @@ void modbusServerTick()
     }
 
     const bool served = (RTUServer.poll() != 0);
+    RTUServer.judgeEveryFrame();
     if (served)
     {
         watchScan();

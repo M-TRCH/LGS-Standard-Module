@@ -1,7 +1,10 @@
 # libmodbus "confirmation to ignore" parity fix — test record
 
-Status: **lab-tested, not released.** Built as FW 30599 (`-DFW_VERSION=30599`, `version.h` untouched, still 30504)
-so a patched module cannot be mistaken for a released one. A real version number is a separate decision.
+Status: **released as v3.5.5 / FW 30505 (2026-10-26).** The bench A/B below ran on lab images built as FW 30599
+(`-DFW_VERSION=30599`) with identical code, so a patched module could not be mistaken for a released one; the 24 bench
+modules were later OTA'd to 30505. Two whole-cabinet soaks followed on all 12 bench cabinets with 30505 everywhere
+(14.3 h + 24.7 h, ~14 M reads): the 11 cabinets without a wiring fault logged no slow event and no first-try miss at the
+gateway, Ref-12 stayed at ~0.6 slow events/h (electrical, row 2).
 
 ## The bug
 `_modbus_rtu_receive()` in the bundled ArduinoModbus 1.0.9 libmodbus sets `confirmation_to_ignore` after a frame
@@ -48,7 +51,6 @@ can only do harm. Cost: +16 B flash (OTA image 61,304 B, 136 B under the 61,440 
 - A module that is genuinely stalled (hourly AT24 stats flush, 25–60 ms) still answers late; the gateway's
   `rs485.t2_ms`/reply window absorbs that, not this patch.
 
-## Roll-out checklist (not done)
-- Decide the version number, update `FIRMWARE_VERSION_NOTE.md`, build the factory image.
-- Keep the 3.5.4 image for rollback; OTA ~479 chunks per channel group.
-- 24 bench modules currently run 30599 (see the cabinet plan in the gateway test records).
+## Roll-out
+- Done: bench cabinets (12). Not done: Queen and the hospital cabinets (separate go).
+- Keep the 3.5.4 image for rollback; OTA ~479 chunks per channel group, 22-26 min per cabinet.

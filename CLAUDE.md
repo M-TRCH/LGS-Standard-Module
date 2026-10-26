@@ -91,6 +91,13 @@ underflows and instantly expires delays / max-on-time).
   That is what stops a stray flash renumbering a cabinet in service, and it is why an OTA image —
   which is never patched — can never disturb an ID.
 
+- **`LgsRtuServer::judgeEveryFrame()` must keep running after every `poll()`** (`svc/modbus_server.cpp`). ArduinoModbus 1.0.9's
+  libmodbus sets `confirmation_to_ignore` after any frame for another slave and throws the NEXT frame away, which on our
+  multi-drop channels turns one unanswered request (dead id, stalled module, hub-cut frame) into modules that eat their own
+  requests until a CRC error or power cut changes the parity. Clearing the flag is the whole fix (v3.5.5; evidence in
+  `doc/PARITY_FIX_NOTE.md`); it reaches into `modbus_rtu_t` through the library's private header, so re-check it on any
+  ArduinoModbus bump. The OTA image has **136 B** of headroom under the 61,440 B cap at v3.5.5 — budget before adding code.
+
 ## Add a feature (recipe)
 
 New Modbus command = add the address to `svc/modbus_map.h` (+`static_assert`) and a row to
